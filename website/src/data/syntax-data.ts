@@ -30,11 +30,11 @@ export const syntax: SyntaxSection[] = [
   {
     id: 'drum',
     body:
-      '`drum`은 드럼 패턴을 격자로 표현한다. 각 내용 줄은 `<voice> | <pattern> |` 형태이며, 패턴의 각 문자가 한 스텝이다. `x`는 타격, `-`는 쉼. 기본 voice 이름은 `HH`(하이햇), `SD`(스네어), `BD`(킥).',
+      '`drum`은 드럼 패턴을 격자로 표현한다. 각 내용 줄은 `<voice> | <pattern> |` 형태이며, 패턴의 각 문자가 한 스텝이다. `x`는 타격, `-`는 쉼. voice 키는 `HH`(하이햇), `SN`(스네어), `KK`(킥), `TM`(톰), `CR`(크래시), `RD`(라이드).',
     examples: [
       {
         label: '기본 락 비트',
-        code: 'drum 4/4\n  HH | x-x-x-x-x-x-x-x- |\n  SD | ----x-------x--- |\n  BD | x-------x------- |',
+        code: 'drum 4/4\n  HH | x-x-x-x-x-x-x-x- |\n  SN | ----x-------x--- |\n  KK | x-------x------- |',
       },
     ],
   },

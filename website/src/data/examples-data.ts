@@ -37,7 +37,7 @@ export const examples: ExampleCategory[] = [
         id: 'rock',
         title: 'Basic rock pattern',
         source:
-          'drum 4/4\n  HH | x-x-x-x-x-x-x-x- |\n  SD | ----x-------x--- |\n  BD | x-------x------- |',
+          'drum 4/4\n  HH | x-x-x-x-x-x-x-x- |\n  SN | ----x-------x--- |\n  KK | x-------x------- |',
       },
     ],
   },
