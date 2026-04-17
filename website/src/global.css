@@ -93,6 +93,10 @@ h4 {
   gap: 1.5em;
 }
 
+.grid > * {
+  min-width: 0;
+}
+
 .grid--2 {
   grid-template-columns: 1fr 1fr;
 }
@@ -195,6 +199,12 @@ code {
   background: none;
   padding: 0;
   font-size: inherit;
+}
+
+.code-block pre,
+.code-block code {
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
 .tabs {
