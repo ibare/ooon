@@ -142,6 +142,9 @@ importers:
       '@oon/projector-web':
         specifier: workspace:*
         version: link:../packages/projector-web
+      '@oon/shared':
+        specifier: workspace:*
+        version: link:../packages/shared
       react:
         specifier: ^19.0.0
         version: 19.2.5
@@ -154,6 +157,9 @@ importers:
       shiki:
         specifier: ^4.0.2
         version: 4.0.2
+      tone:
+        specifier: ^15.0.4
+        version: 15.1.22
     devDependencies:
       '@oon/tsconfig':
         specifier: workspace:*

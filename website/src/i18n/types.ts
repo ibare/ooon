@@ -50,6 +50,8 @@ export interface Dictionary {
     sub: string;
     source_label: string;
     render_label: string;
+    play: string;
+    stop: string;
     categories: Record<string, string>;
   };
   syntaxPage: {

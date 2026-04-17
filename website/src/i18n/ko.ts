@@ -60,6 +60,8 @@ export const ko: Dictionary = {
     sub: 'DSL 원본과 렌더링 결과를 나란히 본다',
     source_label: 'DSL',
     render_label: '렌더',
+    play: '재생',
+    stop: '정지',
     categories: {
       score: '악보',
       drum: '드럼',

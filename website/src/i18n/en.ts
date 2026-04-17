@@ -60,6 +60,8 @@ export const en: Dictionary = {
     sub: 'DSL source and rendered output, side by side',
     source_label: 'DSL',
     render_label: 'Render',
+    play: 'Play',
+    stop: 'Stop',
     categories: {
       score: 'Score',
       drum: 'Drums',

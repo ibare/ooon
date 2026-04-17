@@ -1,5 +1,6 @@
 import { Link, useParams } from 'react-router-dom';
 import CodeBlock from '../components/CodeBlock';
+import PlayButton from '../components/PlayButton';
 import RenderBlock from '../components/RenderBlock';
 import { examples } from '../data/examples-data';
 import { useLang } from '../i18n/context';
@@ -35,7 +36,18 @@ export default function Examples() {
         <div style={{ display: 'grid', gap: '2.5em' }}>
           {active?.items.map((item) => (
             <article key={item.id}>
-              <h3 style={{ fontSize: '1.1em', marginBottom: '0.8em' }}>{item.title}</h3>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: '1em',
+                  marginBottom: '0.8em',
+                }}
+              >
+                <h3 style={{ fontSize: '1.1em' }}>{item.title}</h3>
+                {active.id !== 'fretboard' && <PlayButton source={item.source} />}
+              </div>
               <div className="grid grid--2">
                 <div>
                   <div
