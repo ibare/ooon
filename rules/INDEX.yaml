@@ -1,0 +1,120 @@
+# rules/INDEX.yaml
+# Rule Registry — 트리거 조건에 따라 로드할 규칙 결정
+#
+# Trigger types:
+#   paths:    파일 경로 glob 패턴
+#   patterns: 코드에서 발견되는 문자열/정규식
+#   imports:  import/require 문에 포함된 모듈명
+#   events:   작업 유형 (create-file, rename-file, add-dependency 등)
+
+# ─────────────────────────────────────
+# Always loaded
+# ─────────────────────────────────────
+always:
+  - file: principles.md
+    description: 모든 코드에 적용되는 핵심 원칙
+
+# ─────────────────────────────────────
+# Concerns (Cross-cutting)
+# ─────────────────────────────────────
+concerns:
+  - id: C1
+    file: concerns/C1-package-structure.md
+    description: 패키지 구조와 네이밍 (packages/*, docs/*, src/, dist/)
+    triggers:
+      events: [create-file, rename-file, create-package]
+      paths:
+        - "packages/**"
+        - "docs/**"
+        - "**/package.json"
+        - "**/tsconfig.json"
+        - "pnpm-workspace.yaml"
+
+  - id: C2
+    file: concerns/C2-public-api.md
+    description: Public API, index.ts, package.json exports
+    triggers:
+      paths:
+        - "packages/**/src/index.ts"
+        - "packages/**/package.json"
+      patterns:
+        - "export \\*"
+        - "export \\{"
+        - "from ['\"]\\.\\./"
+      imports:
+        - "@oon/"
+
+  - id: C3
+    file: concerns/C3-dependencies.md
+    description: 의존성 선언, workspace 프로토콜, 순환 의존 방지
+    triggers:
+      events: [add-dependency, update-dependency]
+      paths:
+        - "**/package.json"
+        - "pnpm-workspace.yaml"
+        - "pnpm-lock.yaml"
+
+  - id: C4
+    file: concerns/C4-build-and-publish.md
+    description: 빌드 산출물, exports/files, semver, publish
+    triggers:
+      paths:
+        - "**/tsconfig*.json"
+        - "**/package.json"
+        - "**/tsup.config.*"
+        - "**/rollup.config.*"
+        - "**/vite.config.*"
+        - ".changeset/**"
+        - ".github/workflows/**"
+
+  - id: C5
+    file: concerns/C5-config-centralization.md
+    description: 공용 tsconfig/eslint/설정, 상수/환경변수 중앙화
+    triggers:
+      paths:
+        - "**/tsconfig*.json"
+        - "**/.eslintrc*"
+        - "**/eslint.config.*"
+        - "**/prettier.config.*"
+        - "**/.prettierrc*"
+      patterns:
+        - "process\\.env\\."
+
+  - id: C6
+    file: concerns/C6-error-handling.md
+    description: 에러 처리, 전파, 커스텀 에러 타입
+    triggers:
+      patterns:
+        - "try \\{"
+        - "catch \\("
+        - "throw "
+        - "\\.catch\\("
+        - "Promise\\.reject"
+
+  - id: C7
+    file: concerns/C7-testing.md
+    description: 테스트 작성 원칙, 격리, 결정성
+    triggers:
+      paths:
+        - "**/*.test.ts"
+        - "**/*.test.tsx"
+        - "**/*.spec.ts"
+        - "**/__tests__/**"
+        - "**/vitest.config.*"
+        - "**/jest.config.*"
+
+  - id: C8
+    file: concerns/C8-docs-site.md
+    description: 문서 사이트 (GitHub Pages), API 문서 동기화
+    triggers:
+      paths:
+        - "docs/**"
+        - ".github/workflows/pages*.yml"
+        - ".github/workflows/docs*.yml"
+
+# ─────────────────────────────────────
+# Specifics (Domain-specific)
+# ─────────────────────────────────────
+# 새 프로젝트로 아직 도메인별 규칙은 없음.
+# 도메인이 정해지는 시점에 S-{도메인}.md로 추가한다.
+specifics: []

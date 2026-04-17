@@ -1,0 +1,28 @@
+{
+  "name": "@oon/demo",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Oon 데모 앱 (Vite)",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@oon/core": "workspace:*",
+    "@oon/plugin-tiptap": "workspace:*",
+    "@oon/projector-web": "workspace:*",
+    "@oon/shared": "workspace:*",
+    "@tiptap/core": "^2.6.6",
+    "@tiptap/pm": "^2.6.6",
+    "@tiptap/starter-kit": "^2.6.6",
+    "tone": "^15.0.4"
+  },
+  "devDependencies": {
+    "@oon/tsconfig": "workspace:*",
+    "typescript": "^5.5.4",
+    "vite": "^5.4.2"
+  }
+}

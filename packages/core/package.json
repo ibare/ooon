@@ -1,0 +1,32 @@
+{
+  "name": "@oon/core",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Oon 핵심 엔진 — DSL 파서, AST, 음악 이론, 레이아웃 (플랫폼 독립)",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": ["dist", "README.md"],
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "clean": "rm -rf dist .tsbuildinfo"
+  },
+  "dependencies": {
+    "@oon/shared": "workspace:*"
+  },
+  "devDependencies": {
+    "@oon/tsconfig": "workspace:*",
+    "tsup": "^8.2.4",
+    "typescript": "^5.5.4",
+    "vitest": "^2.1.1"
+  }
+}

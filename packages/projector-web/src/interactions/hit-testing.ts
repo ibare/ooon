@@ -1,0 +1,18 @@
+import type { HitArea, Point } from '@oon/shared';
+
+export function hitTest(areas: readonly HitArea[], point: Point): HitArea | undefined {
+  for (let i = areas.length - 1; i >= 0; i--) {
+    const a = areas[i];
+    if (!a) continue;
+    const r = a.rect;
+    if (point.x >= r.x && point.x <= r.x + r.width && point.y >= r.y && point.y <= r.y + r.height) {
+      return a;
+    }
+  }
+  return undefined;
+}
+
+export function canvasPointFromEvent(canvas: HTMLCanvasElement, clientX: number, clientY: number): Point {
+  const rect = canvas.getBoundingClientRect();
+  return { x: clientX - rect.left, y: clientY - rect.top };
+}

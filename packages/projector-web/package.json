@@ -1,0 +1,37 @@
+{
+  "name": "@oon/projector-web",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Oon 웹 프로젝터 — Canvas 2D 렌더러 + Tone.js 오디오 엔진",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": ["dist", "README.md"],
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "clean": "rm -rf dist .tsbuildinfo"
+  },
+  "dependencies": {
+    "@oon/core": "workspace:*",
+    "@oon/shared": "workspace:*"
+  },
+  "peerDependencies": {
+    "tone": ">=15.0.0"
+  },
+  "devDependencies": {
+    "@oon/tsconfig": "workspace:*",
+    "tone": "^15.0.4",
+    "tsup": "^8.2.4",
+    "typescript": "^5.5.4",
+    "vitest": "^2.1.1"
+  }
+}
