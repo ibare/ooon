@@ -4,6 +4,7 @@ export const ko: Dictionary = {
   nav: {
     home: '홈',
     examples: '예제',
+    showcase: '쇼케이스',
     syntax: '문법',
     github: 'GitHub',
   },
@@ -69,6 +70,19 @@ export const ko: Dictionary = {
       fretboard: '운지',
       song: '곡',
       inline: '인라인',
+    },
+  },
+  showcasePage: {
+    title: '쇼케이스',
+    sub: '12마디 블루스부터 보사노바까지 — 모든 장르를 Oon으로 표현한다',
+    source_label: 'DSL',
+    render_label: '렌더',
+    genres: {
+      blues: '블루스',
+      jazz: '재즈',
+      pop: '팝',
+      rock: '록',
+      bossa: '보사노바',
     },
   },
   syntaxPage: {

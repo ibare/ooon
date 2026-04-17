@@ -8,6 +8,7 @@ import { detectLanguage } from './i18n/detect';
 import type { Lang } from './i18n/types';
 
 const Examples = lazy(() => import('./pages/Examples'));
+const Showcase = lazy(() => import('./pages/Showcase'));
 const Syntax = lazy(() => import('./pages/Syntax'));
 
 function LangRoot() {
@@ -42,6 +43,8 @@ function LangShell() {
               <Route index element={<Home />} />
               <Route path="examples" element={<Examples />} />
               <Route path="examples/:category" element={<Examples />} />
+              <Route path="showcase" element={<Showcase />} />
+              <Route path="showcase/:genre" element={<Showcase />} />
               <Route path="syntax" element={<Syntax />} />
               <Route path="syntax/:section" element={<Syntax />} />
               <Route path="*" element={<Navigate to={`/${validLang}/`} replace />} />

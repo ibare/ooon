@@ -10,6 +10,7 @@ export default function Nav() {
 
   const navItems: { to: string; label: string }[] = [
     { to: 'examples', label: t.nav.examples },
+    { to: 'showcase', label: t.nav.showcase },
     { to: 'syntax', label: t.nav.syntax },
   ];
 

@@ -4,6 +4,7 @@ export const en: Dictionary = {
   nav: {
     home: 'Home',
     examples: 'Examples',
+    showcase: 'Showcase',
     syntax: 'Syntax',
     github: 'GitHub',
   },
@@ -69,6 +70,19 @@ export const en: Dictionary = {
       fretboard: 'Fretboard',
       song: 'Song',
       inline: 'Inline',
+    },
+  },
+  showcasePage: {
+    title: 'Showcase',
+    sub: 'Oon expresses any genre — from 12-bar blues to bossa nova',
+    source_label: 'DSL',
+    render_label: 'Render',
+    genres: {
+      blues: 'Blues',
+      jazz: 'Jazz',
+      pop: 'Pop',
+      rock: 'Rock',
+      bossa: 'Bossa Nova',
     },
   },
   syntaxPage: {

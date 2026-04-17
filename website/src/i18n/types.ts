@@ -9,6 +9,7 @@ export interface Dictionary {
   nav: {
     home: string;
     examples: string;
+    showcase: string;
     syntax: string;
     github: string;
   };
@@ -53,6 +54,13 @@ export interface Dictionary {
     play: string;
     stop: string;
     categories: Record<string, string>;
+  };
+  showcasePage: {
+    title: string;
+    sub: string;
+    source_label: string;
+    render_label: string;
+    genres: Record<string, string>;
   };
   syntaxPage: {
     title: string;
