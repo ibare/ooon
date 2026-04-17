@@ -1,0 +1,105 @@
+# 의존성
+node_modules/
+.pnp
+.pnp.js
+.pnp.cjs
+.yarn/install-state.gz
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+
+# 빌드 결과물
+dist/
+build/
+out/
+lib/
+es/
+esm/
+cjs/
+umd/
+types/
+*.tsbuildinfo
+.tsbuildinfo
+
+# Next.js / Nuxt / Vite 등 프레임워크 결과물
+.next/
+.nuxt/
+.vite/
+.turbo/
+.parcel-cache/
+.svelte-kit/
+.astro/
+
+# 테스트 및 커버리지
+coverage/
+.nyc_output/
+*.lcov
+__snapshots__/
+
+# 캐시
+.cache/
+.eslintcache
+.stylelintcache
+.prettiercache
+.rollup.cache/
+.swc/
+
+# 로그
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+.pnpm-debug.log*
+
+# 환경 변수
+.env
+.env.local
+.env.*.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# 에디터 / IDE
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+# 배포 / 릴리스
+.vercel
+.netlify
+.firebase/
+.serverless/
+
+# 기타
+*.tgz
+.npm
+.node_repl_history
+.yarnrc
+
+# 작업 폴더
+tasks/
