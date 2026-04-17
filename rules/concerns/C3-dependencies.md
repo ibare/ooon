@@ -15,7 +15,7 @@ last_verified: 2026-04-17
 - 라이브러리 패키지가 호스트에 위임해야 하는 의존성(예: `react`, `vue`)은 `peerDependencies`로 선언한다
 - 빌드/테스트/린트용 도구는 `devDependencies`에 선언한다
 - 런타임에 실제로 import되는 의존성만 `dependencies`에 둔다
-- 의존성 방향은 레이어를 준수한다: `apps/docs` → `packages/*` → `configs/*`. 역방향 금지
+- 의존성 방향은 레이어를 준수한다: `website/`·`docs/` → `packages/*` → `configs/*`. 역방향 금지
 
 ## MUST NOT
 - 순환 의존(A → B → A)을 만들지 않는다

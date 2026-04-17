@@ -13,11 +13,12 @@ last_verified: 2026-04-17
 ## MUST
 - 라이브러리 패키지는 `packages/*`에 위치한다
 - 내부 공용 패키지는 `packages/*` 또는 `configs/*` 중 하나의 규약을 따르며, 프로젝트 내에서 위치 규약은 일관되어야 한다
-- 문서 사이트(GitHub Pages용 웹페이지)는 `docs/`에 위치한다
+- GitHub Pages로 호스팅되는 공개 사이트는 저장소 루트의 `website/`에 단일 앱으로 위치한다
+- 내부 설계/자료 문서(공개 사이트가 아닌 것)는 저장소 루트의 `docs/`에 둔다
 - 모든 패키지는 `package.json`, `tsconfig.json`, `README.md`를 포함한다
 - 패키지 이름은 스코프를 사용한다 (예: `@oon/*`). 공개 여부는 `publishConfig` 또는 `private: true`로 제어한다
 - 소스 코드는 `src/`에, 빌드 결과물은 `dist/`에 둔다
-- 진입점은 `src/index.ts`로 통일한다
+- 라이브러리 패키지의 진입점은 `src/index.ts`로 통일한다. 앱(`website/` 등)의 진입점은 프레임워크 관례에 따른다 (예: React는 `src/main.tsx`)
 
 ## MUST NOT
 - 패키지 루트에 소스 파일(`*.ts`)을 직접 두지 않는다. `src/` 밖에 소스 코드를 두지 않는다

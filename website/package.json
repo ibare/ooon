@@ -1,0 +1,34 @@
+{
+  "name": "@oon/website",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Oon 공개 사이트 (GitHub Pages)",
+  "type": "module",
+  "scripts": {
+    "dev": "pnpm run prebuild && vite",
+    "prebuild": "tsx scripts/copy-bravura.ts",
+    "build": "pnpm run prebuild && tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist node_modules/.vite public/fonts/Bravura.woff2"
+  },
+  "dependencies": {
+    "@oon/core": "workspace:*",
+    "@oon/projector-web": "workspace:*",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-router-dom": "^7.6.2",
+    "shiki": "^4.0.2"
+  },
+  "devDependencies": {
+    "@oon/tsconfig": "workspace:*",
+    "@types/node": "^20.10.5",
+    "@vexflow-fonts/bravura": "^1.0.2",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    "tsx": "^4.21.0",
+    "typescript": "^5.5.4",
+    "vite": "^6.0.7"
+  }
+}

@@ -9,7 +9,7 @@
   },
   "scripts": {
     "build": "pnpm --filter \"./packages/**\" build",
-    "dev": "pnpm --filter @oon/demo dev",
+    "dev": "pnpm --filter @oon/website dev",
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "pnpm -r typecheck",

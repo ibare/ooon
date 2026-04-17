@@ -105,12 +105,14 @@ concerns:
 
   - id: C8
     file: concerns/C8-docs-site.md
-    description: 문서 사이트 (GitHub Pages), API 문서 동기화
+    description: 공개 사이트(website/)와 내부 문서(docs/), API 문서 동기화
     triggers:
       paths:
+        - "website/**"
         - "docs/**"
         - ".github/workflows/pages*.yml"
         - ".github/workflows/docs*.yml"
+        - ".github/workflows/deploy-website*.yml"
 
 # ─────────────────────────────────────
 # Specifics (Domain-specific)
