@@ -1,5 +1,13 @@
 import { ENGRAVING, GLYPHS, type Sp, type GlyphName } from '@oon/smufl-asset';
-import { parsePitch, pitchToMidi, SMUFL, type NoteEvent, type ScoreNode } from '@oon/core';
+import {
+  parsePitch,
+  pitchToMidi,
+  SMUFL,
+  type NoteEvent,
+  type ScoreBar,
+  type ScoreNode,
+  type TimeSignature,
+} from '@oon/core';
 import type {
   ScoreBarLayout,
   ScoreBeam,
@@ -8,6 +16,7 @@ import type {
   ScoreLayout,
   ScoreNoteLayout,
   ScoreStaff,
+  ScoreSystemLayout,
   ScoreTimeSig,
 } from './types.js';
 import {
@@ -34,39 +43,37 @@ export interface ScoreLayoutOptions {
   clefWidth?: number;
   timeSigWidth?: number;
   barPadding?: number;
+  /**
+   * 'auto'면 가용폭 초과 시 새 system으로 자동 분할(매 system 시작에 clef/keySig/timeSig 반복).
+   * 'none'이면 모든 마디를 단일 system에 욱여넣는다(=기존 동작).
+   * 기본값 'auto'.
+   */
+  wrap?: 'auto' | 'none';
+  /** system 간 수직 간격(px). */
+  systemGap?: number;
 }
 
 const sp = (n: number): Sp => n as Sp;
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 단위 규약
+// 단위 규약 — 모든 sp(staff space) 기반. layout 결과는 px.
+// pxPerSp = lineGap (보표 한 칸의 px 크기).
 // ─────────────────────────────────────────────────────────────────────────────
-// SMuFL 명세대로 staff space(sp)를 단위로 한다. 1 sp = 보표 한 칸.
-// 본 모듈은 layout 결과를 px로 반환하므로 마지막 단계에서만 `pxPerSp`를 곱한다.
-// `pxPerSp`는 옵션으로 받은 `lineGap`(보표 한 칸의 px 크기)과 동일하다.
+const STAFF_HALF_HEIGHT_SP = sp(2);
+const STAFF_HEIGHT_SP = sp(4);
+const STEM_LENGTH_SP = sp(3.5);
 
-// ─────────────────────────────────────────────────────────────────────────────
-// 수직 배치 상수 (sp)
-// ─────────────────────────────────────────────────────────────────────────────
-const STAFF_HALF_HEIGHT_SP = sp(2); // 보표 가운데에서 위/아래 끝까지 2 sp
-const STAFF_HEIGHT_SP = sp(4); // 보표 전체 높이 4 sp (5선 4칸)
-const STEM_LENGTH_SP = sp(3.5); // 표준 stem 길이
+const CLEF_LEFT_PAD_SP = sp(1.0);
+const BAR_INNER_PAD_SP = sp(0.8);
+const RIGHT_MARGIN_SP = sp(1.0);
+const HEIGHT_PADDING_SP = sp(6.0); // 보표 아래 여유(음이름 표시 영역 등)
+const TOP_PADDING_SP = sp(2.0); // 보표 위 여유(ledger lines 영역 등)
+const DOT_GAP_SP = sp(0.25);
+const ACCIDENTAL_X_OFFSET_SP = sp(1.2);
+const KEY_SIG_LEFT_PAD_SP = sp(0.4);
+const KEY_SIG_GLYPH_GAP_SP = sp(0.1);
+const KEY_SIG_RIGHT_PAD_SP = sp(0.6);
 
-// ─────────────────────────────────────────────────────────────────────────────
-// 수평 배치 상수 (sp). clefWidth/timeSigWidth는 spacing pass의 메타데이터 기반
-// 기본값을 사용하고, 사용자가 옵션으로 override할 수 있다.
-// ─────────────────────────────────────────────────────────────────────────────
-const CLEF_LEFT_PAD_SP = sp(1.0); // 보표 좌단 → 음자리표 시작
-const BAR_INNER_PAD_SP = sp(0.8); // 마디 안쪽 좌우 여백
-const RIGHT_MARGIN_SP = sp(1.0); // 보표 우단 여백
-const HEIGHT_PADDING_SP = sp(6.0); // 보표 아래 여유 높이 (음표 이름 등)
-const DOT_GAP_SP = sp(0.25); // augmentation dot ↔ notehead 우측 끝 사이 간격
-const ACCIDENTAL_X_OFFSET_SP = sp(1.2); // 임시표 → 머리 좌측 거리
-const KEY_SIG_LEFT_PAD_SP = sp(0.4); // 음자리표 끝 → 첫 키사인 글리프
-const KEY_SIG_GLYPH_GAP_SP = sp(0.1); // 키사인 글리프 간 여백
-const KEY_SIG_RIGHT_PAD_SP = sp(0.6); // 마지막 키사인 → 박자표
-
-// 정렬용 step 계산
 const LETTER_STEP: Record<string, number> = { C: 0, D: 1, E: 2, F: 3, G: 4, A: 5, B: 6 };
 
 function letterStep(letter: string, octave: number): number {
@@ -77,7 +84,6 @@ function letterStep(letter: string, octave: number): number {
 
 const B4_STEP = letterStep('B', 4);
 
-// 표준 treble 조표 위치(샤프/플랫 각 7개 순서 — F#,C#,...; Bb,Eb,...).
 const SHARP_KEY_STEPS: readonly number[] = [
   letterStep('F', 5),
   letterStep('C', 5),
@@ -105,23 +111,33 @@ interface KeySigVerticalCtx {
   b4Step: number;
 }
 
+// 키사인 글리프 개수와 모드 산출. width 계산과 글리프 배치에 공통 사용.
+function keySigShape(map: KeySignatureMap): { count: number; isFlats: boolean } {
+  let sharpCount = 0;
+  for (const l of SHARPS_ORDER) if (map[l] === 1) sharpCount += 1;
+  let flatCount = 0;
+  for (const l of FLATS_ORDER) if (map[l] === -1) flatCount += 1;
+  const isFlats = flatCount > 0 && sharpCount === 0;
+  return { count: isFlats ? flatCount : sharpCount, isFlats };
+}
+
+function computeKeySigWidthPx(map: KeySignatureMap, pxPerSp: number): number {
+  const { count, isFlats } = keySigShape(map);
+  if (count === 0) return 0;
+  const glyphInfo = isFlats ? GLYPHS.accidentalFlat : GLYPHS.accidentalSharp;
+  const stepPerGlyphPx = (glyphInfo.advanceWidth + KEY_SIG_GLYPH_GAP_SP) * pxPerSp;
+  const leftPadPx = KEY_SIG_LEFT_PAD_SP * pxPerSp;
+  return leftPadPx + count * stepPerGlyphPx + (KEY_SIG_RIGHT_PAD_SP - KEY_SIG_GLYPH_GAP_SP) * pxPerSp;
+}
+
 function buildKeySig(
   map: KeySignatureMap,
   startX: number,
   ctx: KeySigVerticalCtx,
   pxPerSp: number,
-): { glyphs: ScoreGlyph[]; width: number } {
-  let sharpCount = 0;
-  for (const l of SHARPS_ORDER) {
-    if (map[l] === 1) sharpCount += 1;
-  }
-  let flatCount = 0;
-  for (const l of FLATS_ORDER) {
-    if (map[l] === -1) flatCount += 1;
-  }
-  const isFlats = flatCount > 0 && sharpCount === 0;
-  const count = isFlats ? flatCount : sharpCount;
-  if (count === 0) return { glyphs: [], width: 0 };
+): ScoreGlyph[] {
+  const { count, isFlats } = keySigShape(map);
+  if (count === 0) return [];
 
   const positions = isFlats ? FLAT_KEY_STEPS : SHARP_KEY_STEPS;
   const glyphChar = isFlats ? SMUFL.accidentalFlat : SMUFL.accidentalSharp;
@@ -136,8 +152,7 @@ function buildKeySig(
     const x = startX + leftPadPx + i * stepPerGlyphPx;
     glyphs.push({ x, y, glyph: glyphChar });
   }
-  const width = leftPadPx + count * stepPerGlyphPx + (KEY_SIG_RIGHT_PAD_SP - KEY_SIG_GLYPH_GAP_SP) * pxPerSp;
-  return { glyphs, width };
+  return glyphs;
 }
 
 function accidentalGlyph(kind: AccidentalKind): string | null {
@@ -157,64 +172,94 @@ function accidentalGlyph(kind: AccidentalKind): string | null {
   }
 }
 
-export function calculateScoreLayout(node: ScoreNode, opts: ScoreLayoutOptions): ScoreLayout {
-  const width = opts.width;
-  const pxPerSp = opts.lineGap ?? 10;
-  const lineGap = pxPerSp;
+// 마디의 최소 폭(px) 추정. 음표마다 noteRequiredWidth(sp)*pxPerSp 합 + 좌우 inner padding.
+function estimateMinBarWidthPx(
+  bar: ScoreBar,
+  keySig: KeySignatureMap,
+  pxPerSp: number,
+  barPaddingPx: number,
+): number {
+  const accDecisions = resolveAccidentals(bar.notes, keySig);
+  let sum = 0;
+  for (let i = 0; i < bar.notes.length; i += 1) {
+    const note = bar.notes[i]!;
+    const kind = accDecisions[i]?.kind ?? null;
+    sum += noteRequiredWidth(note, kind) * pxPerSp;
+  }
+  return sum + barPaddingPx * 2;
+}
+
+interface SystemBuildArgs {
+  systemIndex: number;
+  staffCenterY: number;
+  bars: readonly ScoreBar[];
+  systemWidth: number;
+  pxPerSp: number;
+  clefWidthPx: number;
+  keySigWidthPx: number;
+  timeSigWidthPx: number;
+  barPaddingPx: number;
+  keySig: KeySignatureMap;
+  timeSignature: TimeSignature;
+}
+
+function buildSystem(args: SystemBuildArgs): ScoreSystemLayout {
+  const {
+    systemIndex,
+    staffCenterY,
+    bars,
+    systemWidth,
+    pxPerSp,
+    clefWidthPx,
+    keySigWidthPx,
+    timeSigWidthPx,
+    barPaddingPx,
+    keySig,
+    timeSignature,
+  } = args;
 
   const halfStepPx = 0.5 * pxPerSp;
-  const staffTopY = (opts.staffY ?? 40) - STAFF_HALF_HEIGHT_SP * pxPerSp;
+  const staffTopY = staffCenterY - STAFF_HALF_HEIGHT_SP * pxPerSp;
   const staffBottomY = staffTopY + STAFF_HEIGHT_SP * pxPerSp;
-  const centerY = staffTopY + STAFF_HALF_HEIGHT_SP * pxPerSp;
 
   const staff: ScoreStaff = {
-    y: centerY,
+    y: staffCenterY,
     top: staffTopY,
     bottom: staffBottomY,
-    lineGap,
+    lineGap: pxPerSp,
     lines: [0, 1, 2, 3, 4].map((i) => staffTopY + i * pxPerSp),
   };
 
   const clefX = CLEF_LEFT_PAD_SP * pxPerSp;
-  const clef: ScoreGlyph = { x: clefX, y: centerY + pxPerSp, glyph: SMUFL.gClef };
-
-  const clefWidthPx = opts.clefWidth ?? defaultClefWidthSp() * pxPerSp;
+  const clef: ScoreGlyph = { x: clefX, y: staffCenterY + pxPerSp, glyph: SMUFL.gClef };
   const clefEndX = clefX + clefWidthPx;
 
-  const keySig = parseKeySignature(node.key);
-  const verticalCtx = {
-    centerY,
+  const verticalCtx: KeySigVerticalCtx = {
+    centerY: staffCenterY,
     staffTopY,
     staffBottomY,
     pxPerSp,
     b4Step: B4_STEP,
   };
-  const { glyphs: keySigGlyphs, width: keySigWidth } = buildKeySig(
-    keySig,
-    clefEndX,
-    verticalCtx,
-    pxPerSp,
-  );
+  const keySigGlyphs = buildKeySig(keySig, clefEndX, verticalCtx, pxPerSp);
 
-  const timeSigX = clefEndX + keySigWidth;
-  const timeSigWidthPx = opts.timeSigWidth ?? defaultTimeSigWidthSp() * pxPerSp;
+  const timeSigX = clefEndX + keySigWidthPx;
   const timeSig: ScoreTimeSig = {
     x: timeSigX,
-    topGlyph: SMUFL.timeSigDigit(node.timeSignature.beats),
+    topGlyph: SMUFL.timeSigDigit(timeSignature.beats),
     topY: staffTopY + pxPerSp,
-    bottomGlyph: SMUFL.timeSigDigit(node.timeSignature.beatValue),
+    bottomGlyph: SMUFL.timeSigDigit(timeSignature.beatValue),
     bottomY: staffTopY + pxPerSp * 3,
   };
 
   const contentStart = timeSigX + timeSigWidthPx;
-  const available = width - contentStart - RIGHT_MARGIN_SP * pxPerSp;
-  const barCount = Math.max(node.bars.length, 1);
+  const available = systemWidth - contentStart - RIGHT_MARGIN_SP * pxPerSp;
+  const barCount = Math.max(bars.length, 1);
   const barWidth = available / barCount;
-  const barPaddingPx = opts.barPadding ?? BAR_INNER_PAD_SP * pxPerSp;
 
   const stemCtx = { pxPerSp, stemLengthSp: STEM_LENGTH_SP };
 
-  const bars: ScoreBarLayout[] = node.bars.map((bar, barIdx) => {
+  const layoutBars: ScoreBarLayout[] = bars.map((bar, barIdx) => {
     const barX = contentStart + barIdx * barWidth;
     const barlineX = barX + barWidth;
     const innerX = barX + barPaddingPx;
@@ -227,15 +272,12 @@ export function calculateScoreLayout(node: ScoreNode, opts: ScoreLayoutOptions):
     );
     const slots = distributeNotes(beatsList, requiredWidthsPx, innerWidth);
 
-    // 슬롯은 좌측 정렬이라 마지막 슬롯의 trailing 잉여가 마디선 직전에 모두 몰린다.
-    // 잉여의 절반만큼 모든 offset을 우측 시프트해 좌우 시각 균형을 맞춘다.
     const lastSlot = slots[slots.length - 1];
     const lastRequired = requiredWidthsPx[requiredWidthsPx.length - 1] ?? 0;
     const trailingResidual = lastSlot ? Math.max(0, lastSlot.slotWidth - lastRequired) : 0;
     const leadingShift = trailingResidual / 2;
 
-    // 빔 그룹과 각 음표의 강제 stem 방향(그룹 평균 step 기준)을 사전 산정.
-    const beamGroups = groupBeams(bar.notes, node.timeSignature);
+    const beamGroups = groupBeams(bar.notes, timeSignature);
     const forcedDirByIdx = new Map<number, 'up' | 'down'>();
     const inGroupIndices = new Set<number>();
     for (const g of beamGroups) {
@@ -265,14 +307,104 @@ export function calculateScoreLayout(node: ScoreNode, opts: ScoreLayoutOptions):
       });
     });
 
-    // 그룹별 빔 본선 좌표 산출 + stem y2를 빔에 정렬.
     const beams = layoutBeams(beamGroups, notes, bar.barNumber, pxPerSp);
 
     return { barNumber: bar.barNumber, x: barX, width: barWidth, barlineX, notes, beams };
   });
 
-  const height = staffBottomY + HEIGHT_PADDING_SP * pxPerSp;
-  return { width, height, staff, clef, keySig: keySigGlyphs, timeSig, bars, contentStart };
+  const systemTop = staffTopY - TOP_PADDING_SP * pxPerSp;
+  const systemBottom = staffBottomY + HEIGHT_PADDING_SP * pxPerSp;
+
+  return {
+    index: systemIndex,
+    y: systemTop,
+    height: systemBottom - systemTop,
+    staff,
+    clef,
+    keySig: keySigGlyphs,
+    timeSig,
+    bars: layoutBars,
+    contentStart,
+  };
+}
+
+export function calculateScoreLayout(node: ScoreNode, opts: ScoreLayoutOptions): ScoreLayout {
+  const inputWidth = opts.width;
+  const pxPerSp = opts.lineGap ?? 10;
+  const wrap = opts.wrap ?? 'auto';
+  const systemGap = opts.systemGap ?? pxPerSp * 2;
+
+  const keySig = parseKeySignature(node.key);
+  const clefWidthPx = opts.clefWidth ?? defaultClefWidthSp() * pxPerSp;
+  const timeSigWidthPx = opts.timeSigWidth ?? defaultTimeSigWidthSp() * pxPerSp;
+  const barPaddingPx = opts.barPadding ?? BAR_INNER_PAD_SP * pxPerSp;
+  const keySigWidthPx = computeKeySigWidthPx(keySig, pxPerSp);
+
+  const preambleWidth =
+    CLEF_LEFT_PAD_SP * pxPerSp + clefWidthPx + keySigWidthPx + timeSigWidthPx;
+  const rightMarginPx = RIGHT_MARGIN_SP * pxPerSp;
+  const availableContent = Math.max(inputWidth - preambleWidth - rightMarginPx, pxPerSp * 4);
+
+  // 마디별 minBarWidth 사전 산출 (분할 결정에 사용)
+  const minBarWidthsPx = node.bars.map((bar) =>
+    estimateMinBarWidthPx(bar, keySig, pxPerSp, barPaddingPx),
+  );
+
+  // 시스템 분할
+  const groups: number[][] = [];
+  if (wrap === 'none' || node.bars.length === 0) {
+    groups.push(node.bars.map((_, i) => i));
+  } else {
+    let cur: number[] = [];
+    let curWidth = 0;
+    for (let i = 0; i < node.bars.length; i += 1) {
+      const w = minBarWidthsPx[i] ?? 0;
+      if (cur.length === 0 || curWidth + w <= availableContent) {
+        cur.push(i);
+        curWidth += w;
+      } else {
+        groups.push(cur);
+        cur = [i];
+        curWidth = w;
+      }
+    }
+    if (cur.length > 0) groups.push(cur);
+  }
+
+  // 빈 입력 보호: 시스템 0개면 빈 시스템 하나라도 두지 않고 빈 배열 반환
+  const systems: ScoreSystemLayout[] = [];
+  const initialStaffCenterY = opts.staffY ?? 40;
+  let nextSystemTop = initialStaffCenterY - STAFF_HALF_HEIGHT_SP * pxPerSp - TOP_PADDING_SP * pxPerSp;
+
+  for (let si = 0; si < groups.length; si += 1) {
+    const indices = groups[si]!;
+    const barsForSystem = indices.map((i) => node.bars[i]!);
+    // staff center y = system top + TOP_PADDING + STAFF_HALF
+    const staffCenterY = nextSystemTop + TOP_PADDING_SP * pxPerSp + STAFF_HALF_HEIGHT_SP * pxPerSp;
+
+    const system = buildSystem({
+      systemIndex: si,
+      staffCenterY,
+      bars: barsForSystem,
+      systemWidth: inputWidth,
+      pxPerSp,
+      clefWidthPx,
+      keySigWidthPx,
+      timeSigWidthPx,
+      barPaddingPx,
+      keySig,
+      timeSignature: node.timeSignature,
+    });
+    systems.push(system);
+    nextSystemTop = system.y + system.height + systemGap;
+  }
+
+  const totalHeight =
+    systems.length === 0
+      ? STAFF_HEIGHT_SP * pxPerSp + (TOP_PADDING_SP + HEIGHT_PADDING_SP) * pxPerSp
+      : nextSystemTop - systemGap;
+
+  return { width: inputWidth, height: totalHeight, systems };
 }
 
 interface BuildNoteArgs {
@@ -281,19 +413,11 @@ interface BuildNoteArgs {
   halfStepPx: number;
   bar: number;
   noteIdx: number;
-  verticalCtx: {
-    centerY: number;
-    staffTopY: number;
-    staffBottomY: number;
-    pxPerSp: number;
-    b4Step: number;
-  };
+  verticalCtx: KeySigVerticalCtx;
   stemCtx: { pxPerSp: number; stemLengthSp: number };
   accidentalKind: AccidentalKind;
   pxPerSp: number;
-  // 빔 그룹의 강제 방향. null이면 음표 단독 규칙(step >= b4 → down).
   forcedStemDirection: 'up' | 'down' | null;
-  // 그룹에 속한 음표는 flag을 그리지 않는다.
   suppressFlag: boolean;
 }
 
@@ -392,9 +516,6 @@ function buildNoteLayout(args: BuildNoteArgs): ScoreNoteLayout {
   return out;
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// 빔 그룹 방향/배치
-// ─────────────────────────────────────────────────────────────────────────────
 function groupDirection(notes: readonly NoteEvent[], g: BeamGroup): 'up' | 'down' {
   let stepSum = 0;
   let count = 0;
@@ -430,7 +551,6 @@ function layoutBeams(
     const y2List = grouped.map((n) => n.stem!.y2);
     const beamY = dir === 'up' ? Math.min(...y2List) : Math.max(...y2List);
 
-    // 그룹 내 모든 stem 끝을 빔 라인에 정렬한다.
     for (const n of grouped) {
       n.stem!.y2 = beamY;
     }
@@ -440,7 +560,6 @@ function layoutBeams(
 
     const lines: ScoreBeamLine[] = [{ x1, x2, y: beamY, thickness }];
     if (g.beamCount === 2) {
-      // 16분 보조선은 머리 방향(stem 반대 방향)으로 (thickness + spacing)만큼 이격.
       const sign = dir === 'up' ? 1 : -1;
       lines.push({ x1, x2, y: beamY + sign * (thickness + spacing), thickness });
     }
@@ -481,6 +600,5 @@ function makeDots(note: NoteEvent, x: number, y: number): { x: number; y: number
 }
 
 function isLineNoteStep(step: number, b4Step: number): boolean {
-  // treble clef 기준: step과 b4(=line) 차의 짝수성으로 line/space 구분.
   return Math.abs((step - b4Step) % 2) === 0;
 }

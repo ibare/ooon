@@ -27,9 +27,9 @@ describe('renderScore', () => {
     const projector = new FakeProjector();
     renderScore(projector, layout);
     const texts = projector.texts();
-    expect(texts).toContain(layout.clef.glyph);
-    expect(texts).toContain(layout.timeSig.topGlyph);
-    expect(texts).toContain(layout.timeSig.bottomGlyph);
+    expect(texts).toContain(layout.systems[0]!.clef.glyph);
+    expect(texts).toContain(layout.systems[0]!.timeSig.topGlyph);
+    expect(texts).toContain(layout.systems[0]!.timeSig.bottomGlyph);
   });
 
   it('registers hit areas for non-rest notes only', () => {

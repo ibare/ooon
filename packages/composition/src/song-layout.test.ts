@@ -52,7 +52,7 @@ describe('calculateSongLayout', () => {
   it('score row contains one score bar per song bar', () => {
     const node = parseSong(SONG_WITHOUT_DRUM);
     const layout = calculateSongLayout(node, { width: 600 });
-    expect(layout.scoreRow.score.bars.length).toBe(4);
+    expect(layout.scoreRow.score.systems[0]!.bars.length).toBe(4);
   });
 
   it('total height includes all rows', () => {

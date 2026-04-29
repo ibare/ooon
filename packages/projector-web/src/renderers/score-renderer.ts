@@ -6,6 +6,7 @@ import type {
   ScoreLayout,
   ScoreNoteLayout,
   ScoreStaff,
+  ScoreSystemLayout,
   ScoreTimeSig,
 } from '@oon/score-engraving';
 import { FONT, METRICS, THEME } from '../theme.js';
@@ -15,7 +16,7 @@ export interface ScoreRenderOptions {
   originY?: number;
   showNoteNames?: boolean;
   // Bravura em-square를 4 sp(=lineGap*4)로 두는 기본값을 override.
-  // 미지정 시 layout.staff.lineGap * 4 사용 — 이 값이 SMuFL 좌표와 픽셀 좌표를 일치시킨다.
+  // 미지정 시 systems[0].staff.lineGap * 4 사용 — 이 값이 SMuFL 좌표와 픽셀 좌표를 일치시킨다.
   bravuraFontSize?: number;
 }
 
@@ -41,34 +42,47 @@ export function renderScore(
 ): void {
   const ox = opts.originX ?? 0;
   const oy = opts.originY ?? 0;
-  // SMuFL 규약상 Bravura의 em-square = 4 sp. layout.staff.lineGap이 곧 1 sp의 px 크기이므로
+  const firstStaff = layout.systems[0]?.staff;
+  // SMuFL 규약상 Bravura의 em-square = 4 sp. staff.lineGap이 곧 1 sp의 px 크기이므로
   // fontSize = lineGap * 4 일 때 글리프 좌표(sp)가 픽셀 좌표와 정확히 일치한다.
-  const glyphSize = opts.bravuraFontSize ?? layout.staff.lineGap * 4;
+  const glyphSize = opts.bravuraFontSize ?? (firstStaff ? firstStaff.lineGap * 4 : 40);
   const showNoteNames = opts.showNoteNames ?? false;
 
   projector.save();
   projector.translate(ox, oy);
 
-  renderStaffLines(projector, layout);
-  renderClef(projector, layout.clef, glyphSize);
-  renderKeySig(projector, layout.keySig, glyphSize);
-  renderTimeSig(projector, layout.timeSig, glyphSize);
+  for (const system of layout.systems) {
+    renderSystem(projector, layout, system, glyphSize, showNoteNames);
+  }
+
+  projector.restore();
+}
+
+function renderSystem(
+  projector: Projector,
+  layout: ScoreLayout,
+  system: ScoreSystemLayout,
+  glyphSize: number,
+  showNoteNames: boolean,
+): void {
+  renderStaffLines(projector, layout, system.staff);
+  renderClef(projector, system.clef, glyphSize);
+  renderKeySig(projector, system.keySig, glyphSize);
+  renderTimeSig(projector, system.timeSig, glyphSize);
 
   const noteCtx: NoteRenderCtx = {
     glyphSize,
-    staffBottom: layout.staff.bottom,
+    staffBottom: system.staff.bottom,
     showNoteNames,
   };
 
-  for (const bar of layout.bars) {
-    renderBarline(projector, bar, layout.staff);
+  for (const bar of system.bars) {
+    renderBarline(projector, bar, system.staff);
     for (const note of bar.notes) {
       renderNote(projector, note, noteCtx);
     }
     renderBeams(projector, bar);
   }
-
-  projector.restore();
 }
 
 function bravuraStyle(fontSize: number): TextOptions {
@@ -80,10 +94,10 @@ function bravuraStyle(fontSize: number): TextOptions {
   };
 }
 
-function renderStaffLines(projector: Projector, layout: ScoreLayout): void {
+function renderStaffLines(projector: Projector, layout: ScoreLayout, staff: ScoreStaff): void {
   const x1 = STAFF_LEFT_PAD;
   const x2 = layout.width - STAFF_RIGHT_PAD;
-  for (const y of layout.staff.lines) {
+  for (const y of staff.lines) {
     projector.drawLine({ x: x1, y }, { x: x2, y }, THEME.staffLine, METRICS.staffLineWidth);
   }
 }

@@ -63,7 +63,11 @@ export interface ScoreBarLayout {
   beams: ScoreBeam[];
 }
 
-export interface ScoreLayout extends LayoutBase {
+export interface ScoreSystemLayout {
+  index: number;
+  // 시스템 시작 y (= staff 영역 top 기준이 아니라 system 단락 좌상단)
+  y: number;
+  height: number;
   staff: ScoreStaff;
   clef: ScoreGlyph;
   // 조표 글리프 배열. 키가 C/Am처럼 변화 없으면 빈 배열.
@@ -71,6 +75,9 @@ export interface ScoreLayout extends LayoutBase {
   timeSig: ScoreTimeSig;
   bars: ScoreBarLayout[];
   contentStart: number;
-  playheadX?: number;
+}
+
+export interface ScoreLayout extends LayoutBase {
+  systems: ScoreSystemLayout[];
 }
 

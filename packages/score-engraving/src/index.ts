@@ -9,5 +9,6 @@ export type {
   ScoreBeamLine,
   ScoreBeam,
   ScoreBarLayout,
+  ScoreSystemLayout,
   ScoreLayout,
 } from './types.js';

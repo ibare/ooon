@@ -13,19 +13,19 @@ describe('calculateScoreLayout', () => {
     const node = parseScore('score 4/4\n  A4/q B4/q C5/q D5/q |');
     const layout = calculateScoreLayout(node, { width: 400 });
     expect(layout.width).toBe(400);
-    expect(layout.staff.lines.length).toBe(5);
-    expect(layout.clef.glyph).toBeTruthy();
-    expect(layout.timeSig.topGlyph).toBeTruthy();
-    expect(layout.bars.length).toBe(1);
-    expect(layout.bars[0]?.notes.length).toBe(4);
+    expect(layout.systems[0]!.staff.lines.length).toBe(5);
+    expect(layout.systems[0]!.clef.glyph).toBeTruthy();
+    expect(layout.systems[0]!.timeSig.topGlyph).toBeTruthy();
+    expect(layout.systems[0]!.bars.length).toBe(1);
+    expect(layout.systems[0]!.bars[0]?.notes.length).toBe(4);
   });
 
   it('splits bar width evenly across bars', () => {
     const node = parseScore('score 4/4\n  A4/w | A4/w |');
     const layout = calculateScoreLayout(node, { width: 400 });
-    expect(layout.bars.length).toBe(2);
-    const b0 = layout.bars[0];
-    const b1 = layout.bars[1];
+    expect(layout.systems[0]!.bars.length).toBe(2);
+    const b0 = layout.systems[0]!.bars[0];
+    const b1 = layout.systems[0]!.bars[1];
     expect(b0).toBeDefined();
     expect(b1).toBeDefined();
     if (!b0 || !b1) return;
@@ -36,23 +36,23 @@ describe('calculateScoreLayout', () => {
   it('places B4 on middle staff line (y = centerY)', () => {
     const node = parseScore('score 4/4\n  B4/w |');
     const layout = calculateScoreLayout(node, { width: 400, staffY: 40, lineGap: 10 });
-    const note = layout.bars[0]?.notes[0];
-    expect(note?.y).toBeCloseTo(layout.staff.y, 2);
+    const note = layout.systems[0]!.bars[0]?.notes[0];
+    expect(note?.y).toBeCloseTo(layout.systems[0]!.staff.y, 2);
   });
 
   it('places notes above/below staff with ledger lines', () => {
     const node = parseScore('score 4/4\n  C4/w |');
     const layout = calculateScoreLayout(node, { width: 400, staffY: 40, lineGap: 10 });
-    const note = layout.bars[0]?.notes[0];
-    expect(note?.y).toBeGreaterThan(layout.staff.bottom);
+    const note = layout.systems[0]!.bars[0]?.notes[0];
+    expect(note?.y).toBeGreaterThan(layout.systems[0]!.staff.bottom);
     expect(note?.ledgerLines.length).toBeGreaterThanOrEqual(1);
   });
 
   it('rests have isRest true and no pitch', () => {
     const node = parseScore('score 4/4\n  r/q A4/q r/h |');
     const layout = calculateScoreLayout(node, { width: 400 });
-    const n0 = layout.bars[0]?.notes[0];
-    const n2 = layout.bars[0]?.notes[2];
+    const n0 = layout.systems[0]!.bars[0]?.notes[0];
+    const n2 = layout.systems[0]!.bars[0]?.notes[2];
     expect(n0?.isRest).toBe(true);
     expect(n0?.pitch).toBe('');
     expect(n2?.isRest).toBe(true);
@@ -61,7 +61,7 @@ describe('calculateScoreLayout', () => {
   it('stems point down for notes above B4, up for notes below', () => {
     const node = parseScore('score 4/4\n  E4/q A4/q C5/q F5/q |');
     const layout = calculateScoreLayout(node, { width: 400 });
-    const notes = layout.bars[0]?.notes ?? [];
+    const notes = layout.systems[0]!.bars[0]?.notes ?? [];
     expect(notes[0]?.stem).toBeDefined();
     expect(notes[3]?.stem).toBeDefined();
     const e4 = notes[0];
@@ -75,14 +75,14 @@ describe('calculateScoreLayout', () => {
   it('whole notes have no stem', () => {
     const node = parseScore('score 4/4\n  A4/w |');
     const layout = calculateScoreLayout(node, { width: 400 });
-    expect(layout.bars[0]?.notes[0]?.stem).toBeUndefined();
+    expect(layout.systems[0]!.bars[0]?.notes[0]?.stem).toBeUndefined();
   });
 
   it('a standalone eighth note has a flag glyph (not beamed)', () => {
     // 단독 8분음표(앞뒤가 q/h 등 빔 불가 음가)는 flag을 가진다.
     const node = parseScore('score 4/4\n  A4/e A4/q A4/q A4/q A4/e |');
     const layout = calculateScoreLayout(node, { width: 400 });
-    const n0 = layout.bars[0]?.notes[0];
+    const n0 = layout.systems[0]!.bars[0]?.notes[0];
     expect(n0?.flag).toBeDefined();
   });
 
@@ -90,7 +90,7 @@ describe('calculateScoreLayout', () => {
     // C major. A#4 다음 A4는 ♮ 글리프, 그 다음 A4는 carry되어 글리프 없음.
     const node = parseScore('score 4/4\n  A#4/q Bb4/q A4/q A4/q |');
     const layout = calculateScoreLayout(node, { width: 400 });
-    const notes = layout.bars[0]?.notes ?? [];
+    const notes = layout.systems[0]!.bars[0]?.notes ?? [];
     expect(notes[0]?.accidental).toBeDefined();
     expect(notes[1]?.accidental).toBeDefined();
     expect(notes[2]?.accidental).toBeDefined(); // natural

@@ -24,7 +24,7 @@ describe('renderSong', () => {
     renderSong(projector, layout);
     const texts = projector.texts();
     expect(texts).toContain('C');
-    expect(texts).toContain(layout.scoreRow.score.clef.glyph);
+    expect(texts).toContain(layout.scoreRow.score.systems[0]!.clef.glyph);
     const drumHits = projector.hitAreas.filter((h) => h.id.startsWith('drum:'));
     expect(drumHits.length).toBeGreaterThan(0);
   });
