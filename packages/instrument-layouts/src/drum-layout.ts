@@ -6,6 +6,12 @@ export interface DrumLayoutOptions {
   trackHeight?: number;
   labelWidth?: number;
   cellPadding?: number;
+  /**
+   * 셀 한 칸의 최소 폭. (width - labelWidth) / (resolution * barCount)이 이 값보다 작으면
+   * minCellWidth로 클램프된다. 그 결과 layout.width가 입력 width를 초과할 수 있으며,
+   * 컨테이너 측에서 가로 스크롤로 처리한다.
+   */
+  minCellWidth?: number;
 }
 
 const TRACK_LABELS: Record<DrumTrackKey, string> = {
@@ -18,10 +24,11 @@ const TRACK_LABELS: Record<DrumTrackKey, string> = {
 };
 
 export function calculateDrumLayout(node: DrumNode, opts: DrumLayoutOptions): DrumLayout {
-  const width = opts.width;
+  const inputWidth = opts.width;
   const trackHeight = opts.trackHeight ?? 32;
   const labelWidth = opts.labelWidth ?? 56;
   const cellPadding = opts.cellPadding ?? 2;
+  const minCellWidth = opts.minCellWidth ?? 6;
 
   const trackEntries = Object.entries(node.tracks).filter(
     (entry): entry is [DrumTrackKey, boolean[]] => entry[1] !== undefined,
@@ -36,8 +43,11 @@ export function calculateDrumLayout(node: DrumNode, opts: DrumLayoutOptions): Dr
 
   const resolution = node.resolution || 16;
   const barCount = Math.max(node.barCount, 1);
-  const gridWidth = width - labelWidth;
-  const cellWidth = gridWidth / (resolution * barCount);
+  const totalCells = resolution * barCount;
+  const fitCellWidth = (inputWidth - labelWidth) / totalCells;
+  const cellWidth = Math.max(minCellWidth, fitCellWidth);
+  const gridWidth = cellWidth * totalCells;
+  const width = labelWidth + gridWidth;
 
   const cells: DrumCellLayout[] = [];
   const barDividers: DrumLayout['barDividers'] = [];

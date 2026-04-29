@@ -10,6 +10,7 @@ export interface SongLayoutOptions {
   drumTrackHeight?: number;
   gap?: number;
   minCardWidth?: number;
+  minCellWidth?: number;
 }
 
 export function calculateSongLayout(node: SongNode, opts: SongLayoutOptions): SongLayout {
@@ -71,6 +72,7 @@ export function calculateSongLayout(node: SongNode, opts: SongLayoutOptions): So
     };
     drumLayout = calculateDrumLayout(drumAdapter, {
       width,
+      minCellWidth: opts.minCellWidth ?? 6,
       ...(opts.drumTrackHeight !== undefined ? { trackHeight: opts.drumTrackHeight } : {}),
     });
     drumRowY = scoreRowY + scoreLayout.height + gap;
@@ -80,8 +82,15 @@ export function calculateSongLayout(node: SongNode, opts: SongLayoutOptions): So
     ? drumRowY + drumLayout.height
     : scoreRowY + scoreLayout.height;
 
-  const layout: SongLayout = {
+  const totalWidth = Math.max(
     width,
+    progressionLayout.width,
+    scoreLayout.width,
+    drumLayout?.width ?? 0,
+  );
+
+  const layout: SongLayout = {
+    width: totalWidth,
     height: totalHeight,
     chordRow: {
       y: chordRowY,

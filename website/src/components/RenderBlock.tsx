@@ -28,39 +28,39 @@ function renderToProjector(
   source: string,
   width: number,
   showNoteNames: boolean,
-): { height: number; error?: string } {
+): { width: number; height: number; error?: string } {
   let node;
   try {
     node = parseBlock(source);
   } catch (err) {
-    return { height: 0, error: (err as Error).message };
+    return { width: 0, height: 0, error: (err as Error).message };
   }
   projector.clear();
   switch (node.type) {
     case 'score': {
       const layout = calculateScoreLayout(node, { width });
       renderScore(projector, layout, { showNoteNames });
-      return { height: layout.height };
+      return { width: layout.width, height: layout.height };
     }
     case 'drum': {
       const layout = calculateDrumLayout(node, { width });
       renderDrum(projector, layout);
-      return { height: layout.height };
+      return { width: layout.width, height: layout.height };
     }
     case 'progression': {
       const layout = calculateProgressionLayout(node, { width });
       renderProgression(projector, layout);
-      return { height: layout.height };
+      return { width: layout.width, height: layout.height };
     }
     case 'fretboard': {
       const layout = calculateFretboardLayout(node, { width });
       renderFretboard(projector, layout);
-      return { height: layout.height };
+      return { width: layout.width, height: layout.height };
     }
     case 'song': {
       const layout = calculateSongLayout(node, { width });
       renderSong(projector, layout, { showNoteNames });
-      return { height: layout.height };
+      return { width: layout.width, height: layout.height };
     }
   }
 }
@@ -96,7 +96,8 @@ export default function RenderBlock({
         return;
       }
       err.textContent = '';
-      projector.resize(width, first.height);
+      const canvasWidth = Math.max(first.width, width);
+      projector.resize(canvasWidth, first.height);
       const second = renderToProjector(projector, source, width, showNoteNames);
       if (second.error) {
         err.textContent = second.error;
@@ -111,7 +112,9 @@ export default function RenderBlock({
 
   return (
     <div>
-      <canvas ref={canvasRef} className="oon-canvas" />
+      <div className="oon-canvas-scroll">
+        <canvas ref={canvasRef} className="oon-canvas" />
+      </div>
       <div
         ref={errorRef}
         style={{ color: '#b91c1c', fontSize: '0.85em', marginTop: '0.4em', whiteSpace: 'pre-wrap' }}

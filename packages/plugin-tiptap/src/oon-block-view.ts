@@ -22,8 +22,15 @@ export function createOonBlockView(
   const dom = document.createElement('div');
   dom.className = 'oon-block';
 
+  const canvasScroll = document.createElement('div');
+  canvasScroll.className = 'oon-block-canvas-scroll';
+  canvasScroll.style.overflowX = 'auto';
+  canvasScroll.style.maxWidth = '100%';
+  dom.appendChild(canvasScroll);
+
   const canvas = document.createElement('canvas');
-  dom.appendChild(canvas);
+  canvas.style.display = 'block';
+  canvasScroll.appendChild(canvas);
 
   const details = document.createElement('details');
   details.className = 'oon-block-source';
@@ -51,7 +58,8 @@ export function createOonBlockView(
         width,
         ...(opts.showNoteNames !== undefined ? { showNoteNames: opts.showNoteNames } : {}),
       });
-      projector.resize(width, Math.max(result.height + 40, 80));
+      const canvasWidth = Math.max(result.width, width);
+      projector.resize(canvasWidth, Math.max(result.height + 40, 80));
       renderBlockToProjector(projector, source, {
         width,
         ...(opts.showNoteNames !== undefined ? { showNoteNames: opts.showNoteNames } : {}),

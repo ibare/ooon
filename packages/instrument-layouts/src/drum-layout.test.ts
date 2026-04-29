@@ -60,4 +60,24 @@ describe('calculateDrumLayout', () => {
     const layout = calculateDrumLayout(node, { width: 400, trackHeight: 40 });
     expect(layout.height).toBe(80);
   });
+
+  it('clamps cell width to minCellWidth — layout width can exceed input width', () => {
+    // 16비트 × 12마디 = 192셀. width 400, label 56 → 셀당 ≈1.79px.
+    // minCellWidth 6 으로 클램프되면 layout.width = 56 + 192*6 = 1208.
+    const node = parseDrum(
+      `drum 4/4\n  HH | ${'x-x-x-x-x-x-x-x- | '.repeat(11)}x-x-x-x-x-x-x-x- |`,
+    );
+    const layout = calculateDrumLayout(node, { width: 400, minCellWidth: 6, labelWidth: 56 });
+    expect(layout.width).toBeGreaterThan(400);
+    for (const cell of layout.cells) {
+      expect(cell.width).toBeGreaterThan(0);
+    }
+  });
+
+  it('layout width fits input width when there is room', () => {
+    const node = parseDrum(`drum 4/4
+  HH | x-x-x-x-x-x-x-x- |`);
+    const layout = calculateDrumLayout(node, { width: 400, minCellWidth: 6, labelWidth: 56 });
+    expect(layout.width).toBeCloseTo(400, 2);
+  });
 });

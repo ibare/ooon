@@ -236,13 +236,17 @@ code {
   border-bottom-color: var(--color-accent);
 }
 
-.oon-canvas {
-  display: block;
-  width: 100%;
+.oon-canvas-scroll {
+  overflow-x: auto;
   max-width: 100%;
-  background: #fff;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
+  background: #fff;
+}
+
+.oon-canvas {
+  display: block;
+  background: #fff;
 }
 
 @media (max-width: 768px) {

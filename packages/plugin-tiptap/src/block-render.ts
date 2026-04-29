@@ -22,6 +22,7 @@ export interface RenderBlockOptions {
 }
 
 export interface BlockRenderResult {
+  width: number;
   height: number;
   warnings: string[];
 }
@@ -46,29 +47,29 @@ export function renderBlockToProjector(
       renderScore(projector, layout, {
         ...(opts.showNoteNames !== undefined ? { showNoteNames: opts.showNoteNames } : {}),
       });
-      return { height: layout.height, warnings: node.warnings };
+      return { width: layout.width, height: layout.height, warnings: node.warnings };
     }
     case 'drum': {
       const layout = calculateDrumLayout(node, { width: opts.width });
       renderDrum(projector, layout);
-      return { height: layout.height, warnings: node.warnings };
+      return { width: layout.width, height: layout.height, warnings: node.warnings };
     }
     case 'progression': {
       const layout = calculateProgressionLayout(node, { width: opts.width });
       renderProgression(projector, layout);
-      return { height: layout.height, warnings: node.warnings };
+      return { width: layout.width, height: layout.height, warnings: node.warnings };
     }
     case 'fretboard': {
       const layout = calculateFretboardLayout(node, { width: opts.width });
       renderFretboard(projector, layout);
-      return { height: layout.height, warnings: [] };
+      return { width: layout.width, height: layout.height, warnings: [] };
     }
     case 'song': {
       const layout = calculateSongLayout(node, { width: opts.width });
       renderSong(projector, layout, {
         ...(opts.showNoteNames !== undefined ? { showNoteNames: opts.showNoteNames } : {}),
       });
-      return { height: layout.height, warnings: node.warnings };
+      return { width: layout.width, height: layout.height, warnings: node.warnings };
     }
   }
 }
