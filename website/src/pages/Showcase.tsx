@@ -56,35 +56,37 @@ export default function Showcase() {
               </div>
               <PlayButton source={active.source} onPlayingChange={setPlaying} />
             </div>
-            <div className="grid grid--2">
-              <div>
-                <div
-                  style={{
-                    fontSize: '0.8em',
-                    color: 'var(--color-muted)',
-                    marginBottom: '0.4em',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.06em',
-                  }}
-                >
-                  {t.showcasePage.source_label}
-                </div>
+            <details style={{ marginBottom: '1em' }}>
+              <summary
+                style={{
+                  fontSize: '0.8em',
+                  color: 'var(--color-muted)',
+                  marginBottom: '0.4em',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.06em',
+                  cursor: 'pointer',
+                  userSelect: 'none',
+                }}
+              >
+                {t.showcasePage.source_label}
+              </summary>
+              <div style={{ marginTop: '0.4em' }}>
                 <CodeBlock code={active.source} lang="text" />
               </div>
-              <div>
-                <div
-                  style={{
-                    fontSize: '0.8em',
-                    color: 'var(--color-muted)',
-                    marginBottom: '0.4em',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.06em',
-                  }}
-                >
-                  {t.showcasePage.render_label}
-                </div>
-                <RenderBlock source={active.source} width={560} playing={playing} />
+            </details>
+            <div>
+              <div
+                style={{
+                  fontSize: '0.8em',
+                  color: 'var(--color-muted)',
+                  marginBottom: '0.4em',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.06em',
+                }}
+              >
+                {t.showcasePage.render_label}
               </div>
+              <RenderBlock source={active.source} width={880} playing={playing} />
             </div>
           </article>
         )}
