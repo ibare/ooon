@@ -19,8 +19,11 @@ export const THEME = {
   rootDot: '#dc2626',
   scaleDot: '#2563eb',
   drumCell: '#bfdbfe',
-  drumCellActive: '#1d4ed8',
   drumCellInactive: '#f3f4f6',
+  drumCellTop: '#10b981',
+  drumCellMid: '#06b6d4',
+  drumCellBottom: '#f59e0b',
+  drumBarline: '#9ca3af',
   cardBackground: '#f9fafb',
   cardBorder: '#d1d5db',
 } as const;
@@ -38,7 +41,10 @@ export const METRICS = {
   stemWidth: 1.5,
   ledgerWidth: 1,
   cardRadius: 6,
-  drumCellRadius: 2,
+  drumCellRadius: 0,
+  drumCellActiveInset: 2,
+  drumCellActiveRadius: 2,
+  drumBarlineWidth: 1,
 } as const;
 
 export type ThemeKey = keyof typeof THEME;

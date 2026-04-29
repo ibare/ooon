@@ -17,6 +17,7 @@ import {
 import {
   CanvasProjector,
   drawKeyboardHighlights,
+  drawSongDrumHits,
   drawSongPlayheadOverlay,
   renderDrum,
   renderFretboard,
@@ -106,6 +107,7 @@ function paint(
         drawKeyboardHighlights(projector, state.layout.keyboard.layout, active, {
           originY: state.layout.keyboard.y,
         });
+        drawSongDrumHits(projector, state.layout, playheadBeat, state.beatsPerBar);
         drawSongPlayheadOverlay(projector, state.layout, playheadBeat, state.beatsPerBar);
       }
       return;

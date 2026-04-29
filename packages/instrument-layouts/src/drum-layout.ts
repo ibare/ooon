@@ -27,7 +27,7 @@ export function calculateDrumLayout(node: DrumNode, opts: DrumLayoutOptions): Dr
   const inputWidth = opts.width;
   const trackHeight = opts.trackHeight ?? 32;
   const labelWidth = opts.labelWidth ?? 56;
-  const cellPadding = opts.cellPadding ?? 2;
+  const cellPadding = opts.cellPadding ?? 0;
   const minCellWidth = opts.minCellWidth ?? 6;
 
   const trackEntries = Object.entries(node.tracks).filter(
@@ -99,7 +99,16 @@ export function calculateDrumLayout(node: DrumNode, opts: DrumLayoutOptions): Dr
     }
   }
 
-  return { width, height: totalHeight, tracks, cells, barDividers, beatDividers };
+  return {
+    width,
+    height: totalHeight,
+    tracks,
+    cells,
+    barDividers,
+    beatDividers,
+    resolution,
+    beatsPerBar,
+  };
 }
 
 export interface DrumSystemBar {
@@ -132,7 +141,7 @@ export interface DrumSystemLayoutOptions {
  */
 export function calculateDrumSystemLayout(opts: DrumSystemLayoutOptions): DrumLayout {
   const trackHeight = opts.trackHeight ?? 32;
-  const cellPadding = opts.cellPadding ?? 2;
+  const cellPadding = opts.cellPadding ?? 0;
   const resolution = opts.resolution || 16;
   const beatsPerBar = opts.beatsPerBar;
 
@@ -203,5 +212,14 @@ export function calculateDrumSystemLayout(opts: DrumSystemLayoutOptions): DrumLa
   const lastBar = opts.bars[opts.bars.length - 1];
   const width = lastBar ? lastBar.x + lastBar.width : 0;
 
-  return { width, height: totalHeight, tracks, cells, barDividers, beatDividers };
+  return {
+    width,
+    height: totalHeight,
+    tracks,
+    cells,
+    barDividers,
+    beatDividers,
+    resolution,
+    beatsPerBar,
+  };
 }

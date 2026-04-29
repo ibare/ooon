@@ -16,12 +16,13 @@ const DSL = `drum 4/4
   KK | x-------x------- |`;
 
 describe('renderDrum', () => {
-  it('draws one rect per cell', () => {
+  it('draws one grid rect per cell + one extra rect per active cell', () => {
     const node = parseDrum(DSL);
     const layout = calculateDrumLayout(node, { width: 400 });
     const projector = new FakeProjector();
     renderDrum(projector, layout);
-    expect(projector.countOps('drawRect')).toBe(layout.cells.length);
+    const activeCount = layout.cells.filter((c) => c.active).length;
+    expect(projector.countOps('drawRect')).toBe(layout.cells.length + activeCount);
   });
 
   it('registers a hit area for every cell', () => {

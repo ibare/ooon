@@ -37,3 +37,5 @@ export type {
   KeyboardHighlightInput,
   KeyboardHighlightOptions,
 } from './renderers/keyboard-highlights.js';
+export { drawSongDrumHits } from './renderers/drum-hits.js';
+export type { SongDrumHitsOptions } from './renderers/drum-hits.js';

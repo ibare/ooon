@@ -59,6 +59,10 @@ export interface DrumLayout extends LayoutBase {
   cells: DrumCellLayout[];
   barDividers: { x: number; yTop: number; yBottom: number }[];
   beatDividers: { x: number; yTop: number; yBottom: number }[];
+  /** 한 마디당 cell 수. */
+  resolution: number;
+  /** 한 마디의 beat 수. cell의 시간 좌표 환산에 사용. */
+  beatsPerBar: number;
 }
 
 export interface ProgressionCardLayout {
