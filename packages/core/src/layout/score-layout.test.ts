@@ -79,8 +79,9 @@ describe('calculateScoreLayout', () => {
     expect(layout.bars[0]?.notes[0]?.stem).toBeUndefined();
   });
 
-  it('eighth notes have a flag glyph', () => {
-    const node = parseScore('score 4/4\n  A4/e A4/e A4/e A4/e A4/e A4/e A4/e A4/e |');
+  it('a standalone eighth note has a flag glyph (not beamed)', () => {
+    // 단독 8분음표(앞뒤가 q/h 등 빔 불가 음가)는 flag을 가진다.
+    const node = parseScore('score 4/4\n  A4/e A4/q A4/q A4/q A4/e |');
     const layout = calculateScoreLayout(node, { width: 400 });
     const n0 = layout.bars[0]?.notes[0];
     expect(n0?.flag).toBeDefined();

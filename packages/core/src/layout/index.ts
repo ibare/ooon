@@ -20,6 +20,8 @@ export type {
   LayoutBase,
   ScoreLayout,
   ScoreBarLayout,
+  ScoreBeam,
+  ScoreBeamLine,
   ScoreNoteLayout,
   ScoreStaff,
   ScoreGlyph,

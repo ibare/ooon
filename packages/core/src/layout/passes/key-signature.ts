@@ -11,8 +11,8 @@ export type KeySignatureMap = Readonly<Record<NoteLetter, number>>;
 const NO_ALTERATION: KeySignatureMap = { C: 0, D: 0, E: 0, F: 0, G: 0, A: 0, B: 0 };
 
 // 메이저 키 기준 표준 임시표 순서.
-const SHARPS_ORDER: readonly NoteLetter[] = ['F', 'C', 'G', 'D', 'A', 'E', 'B'];
-const FLATS_ORDER: readonly NoteLetter[] = ['B', 'E', 'A', 'D', 'G', 'C', 'F'];
+export const SHARPS_ORDER: readonly NoteLetter[] = ['F', 'C', 'G', 'D', 'A', 'E', 'B'];
+export const FLATS_ORDER: readonly NoteLetter[] = ['B', 'E', 'A', 'D', 'G', 'C', 'F'];
 
 // 메이저 토닉 → 임시표 개수(양수=샤프, 음수=플랫).
 const MAJOR_SHARP_COUNT: Record<string, number> = {
