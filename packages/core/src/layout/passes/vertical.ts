@@ -24,12 +24,14 @@ export function noteY(step: number, ctx: VerticalContext): number {
 
 // 노트헤드 좌단 x를 받아, 보표 밖에서 필요한 ledger line들을 계산한다.
 // ledger line 길이 = 노트헤드 폭 + 좌우로 legerLineExtension만큼 외연.
+// headAdvanceSp 미지정 시 noteheadBlack 기준. whole/half는 호출자가 명시적으로 전달.
 export function ledgerLines(
   noteCenterY: number,
   noteX: number,
   ctx: VerticalContext,
+  headAdvanceSp: number = GLYPHS.noteheadBlack.advanceWidth,
 ): LedgerLine[] {
-  const headWidthPx = GLYPHS.noteheadBlack.advanceWidth * ctx.pxPerSp;
+  const headWidthPx = headAdvanceSp * ctx.pxPerSp;
   const extentPx = ENGRAVING.legerLineExtension * ctx.pxPerSp;
   const x1 = noteX - extentPx;
   const x2 = noteX + headWidthPx + extentPx;

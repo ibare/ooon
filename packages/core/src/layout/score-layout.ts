@@ -369,7 +369,7 @@ function buildNoteLayout(args: BuildNoteArgs): ScoreNoteLayout {
     ? { x: x - ACCIDENTAL_X_OFFSET_SP * pxPerSp, y, glyph: accGlyph }
     : undefined;
 
-  const ll = ledgerLines(y, x, verticalCtx);
+  const ll = ledgerLines(y, x, verticalCtx, headAdvanceSp);
 
   const out: ScoreNoteLayout = {
     barNumber: bar,
