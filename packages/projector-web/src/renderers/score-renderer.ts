@@ -1,13 +1,13 @@
 import type { Projector, TextOptions } from '@oon/shared';
-import {
-  SMUFL,
-  type ScoreBarLayout,
-  type ScoreGlyph,
-  type ScoreLayout,
-  type ScoreNoteLayout,
-  type ScoreStaff,
-  type ScoreTimeSig,
-} from '@oon/core';
+import { SMUFL } from '@oon/core';
+import type {
+  ScoreBarLayout,
+  ScoreGlyph,
+  ScoreLayout,
+  ScoreNoteLayout,
+  ScoreStaff,
+  ScoreTimeSig,
+} from '@oon/score-engraving';
 import { FONT, METRICS, THEME } from '../theme.js';
 
 export interface ScoreRenderOptions {

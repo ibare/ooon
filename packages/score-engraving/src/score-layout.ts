@@ -1,7 +1,5 @@
 import { ENGRAVING, GLYPHS, type Sp, type GlyphName } from '@oon/smufl-asset';
-import type { NoteEvent, ScoreNode } from '../ast/types.js';
-import { parsePitch, pitchToMidi } from '../theory/notes.js';
-import { SMUFL } from '../smufl.js';
+import { parsePitch, pitchToMidi, SMUFL, type NoteEvent, type ScoreNode } from '@oon/core';
 import type {
   ScoreBarLayout,
   ScoreBeam,

@@ -1,4 +1,4 @@
-import type { NoteEvent, TimeSignature } from '../../ast/types.js';
+import type { NoteEvent, TimeSignature } from '@oon/core';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // P3: auto-beaming 그룹화

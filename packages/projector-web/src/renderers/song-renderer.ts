@@ -1,5 +1,5 @@
 import type { Projector } from '@oon/shared';
-import type { SongLayout } from '@oon/core';
+import type { SongLayout } from '@oon/score-engraving';
 import { renderDrum } from './drum-renderer.js';
 import { renderProgression } from './progression-renderer.js';
 import { renderScore } from './score-renderer.js';

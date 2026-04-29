@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseBlock } from '../parser/parser.js';
-import type { ScoreNode } from '../ast/types.js';
+import { parseBlock, type ScoreNode } from '@oon/core';
 import { calculateScoreLayout } from './score-layout.js';
 
 function parseScore(dsl: string): ScoreNode {

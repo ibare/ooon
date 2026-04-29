@@ -74,6 +74,9 @@ importers:
       '@oon/projector-web':
         specifier: workspace:*
         version: link:../projector-web
+      '@oon/score-engraving':
+        specifier: workspace:*
+        version: link:../score-engraving
       '@oon/shared':
         specifier: workspace:*
         version: link:../shared
@@ -102,6 +105,9 @@ importers:
       '@oon/core':
         specifier: workspace:*
         version: link:../core
+      '@oon/score-engraving':
+        specifier: workspace:*
+        version: link:../score-engraving
       '@oon/shared':
         specifier: workspace:*
         version: link:../shared
@@ -112,6 +118,31 @@ importers:
       tone:
         specifier: ^15.0.4
         version: 15.1.22
+      tsup:
+        specifier: ^8.2.4
+        version: 8.5.1(postcss@8.5.10)(tsx@4.21.0)(typescript@5.9.3)
+      typescript:
+        specifier: ^5.5.4
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.1
+        version: 2.1.9(@types/node@20.19.39)
+
+  packages/score-engraving:
+    dependencies:
+      '@oon/core':
+        specifier: workspace:*
+        version: link:../core
+      '@oon/shared':
+        specifier: workspace:*
+        version: link:../shared
+      '@oon/smufl-asset':
+        specifier: workspace:*
+        version: link:../smufl-asset
+    devDependencies:
+      '@oon/tsconfig':
+        specifier: workspace:*
+        version: link:../../configs/tsconfig
       tsup:
         specifier: ^8.2.4
         version: 8.5.1(postcss@8.5.10)(tsx@4.21.0)(typescript@5.9.3)
@@ -163,6 +194,9 @@ importers:
       '@oon/projector-web':
         specifier: workspace:*
         version: link:../packages/projector-web
+      '@oon/score-engraving':
+        specifier: workspace:*
+        version: link:../packages/score-engraving
       '@oon/shared':
         specifier: workspace:*
         version: link:../packages/shared

@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseBlock } from '../parser/parser.js';
-import type { SongNode } from '../ast/types.js';
+import { parseBlock, type SongNode } from '@oon/core';
 import { calculateSongLayout } from './song-layout.js';
 
 function parseSong(dsl: string): SongNode {

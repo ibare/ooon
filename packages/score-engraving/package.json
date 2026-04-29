@@ -1,8 +1,8 @@
 {
-  "name": "@oon/projector-web",
+  "name": "@oon/score-engraving",
   "version": "0.0.0",
   "private": true,
-  "description": "Oon 웹 프로젝터 — Canvas 2D 렌더러 + Tone.js 오디오 엔진",
+  "description": "Oon 악보 식자(engraving) — SMuFL 기반 score/song layout 및 layout passes",
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
@@ -22,15 +22,11 @@
   },
   "dependencies": {
     "@oon/core": "workspace:*",
-    "@oon/score-engraving": "workspace:*",
-    "@oon/shared": "workspace:*"
-  },
-  "peerDependencies": {
-    "tone": ">=15.0.0"
+    "@oon/shared": "workspace:*",
+    "@oon/smufl-asset": "workspace:*"
   },
   "devDependencies": {
     "@oon/tsconfig": "workspace:*",
-    "tone": "^15.0.4",
     "tsup": "^8.2.4",
     "typescript": "^5.5.4",
     "vitest": "^2.1.1"

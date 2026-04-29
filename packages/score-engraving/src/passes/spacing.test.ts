@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { NoteEvent } from '../../ast/types.js';
+import type { NoteEvent } from '@oon/core';
 import {
   defaultClefWidthSp,
   defaultTimeSigWidthSp,

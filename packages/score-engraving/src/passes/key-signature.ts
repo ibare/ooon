@@ -1,4 +1,4 @@
-import type { NoteLetter } from '../../theory/notes.js';
+import type { NoteLetter } from '@oon/core';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Key signature → letter별 alteration map.

@@ -1,5 +1,5 @@
 import { GLYPHS } from '@oon/smufl-asset';
-import type { NoteEvent } from '../../ast/types.js';
+import type { NoteEvent } from '@oon/core';
 import type { AccidentalKind } from './accidentals.js';
 
 // ─────────────────────────────────────────────────────────────────────────────

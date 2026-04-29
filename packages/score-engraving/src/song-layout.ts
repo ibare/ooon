@@ -1,6 +1,11 @@
-import type { DrumNode, ProgressionNode, ScoreNode, SongNode } from '../ast/types.js';
-import { calculateDrumLayout } from './drum-layout.js';
-import { calculateProgressionLayout } from './progression-layout.js';
+import {
+  calculateDrumLayout,
+  calculateProgressionLayout,
+  type DrumNode,
+  type ProgressionNode,
+  type ScoreNode,
+  type SongNode,
+} from '@oon/core';
 import { calculateScoreLayout } from './score-layout.js';
 import type { SongLayout } from './types.js';
 

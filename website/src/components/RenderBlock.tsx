@@ -3,10 +3,9 @@ import {
   calculateDrumLayout,
   calculateFretboardLayout,
   calculateProgressionLayout,
-  calculateScoreLayout,
-  calculateSongLayout,
   parseBlock,
 } from '@oon/core';
+import { calculateScoreLayout, calculateSongLayout } from '@oon/score-engraving';
 import {
   CanvasProjector,
   renderDrum,

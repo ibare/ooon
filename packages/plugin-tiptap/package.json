@@ -23,6 +23,7 @@
   "dependencies": {
     "@oon/core": "workspace:*",
     "@oon/projector-web": "workspace:*",
+    "@oon/score-engraving": "workspace:*",
     "@oon/shared": "workspace:*"
   },
   "peerDependencies": {
