@@ -1,8 +1,8 @@
 {
-  "name": "@oon/score-engraving",
+  "name": "@oon/composition",
   "version": "0.0.0",
   "private": true,
-  "description": "Oon 악보 식자(engraving) — SMuFL 기반 score/song layout 및 layout passes",
+  "description": "Oon 합성 레이아웃 — 여러 악기 layout을 수직 적층하는 song layout",
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
@@ -22,8 +22,8 @@
   },
   "dependencies": {
     "@oon/core": "workspace:*",
-    "@oon/shared": "workspace:*",
-    "@oon/smufl-asset": "workspace:*"
+    "@oon/instrument-layouts": "workspace:*",
+    "@oon/score-engraving": "workspace:*"
   },
   "devDependencies": {
     "@oon/tsconfig": "workspace:*",

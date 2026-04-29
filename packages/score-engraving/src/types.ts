@@ -1,5 +1,4 @@
 import type { LayoutBase } from '@oon/core';
-import type { ProgressionCardLayout, DrumLayout } from '@oon/instrument-layouts';
 
 export interface ScoreStaff {
   y: number;
@@ -75,8 +74,3 @@ export interface ScoreLayout extends LayoutBase {
   playheadX?: number;
 }
 
-export interface SongLayout extends LayoutBase {
-  chordRow: { y: number; height: number; cards: ProgressionCardLayout[] };
-  scoreRow: { y: number; height: number; score: ScoreLayout };
-  drumRow?: { y: number; height: number; drum: DrumLayout };
-}

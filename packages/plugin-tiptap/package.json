@@ -21,6 +21,7 @@
     "clean": "rm -rf dist .tsbuildinfo"
   },
   "dependencies": {
+    "@oon/composition": "workspace:*",
     "@oon/core": "workspace:*",
     "@oon/instrument-layouts": "workspace:*",
     "@oon/projector-web": "workspace:*",

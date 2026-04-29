@@ -13,6 +13,7 @@
     "clean": "rm -rf dist node_modules/.vite public/fonts/Bravura.woff2"
   },
   "dependencies": {
+    "@oon/composition": "workspace:*",
     "@oon/core": "workspace:*",
     "@oon/instrument-layouts": "workspace:*",
     "@oon/projector-web": "workspace:*",

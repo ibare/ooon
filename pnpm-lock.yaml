@@ -44,6 +44,31 @@ importers:
 
   configs/tsconfig: {}
 
+  packages/composition:
+    dependencies:
+      '@oon/core':
+        specifier: workspace:*
+        version: link:../core
+      '@oon/instrument-layouts':
+        specifier: workspace:*
+        version: link:../instrument-layouts
+      '@oon/score-engraving':
+        specifier: workspace:*
+        version: link:../score-engraving
+    devDependencies:
+      '@oon/tsconfig':
+        specifier: workspace:*
+        version: link:../../configs/tsconfig
+      tsup:
+        specifier: ^8.2.4
+        version: 8.5.1(postcss@8.5.10)(tsx@4.21.0)(typescript@5.9.3)
+      typescript:
+        specifier: ^5.5.4
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.1
+        version: 2.1.9(@types/node@20.19.39)
+
   packages/core:
     dependencies:
       '@oon/shared':
@@ -87,6 +112,9 @@ importers:
 
   packages/plugin-tiptap:
     dependencies:
+      '@oon/composition':
+        specifier: workspace:*
+        version: link:../composition
       '@oon/core':
         specifier: workspace:*
         version: link:../core
@@ -124,6 +152,9 @@ importers:
 
   packages/projector-web:
     dependencies:
+      '@oon/composition':
+        specifier: workspace:*
+        version: link:../composition
       '@oon/core':
         specifier: workspace:*
         version: link:../core
@@ -158,9 +189,6 @@ importers:
       '@oon/core':
         specifier: workspace:*
         version: link:../core
-      '@oon/instrument-layouts':
-        specifier: workspace:*
-        version: link:../instrument-layouts
       '@oon/shared':
         specifier: workspace:*
         version: link:../shared
@@ -216,6 +244,9 @@ importers:
 
   website:
     dependencies:
+      '@oon/composition':
+        specifier: workspace:*
+        version: link:../packages/composition
       '@oon/core':
         specifier: workspace:*
         version: link:../packages/core

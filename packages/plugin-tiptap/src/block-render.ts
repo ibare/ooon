@@ -5,7 +5,8 @@ import {
   calculateFretboardLayout,
   calculateProgressionLayout,
 } from '@oon/instrument-layouts';
-import { calculateScoreLayout, calculateSongLayout } from '@oon/score-engraving';
+import { calculateScoreLayout } from '@oon/score-engraving';
+import { calculateSongLayout } from '@oon/composition';
 import {
   renderDrum,
   renderFretboard,
