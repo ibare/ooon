@@ -1,5 +1,14 @@
 export type NoteDuration = 'w' | 'h' | 'q' | 'e' | 's' | `${'w' | 'h' | 'q' | 'e' | 's'}.`;
 
+export type DrumSample =
+  | 'kick'
+  | 'snare'
+  | 'hihat-closed'
+  | 'hihat-open'
+  | 'crash'
+  | 'ride'
+  | 'tom';
+
 export interface AudioEngine {
   init(): Promise<void>;
   isReady(): boolean;
@@ -7,9 +16,7 @@ export interface AudioEngine {
   playNote(pitch: string, duration: string, time?: number): void;
   playChord(pitches: string[], duration: string, time?: number): void;
 
-  playKick(time?: number): void;
-  playSnare(time?: number): void;
-  playHihat(time?: number): void;
+  playDrum(sample: DrumSample, time?: number): void;
 
   now(): number;
   scheduleAt(time: number, callback: () => void): void;

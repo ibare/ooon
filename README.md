@@ -8,7 +8,7 @@
 |--------|------|
 | [`@oon/shared`](packages/shared) | 공유 타입/인터페이스 (Projector, AudioEngine) |
 | [`@oon/core`](packages/core) | DSL 파서 + AST + 음악 이론 + 레이아웃 (플랫폼 독립) |
-| [`@oon/projector-web`](packages/projector-web) | 웹 Canvas 렌더러 + Tone.js 오디오 엔진 |
+| [`@oon/projector-web`](packages/projector-web) | 웹 Canvas 렌더러 + smplr 오디오 엔진 |
 | [`@oon/plugin-tiptap`](packages/plugin-tiptap) | Tiptap 에디터 확장 |
 
 ## 개발

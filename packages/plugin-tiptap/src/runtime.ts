@@ -1,5 +1,5 @@
 import type { AudioEngine } from '@oon/shared';
-import { CanvasProjector, ToneAudioEngine, loadBravura } from '@oon/projector-web';
+import { CanvasProjector, SmplrAudioEngine, loadBravura } from '@oon/projector-web';
 
 export interface OonRuntimeOptions {
   bravuraUrl?: string;
@@ -40,7 +40,7 @@ export class OonRuntime {
 
   async getAudioEngine(): Promise<AudioEngine> {
     if (!this.audio) {
-      this.audio = this.opts.createAudioEngine ? this.opts.createAudioEngine() : new ToneAudioEngine();
+      this.audio = this.opts.createAudioEngine ? this.opts.createAudioEngine() : new SmplrAudioEngine();
     }
     if (!this.audio.isReady()) {
       await this.audio.init();

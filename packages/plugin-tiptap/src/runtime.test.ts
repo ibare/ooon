@@ -18,14 +18,8 @@ function createFakeAudioEngine(): AudioEngine & { readonly log: string[] } {
     playChord: (ps, d, t) => {
       log.push(`chord:${ps.join(',')}:${d}:${t ?? ''}`);
     },
-    playKick: () => {
-      log.push('kick');
-    },
-    playSnare: () => {
-      log.push('snare');
-    },
-    playHihat: () => {
-      log.push('hihat');
+    playDrum: (sample) => {
+      log.push(`drum:${sample}`);
     },
     now: () => 0,
     scheduleAt: (_t, cb) => cb(),

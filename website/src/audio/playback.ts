@@ -1,4 +1,4 @@
-import type { AudioEngine } from '@oon/shared';
+import type { AudioEngine, DrumSample } from '@oon/shared';
 import {
   parseBlock,
   type BlockNode,
@@ -159,21 +159,17 @@ function scheduleDrumTracks(
   }
 }
 
+const DRUM_TRACK_TO_SAMPLE: Record<DrumTrackKey, DrumSample> = {
+  KK: 'kick',
+  SN: 'snare',
+  HH: 'hihat-closed',
+  CR: 'crash',
+  RD: 'ride',
+  TM: 'tom',
+};
+
 function triggerDrum(engine: AudioEngine, track: DrumTrackKey): void {
-  switch (track) {
-    case 'KK':
-    case 'TM':
-      engine.playKick();
-      return;
-    case 'SN':
-      engine.playSnare();
-      return;
-    case 'HH':
-    case 'CR':
-    case 'RD':
-      engine.playHihat();
-      return;
-  }
+  engine.playDrum(DRUM_TRACK_TO_SAMPLE[track]);
 }
 
 function withOctave(notes: readonly string[], octave: number): string[] {

@@ -4,8 +4,8 @@ export type { CanvasProjectorOptions } from './canvas-projector.js';
 export { loadBravura, isBravuraLoaded, resetBravuraLoader, FontLoadError } from './font-loader.js';
 export type { LoadBravuraOptions } from './font-loader.js';
 
-export { ToneAudioEngine } from './tone-audio-engine.js';
-export type { ToneAudioEngineOptions } from './tone-audio-engine.js';
+export { SmplrAudioEngine } from './smplr-audio-engine.js';
+export type { SmplrAudioEngineOptions } from './smplr-audio-engine.js';
 
 export { hitTest, canvasPointFromEvent } from './interactions/hit-testing.js';
 
