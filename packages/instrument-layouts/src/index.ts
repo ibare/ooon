@@ -10,6 +10,8 @@ export type { DrumLayoutOptions } from './drum-layout.js';
 export { calculateProgressionLayout } from './progression-layout.js';
 export type { ProgressionLayoutOptions } from './progression-layout.js';
 
+export { getDrumPlayheadX, getProgressionPlayheadX } from './playhead.js';
+
 export type {
   KeyboardLayout,
   KeyLayout,

@@ -30,3 +30,5 @@ export { renderProgression } from './renderers/progression-renderer.js';
 export type { ProgressionRenderOptions } from './renderers/progression-renderer.js';
 export { renderSong } from './renderers/song-renderer.js';
 export type { SongRenderOptions } from './renderers/song-renderer.js';
+export { drawSongPlayheadOverlay } from './renderers/playhead-overlay.js';
+export type { SongPlayheadOverlayOptions } from './renderers/playhead-overlay.js';
