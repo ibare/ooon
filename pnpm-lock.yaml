@@ -49,6 +49,9 @@ importers:
       '@oon/shared':
         specifier: workspace:*
         version: link:../shared
+      '@oon/smufl-asset':
+        specifier: workspace:*
+        version: link:../smufl-asset
     devDependencies:
       '@oon/tsconfig':
         specifier: workspace:*
@@ -127,6 +130,24 @@ importers:
       tsup:
         specifier: ^8.2.4
         version: 8.5.1(postcss@8.5.10)(tsx@4.21.0)(typescript@5.9.3)
+      typescript:
+        specifier: ^5.5.4
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.1
+        version: 2.1.9(@types/node@20.19.39)
+
+  packages/smufl-asset:
+    devDependencies:
+      '@oon/tsconfig':
+        specifier: workspace:*
+        version: link:../../configs/tsconfig
+      tsup:
+        specifier: ^8.2.4
+        version: 8.5.1(postcss@8.5.10)(tsx@4.21.0)(typescript@5.9.3)
+      tsx:
+        specifier: ^4.19.0
+        version: 4.21.0
       typescript:
         specifier: ^5.5.4
         version: 5.9.3

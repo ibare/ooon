@@ -1,8 +1,8 @@
 {
-  "name": "@oon/core",
+  "name": "@oon/smufl-asset",
   "version": "0.0.0",
   "private": true,
-  "description": "Oon 핵심 엔진 — DSL 파서, AST, 음악 이론, 레이아웃 (플랫폼 독립)",
+  "description": "SMuFL 자산 — Bravura 폰트와 메타데이터(글리프 bbox/anchors, engravingDefaults)를 sp 단위 그대로 노출. 플랫폼 독립.",
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
@@ -11,22 +11,26 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
-    }
+    },
+    "./font/Bravura.woff2": "./assets/Bravura.woff2"
   },
-  "files": ["dist", "README.md"],
+  "files": [
+    "dist",
+    "assets/Bravura.woff2",
+    "assets/Bravura-OFL.txt",
+    "README.md"
+  ],
   "scripts": {
     "build": "tsup",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
+    "generate": "tsx scripts/extract-metadata.ts",
     "clean": "rm -rf dist .tsbuildinfo"
-  },
-  "dependencies": {
-    "@oon/shared": "workspace:*",
-    "@oon/smufl-asset": "workspace:*"
   },
   "devDependencies": {
     "@oon/tsconfig": "workspace:*",
     "tsup": "^8.2.4",
+    "tsx": "^4.19.0",
     "typescript": "^5.5.4",
     "vitest": "^2.1.1"
   }

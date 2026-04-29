@@ -86,12 +86,14 @@ describe('calculateScoreLayout', () => {
     expect(n0?.flag).toBeDefined();
   });
 
-  it('accidentals produce an accidental glyph', () => {
+  it('accidentals produce glyphs and apply carry-over within a bar', () => {
+    // C major. A#4 다음 A4는 ♮ 글리프, 그 다음 A4는 carry되어 글리프 없음.
     const node = parseScore('score 4/4\n  A#4/q Bb4/q A4/q A4/q |');
     const layout = calculateScoreLayout(node, { width: 400 });
     const notes = layout.bars[0]?.notes ?? [];
     expect(notes[0]?.accidental).toBeDefined();
     expect(notes[1]?.accidental).toBeDefined();
-    expect(notes[2]?.accidental).toBeUndefined();
+    expect(notes[2]?.accidental).toBeDefined(); // natural
+    expect(notes[3]?.accidental).toBeUndefined();
   });
 });

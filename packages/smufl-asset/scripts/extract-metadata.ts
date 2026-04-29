@@ -1,0 +1,193 @@
+/**
+ * bravura_metadata.json + smufl-glyphnames.json → src/generated/glyph-table.ts
+ *
+ * 결정적 추출. 사용 글리프 명세(`src/glyph-names.ts`)에 등록된 항목만 추린다.
+ * 모든 좌표는 SMuFL 명세대로 staff space(sp) 단위 그대로 보존한다.
+ *
+ * 사용법: `pnpm --filter @oon/smufl-asset generate`
+ */
+import { readFileSync, writeFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { dirname, resolve } from 'node:path';
+import { GLYPH_NAMES } from '../src/glyph-names.js';
+import type { AnchorKey } from '../src/types.js';
+
+const HERE = dirname(fileURLToPath(import.meta.url));
+const PKG = resolve(HERE, '..');
+
+const BRAVURA = JSON.parse(
+  readFileSync(resolve(PKG, 'assets/bravura_metadata.json'), 'utf8'),
+) as BravuraMetadataJson;
+
+const GLYPHNAMES = JSON.parse(
+  readFileSync(resolve(PKG, 'assets/smufl-glyphnames.json'), 'utf8'),
+) as Record<string, { codepoint: string }>;
+
+interface BravuraMetadataJson {
+  glyphAdvanceWidths: Record<string, number>;
+  glyphBBoxes: Record<string, { bBoxNE: [number, number]; bBoxSW: [number, number] }>;
+  glyphsWithAnchors: Record<string, Record<string, [number, number]>>;
+  engravingDefaults: Record<string, number | string | number[]>;
+}
+
+const ANCHOR_KEYS: ReadonlySet<AnchorKey> = new Set([
+  'stemUpSE',
+  'stemDownNW',
+  'stemUpNW',
+  'stemDownSW',
+  'splitStemUpSE',
+  'splitStemUpSW',
+  'splitStemDownNE',
+  'splitStemDownNW',
+  'cutOutNE',
+  'cutOutNW',
+  'cutOutSE',
+  'cutOutSW',
+  'graceNoteSlashNE',
+  'graceNoteSlashSW',
+]);
+
+function parseCodepoint(s: string): number {
+  // "U+E050" → 0xE050
+  if (!s.startsWith('U+')) throw new Error(`Bad codepoint: ${s}`);
+  return Number.parseInt(s.slice(2), 16);
+}
+
+function pt(arr: [number, number]): { x: number; y: number } {
+  return { x: arr[0], y: arr[1] };
+}
+
+interface ExtractedGlyph {
+  codepoint: number;
+  advanceWidth: number;
+  bbox: { bBoxNE: { x: number; y: number }; bBoxSW: { x: number; y: number } };
+  anchors: Record<string, { x: number; y: number }>;
+}
+
+function extractGlyph(name: string): ExtractedGlyph {
+  const nameInfo = GLYPHNAMES[name];
+  if (!nameInfo) throw new Error(`Glyph not in SMuFL glyphnames: ${name}`);
+
+  const bbox = BRAVURA.glyphBBoxes[name];
+  if (!bbox) throw new Error(`No bbox for glyph: ${name}`);
+
+  const adv = BRAVURA.glyphAdvanceWidths[name];
+  if (adv === undefined) throw new Error(`No advanceWidth for glyph: ${name}`);
+
+  const rawAnchors = BRAVURA.glyphsWithAnchors[name] ?? {};
+  const anchors: Record<string, { x: number; y: number }> = {};
+  for (const key of Object.keys(rawAnchors).sort()) {
+    if (ANCHOR_KEYS.has(key as AnchorKey)) {
+      const v = rawAnchors[key];
+      if (v) anchors[key] = pt(v);
+    }
+  }
+
+  return {
+    codepoint: parseCodepoint(nameInfo.codepoint),
+    advanceWidth: adv,
+    bbox: { bBoxNE: pt(bbox.bBoxNE), bBoxSW: pt(bbox.bBoxSW) },
+    anchors,
+  };
+}
+
+const ENGRAVING_KEYS = [
+  'staffLineThickness',
+  'stemThickness',
+  'beamThickness',
+  'beamSpacing',
+  'legerLineThickness',
+  'legerLineExtension',
+  'thinBarlineThickness',
+  'thickBarlineThickness',
+  'barlineSeparation',
+  'slurEndpointThickness',
+  'slurMidpointThickness',
+  'tieEndpointThickness',
+  'tieMidpointThickness',
+] as const;
+
+function extractEngraving(): Record<string, number> {
+  const out: Record<string, number> = {};
+  for (const key of ENGRAVING_KEYS) {
+    const v = BRAVURA.engravingDefaults[key];
+    if (typeof v !== 'number') throw new Error(`engravingDefaults.${key} not a number`);
+    out[key] = v;
+  }
+  return out;
+}
+
+function fmt(n: number): string {
+  // 작은 sp 값 그대로 유지. 부동소수 노이즈 방지를 위해 6자리에서 자름.
+  return Number.parseFloat(n.toFixed(6)).toString();
+}
+
+function emitPoint(p: { x: number; y: number }): string {
+  return `{ x: ${fmt(p.x)} as Sp, y: ${fmt(p.y)} as Sp }`;
+}
+
+function emitGlyph(name: string, g: ExtractedGlyph): string {
+  const anchorEntries = Object.keys(g.anchors)
+    .map((k) => {
+      const v = g.anchors[k];
+      if (!v) throw new Error(`anchor ${k} unexpectedly missing on ${name}`);
+      return `      ${k}: ${emitPoint(v)},`;
+    })
+    .join('\n');
+  const anchorBlock = anchorEntries.length === 0 ? '{}' : `{\n${anchorEntries}\n    }`;
+  return `  ${name}: {
+    codepoint: 0x${g.codepoint.toString(16).toUpperCase()},
+    advanceWidth: ${fmt(g.advanceWidth)} as Sp,
+    bbox: {
+      bBoxNE: ${emitPoint(g.bbox.bBoxNE)},
+      bBoxSW: ${emitPoint(g.bbox.bBoxSW)},
+    },
+    anchors: ${anchorBlock},
+  }`;
+}
+
+function emitEngraving(e: Record<string, number>): string {
+  return Object.keys(e)
+    .map((k) => `  ${k}: ${fmt(e[k] as number)} as Sp,`)
+    .join('\n');
+}
+
+function main(): void {
+  const extracted: Record<string, ExtractedGlyph> = {};
+  for (const name of GLYPH_NAMES) extracted[name] = extractGlyph(name);
+
+  const engraving = extractEngraving();
+
+  const glyphBlock = GLYPH_NAMES.map((n) => {
+    const g = extracted[n];
+    if (!g) throw new Error(`unreachable: ${n}`);
+    return emitGlyph(n, g);
+  }).join(',\n');
+
+  const out = `// DO NOT EDIT — generated by scripts/extract-metadata.ts
+// Source: assets/bravura_metadata.json + assets/smufl-glyphnames.json
+// Run \`pnpm --filter @oon/smufl-asset generate\` to regenerate.
+
+import type { GlyphInfo, EngravingDefaults, Sp } from '../types.js';
+import type { GlyphName } from '../glyph-names.js';
+
+export const GLYPHS: Readonly<Record<GlyphName, GlyphInfo>> = {
+${glyphBlock},
+};
+
+export const ENGRAVING: EngravingDefaults = {
+${emitEngraving(engraving)}
+};
+`;
+
+  const outPath = resolve(PKG, 'src/generated/glyph-table.ts');
+  writeFileSync(outPath, out, 'utf8');
+  // 빌드 입력 도구의 진행 메시지는 stderr로 보낸다 (stdout 파이프 사용 가능성 보존)
+  process.stderr.write(
+    `[smufl-asset] wrote ${outPath}: ${GLYPH_NAMES.length} glyphs, ${
+      Object.keys(engraving).length
+    } engraving defaults\n`,
+  );
+}
+
+main();
