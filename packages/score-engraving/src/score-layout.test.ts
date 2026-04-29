@@ -96,4 +96,24 @@ describe('calculateScoreLayout', () => {
     expect(notes[2]?.accidental).toBeDefined(); // natural
     expect(notes[3]?.accidental).toBeUndefined();
   });
+
+  it('caps bars per system at maxBarsPerSystem even when width is plenty', () => {
+    // 폭이 충분해 8마디가 한 줄에 들어갈 수 있어도 기본 5마디 상한으로 분할한다.
+    const node = parseScore(
+      'score 4/4\n  A4/w | A4/w | A4/w | A4/w | A4/w | A4/w | A4/w | A4/w |',
+    );
+    const layout = calculateScoreLayout(node, { width: 4000 });
+    expect(layout.systems.length).toBe(2);
+    expect(layout.systems[0]!.bars.length).toBe(5);
+    expect(layout.systems[1]!.bars.length).toBe(3);
+  });
+
+  it('respects custom maxBarsPerSystem', () => {
+    const node = parseScore(
+      'score 4/4\n  A4/w | A4/w | A4/w | A4/w | A4/w | A4/w |',
+    );
+    const layout = calculateScoreLayout(node, { width: 4000, maxBarsPerSystem: 2 });
+    expect(layout.systems.length).toBe(3);
+    for (const sys of layout.systems) expect(sys.bars.length).toBe(2);
+  });
 });

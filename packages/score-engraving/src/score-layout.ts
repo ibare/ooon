@@ -51,7 +51,14 @@ export interface ScoreLayoutOptions {
   wrap?: 'auto' | 'none';
   /** system 간 수직 간격(px). */
   systemGap?: number;
+  /**
+   * wrap='auto'일 때 한 system에 들어갈 마디 수 상한.
+   * 폭이 충분해도 이 값을 넘으면 새 system으로 분할한다. 기본값 5.
+   */
+  maxBarsPerSystem?: number;
 }
+
+const DEFAULT_MAX_BARS_PER_SYSTEM = 5;
 
 const sp = (n: number): Sp => n as Sp;
 
@@ -333,6 +340,7 @@ export function calculateScoreLayout(node: ScoreNode, opts: ScoreLayoutOptions):
   const pxPerSp = opts.lineGap ?? 10;
   const wrap = opts.wrap ?? 'auto';
   const systemGap = opts.systemGap ?? pxPerSp * 2;
+  const maxBarsPerSystem = Math.max(1, opts.maxBarsPerSystem ?? DEFAULT_MAX_BARS_PER_SYSTEM);
 
   const keySig = parseKeySignature(node.key);
   const clefWidthPx = opts.clefWidth ?? defaultClefWidthSp() * pxPerSp;
@@ -359,7 +367,9 @@ export function calculateScoreLayout(node: ScoreNode, opts: ScoreLayoutOptions):
     let curWidth = 0;
     for (let i = 0; i < node.bars.length; i += 1) {
       const w = minBarWidthsPx[i] ?? 0;
-      if (cur.length === 0 || curWidth + w <= availableContent) {
+      const fitsWidth = curWidth + w <= availableContent;
+      const underCap = cur.length < maxBarsPerSystem;
+      if (cur.length === 0 || (fitsWidth && underCap)) {
         cur.push(i);
         curWidth += w;
       } else {
