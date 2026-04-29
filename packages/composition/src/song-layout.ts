@@ -9,6 +9,7 @@ export interface SongLayoutOptions {
   scoreStaffY?: number;
   drumTrackHeight?: number;
   gap?: number;
+  minCardWidth?: number;
 }
 
 export function calculateSongLayout(node: SongNode, opts: SongLayoutOptions): SongLayout {
@@ -41,8 +42,8 @@ export function calculateSongLayout(node: SongNode, opts: SongLayoutOptions): So
   const progressionLayout = calculateProgressionLayout(progressionAdapter, {
     width,
     cardHeight: chordHeight,
-    columns: node.barCount,
     gap: 0,
+    minCardWidth: opts.minCardWidth ?? 80,
   });
 
   const chordRowY = 0;

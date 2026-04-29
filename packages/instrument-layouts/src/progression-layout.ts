@@ -5,7 +5,11 @@ export interface ProgressionLayoutOptions {
   width: number;
   cardHeight?: number;
   gap?: number;
-  columns?: number;
+  /**
+   * 카드 한 장의 최소 폭. (width - gaps) / N 이 이 값보다 작으면 minCardWidth로 클램프된다.
+   * 그 결과 layout.width 가 입력 width 를 초과할 수 있다 — 컨테이너 측에서 가로 스크롤로 처리.
+   */
+  minCardWidth?: number;
 }
 
 export function calculateProgressionLayout(
@@ -15,15 +19,15 @@ export function calculateProgressionLayout(
   const width = opts.width;
   const cardHeight = opts.cardHeight ?? 120;
   const gap = opts.gap ?? 8;
-  const cols = opts.columns ?? Math.min(node.bars.length, 4);
-  const rows = Math.ceil(node.bars.length / cols);
-  const cardWidth = (width - gap * (cols - 1)) / cols;
+  const minCardWidth = opts.minCardWidth ?? 80;
+  const n = Math.max(node.bars.length, 1);
+
+  const fitCardWidth = (width - gap * (n - 1)) / n;
+  const cardWidth = Math.max(minCardWidth, fitCardWidth);
 
   const cards: ProgressionCardLayout[] = node.bars.map((bar, i) => {
-    const row = Math.floor(i / cols);
-    const col = i % cols;
-    const x = col * (cardWidth + gap);
-    const y = row * (cardHeight + gap);
+    const x = i * (cardWidth + gap);
+    const y = 0;
     const totalBeats = bar.chords.reduce((s, c) => s + c.beats, 0) || 1;
     let beatCursor = 0;
 
@@ -47,6 +51,6 @@ export function calculateProgressionLayout(
     };
   });
 
-  const height = rows * cardHeight + (rows - 1) * gap;
-  return { width, height, cards, cols, rows };
+  const totalWidth = n * cardWidth + (n - 1) * gap;
+  return { width: totalWidth, height: cardHeight, cards };
 }

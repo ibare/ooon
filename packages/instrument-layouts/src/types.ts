@@ -75,6 +75,4 @@ export interface ProgressionCardLayout {
 
 export interface ProgressionLayout extends LayoutBase {
   cards: ProgressionCardLayout[];
-  cols: number;
-  rows: number;
 }

@@ -9,33 +9,46 @@ function parseProgression(dsl: string): ProgressionNode {
 }
 
 describe('calculateProgressionLayout', () => {
-  it('lays out cards in a grid', () => {
+  it('lays out cards in a single row', () => {
     const node = parseProgression('progression 4/4 in:C\n  I | V | vi | IV |');
     const layout = calculateProgressionLayout(node, { width: 400 });
     expect(layout.cards.length).toBe(4);
-    expect(layout.cols).toBeGreaterThan(0);
-    expect(layout.rows).toBeGreaterThan(0);
+    const ys = layout.cards.map((c) => c.rect.y);
+    expect(new Set(ys).size).toBe(1);
+    expect(ys[0]).toBe(0);
   });
 
-  it('respects explicit columns option', () => {
+  it('card widths fit within input width when there is room', () => {
     const node = parseProgression('progression 4/4 in:C\n  I | V | vi | IV |');
-    const layout = calculateProgressionLayout(node, { width: 400, columns: 2 });
-    expect(layout.cols).toBe(2);
-    expect(layout.rows).toBe(2);
-  });
-
-  it('card width sums plus gaps equal total width', () => {
-    const node = parseProgression('progression 4/4 in:C\n  I | V | vi | IV |');
-    const layout = calculateProgressionLayout(node, { width: 400, columns: 4, gap: 8 });
-    const firstRow = layout.cards.slice(0, 4);
-    const totalCards = firstRow.reduce((s, c) => s + c.rect.width, 0);
+    const layout = calculateProgressionLayout(node, {
+      width: 400,
+      gap: 8,
+      minCardWidth: 50,
+    });
+    const totalCards = layout.cards.reduce((s, c) => s + c.rect.width, 0);
     const totalGaps = 3 * 8;
     expect(totalCards + totalGaps).toBeCloseTo(400, 2);
+    expect(layout.width).toBeCloseTo(400, 2);
+  });
+
+  it('clamps card width to minCardWidth — layout width can exceed input width', () => {
+    const node = parseProgression(
+      'progression 4/4 in:C\n  I | V | vi | IV | I | V | vi | IV | I | V | vi | IV |',
+    );
+    const layout = calculateProgressionLayout(node, {
+      width: 400,
+      gap: 8,
+      minCardWidth: 100,
+    });
+    for (const card of layout.cards) {
+      expect(card.rect.width).toBeGreaterThanOrEqual(100);
+    }
+    expect(layout.width).toBeGreaterThan(400);
   });
 
   it('divides chord sub-rects by beat fraction', () => {
     const node = parseProgression('progression 4/4 in:C\n  I,V |');
-    const layout = calculateProgressionLayout(node, { width: 200, columns: 1 });
+    const layout = calculateProgressionLayout(node, { width: 200 });
     const card = layout.cards[0];
     expect(card?.chords.length).toBe(2);
     const c0 = card?.chords[0];
@@ -45,19 +58,18 @@ describe('calculateProgressionLayout', () => {
 
   it('exposes roman analysis when present', () => {
     const node = parseProgression('progression 4/4 in:C\n  I | V | vi | IV |');
-    const layout = calculateProgressionLayout(node, { width: 400, columns: 4 });
+    const layout = calculateProgressionLayout(node, { width: 400 });
     const romans = layout.cards.map((c) => c.chords[0]?.roman);
     expect(romans).toContain('I');
   });
 
-  it('height equals rows * cardHeight + (rows-1) * gap', () => {
+  it('height equals cardHeight (single row)', () => {
     const node = parseProgression('progression 4/4 in:C\n  I | V | vi | IV |');
     const layout = calculateProgressionLayout(node, {
       width: 400,
-      columns: 2,
       cardHeight: 100,
       gap: 8,
     });
-    expect(layout.height).toBe(2 * 100 + 1 * 8);
+    expect(layout.height).toBe(100);
   });
 });

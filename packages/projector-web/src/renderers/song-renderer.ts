@@ -24,8 +24,6 @@ export function renderSong(
       width: layout.width,
       height: layout.chordRow.height,
       cards: layout.chordRow.cards,
-      cols: layout.chordRow.cards.length,
-      rows: 1,
     },
     { originX: ox, originY: oy + layout.chordRow.y },
   );

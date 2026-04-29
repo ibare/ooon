@@ -14,7 +14,7 @@ function parseProgression(dsl: string): ProgressionNode {
 describe('renderProgression', () => {
   it('draws one card per bar', () => {
     const node = parseProgression('progression 4/4 in:C\n  I | V | vi | IV |');
-    const layout = calculateProgressionLayout(node, { width: 400, columns: 4 });
+    const layout = calculateProgressionLayout(node, { width: 400 });
     const projector = new FakeProjector();
     renderProgression(projector, layout);
     const cardRects = projector.callsOf('drawRect').filter((c) => {
@@ -26,7 +26,7 @@ describe('renderProgression', () => {
 
   it('draws chord symbols', () => {
     const node = parseProgression('progression 4/4 in:C\n  I | V | vi | IV |');
-    const layout = calculateProgressionLayout(node, { width: 400, columns: 4 });
+    const layout = calculateProgressionLayout(node, { width: 400 });
     const projector = new FakeProjector();
     renderProgression(projector, layout);
     const texts = projector.texts();
@@ -38,7 +38,7 @@ describe('renderProgression', () => {
 
   it('hides romans when showRomans is false', () => {
     const node = parseProgression('progression 4/4 in:C\n  I | V |');
-    const layout = calculateProgressionLayout(node, { width: 400, columns: 2 });
+    const layout = calculateProgressionLayout(node, { width: 400 });
     const a = new FakeProjector();
     const b = new FakeProjector();
     renderProgression(a, layout, { showRomans: true });
