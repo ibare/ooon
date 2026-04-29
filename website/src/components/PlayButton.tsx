@@ -5,20 +5,28 @@ import { useLang } from '../i18n/context';
 
 export interface PlayButtonProps {
   source: string;
+  onPlayingChange?: (playing: boolean) => void;
 }
 
 type State = 'idle' | 'loading' | 'playing';
 
-export default function PlayButton({ source }: PlayButtonProps) {
+export default function PlayButton({ source, onPlayingChange }: PlayButtonProps) {
   const { t } = useLang();
   const [state, setState] = useState<State>('idle');
   const handleRef = useRef<PlaybackHandle | null>(null);
   const timeoutRef = useRef<number | null>(null);
+  const wasPlayingRef = useRef(false);
+  const onPlayingChangeRef = useRef(onPlayingChange);
+  onPlayingChangeRef.current = onPlayingChange;
 
   useEffect(
     () => () => {
       handleRef.current?.stop();
       if (timeoutRef.current !== null) window.clearTimeout(timeoutRef.current);
+      if (wasPlayingRef.current) {
+        wasPlayingRef.current = false;
+        onPlayingChangeRef.current?.(false);
+      }
     },
     [],
   );
@@ -30,6 +38,10 @@ export default function PlayButton({ source }: PlayButtonProps) {
       timeoutRef.current = null;
     }
     setState('idle');
+    if (wasPlayingRef.current) {
+      wasPlayingRef.current = false;
+      onPlayingChangeRef.current?.(false);
+    }
   }
 
   async function handleClick(): Promise<void> {
@@ -50,6 +62,8 @@ export default function PlayButton({ source }: PlayButtonProps) {
       }
       handleRef.current = handle;
       setState('playing');
+      wasPlayingRef.current = true;
+      onPlayingChangeRef.current?.(true);
       timeoutRef.current = window.setTimeout(() => {
         reset();
       }, handle.durationSec * 1000 + 500);

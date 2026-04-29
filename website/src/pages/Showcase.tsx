@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import CodeBlock from '../components/CodeBlock';
 import PlayButton from '../components/PlayButton';
@@ -10,6 +11,11 @@ export default function Showcase() {
   const { genre } = useParams<{ genre: string }>();
   const activeId = genre ?? showcase[0]?.id ?? 'blues';
   const active = showcase.find((s) => s.id === activeId) ?? showcase[0];
+  const [playing, setPlaying] = useState(false);
+
+  useEffect(() => {
+    setPlaying(false);
+  }, [activeId]);
 
   return (
     <section className="section">
@@ -48,7 +54,7 @@ export default function Showcase() {
                 <h2 style={{ fontSize: '1.4em', marginBottom: '0.2em' }}>{active.title}</h2>
                 <p style={{ color: 'var(--color-muted)', fontSize: '0.9em' }}>{active.subtitle}</p>
               </div>
-              <PlayButton source={active.source} />
+              <PlayButton source={active.source} onPlayingChange={setPlaying} />
             </div>
             <div className="grid grid--2">
               <div>
@@ -77,7 +83,7 @@ export default function Showcase() {
                 >
                   {t.showcasePage.render_label}
                 </div>
-                <RenderBlock source={active.source} width={560} />
+                <RenderBlock source={active.source} width={560} playing={playing} />
               </div>
             </div>
           </article>
