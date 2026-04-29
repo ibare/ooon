@@ -9,7 +9,7 @@ export interface SongPlayheadOverlayOptions {
 }
 
 /**
- * song layout 위에 playhead vertical line을 chord/score/drum row마다 그린다.
+ * song layout 위에 playhead vertical line을 활성 system의 progression/score/drum row마다 그린다.
  * beat는 곡 시작 기준 누적 박자(timeSignature 기준).
  */
 export function drawSongPlayheadOverlay(
@@ -25,7 +25,16 @@ export function drawSongPlayheadOverlay(
   const lineWidth = opts.width ?? 2;
   const pos = getSongPlayhead(layout, beat, beatsPerBar);
 
-  drawVertical(projector, ox + pos.chord.x, oy + pos.chord.y, oy + pos.chord.y + pos.chord.height, color, lineWidth);
+  if (pos.chord) {
+    drawVertical(
+      projector,
+      ox + pos.chord.x,
+      oy + pos.chord.y,
+      oy + pos.chord.y + pos.chord.height,
+      color,
+      lineWidth,
+    );
+  }
 
   if (pos.score) {
     drawVertical(

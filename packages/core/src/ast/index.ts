@@ -20,4 +20,5 @@ export type {
   FretDot,
   SongNode,
   SongBar,
+  SongChord,
 } from './types.js';

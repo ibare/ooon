@@ -19,26 +19,28 @@ const SONG_NO_DRUM = `song 4/4 key:C bpm:100
   C | G |
   C4/q D4/q E4/q F4/q | G4/q A4/q B4/q C5/q |`;
 
+function countOverlayLines(projector: FakeProjector): number {
+  return projector.calls.filter((c) => c.op === 'drawLine').length;
+}
+
 describe('drawSongPlayheadOverlay', () => {
-  it('draws three vertical lines (chord + score + drum) when drum row exists', () => {
+  it('draws progression + score + drum lines for active system', () => {
     const node = parseSong(SONG_WITH_DRUM);
     const layout = calculateSongLayout(node, { width: 600 });
     const projector = new FakeProjector();
     drawSongPlayheadOverlay(projector, layout, 0, 4);
-    const lines = projector.calls.filter((c) => c.op === 'drawLine');
-    expect(lines.length).toBe(3);
+    expect(countOverlayLines(projector)).toBe(3);
   });
 
-  it('draws two vertical lines when drum row is omitted', () => {
+  it('omits drum line when drum row absent', () => {
     const node = parseSong(SONG_NO_DRUM);
     const layout = calculateSongLayout(node, { width: 600 });
     const projector = new FakeProjector();
     drawSongPlayheadOverlay(projector, layout, 0, 4);
-    const lines = projector.calls.filter((c) => c.op === 'drawLine');
-    expect(lines.length).toBe(2);
+    expect(countOverlayLines(projector)).toBe(2);
   });
 
-  it('lines are vertical (x is constant per row)', () => {
+  it('lines are vertical (constant x per row)', () => {
     const node = parseSong(SONG_NO_DRUM);
     const layout = calculateSongLayout(node, { width: 600 });
     const projector = new FakeProjector();
@@ -58,7 +60,6 @@ describe('drawSongPlayheadOverlay', () => {
     drawSongPlayheadOverlay(baseProjector, layout, 1, 4);
     const offsetProjector = new FakeProjector();
     drawSongPlayheadOverlay(offsetProjector, layout, 1, 4, { originX: 50, originY: 30 });
-
     const baseLines = baseProjector.calls.filter((c) => c.op === 'drawLine');
     const offsetLines = offsetProjector.calls.filter((c) => c.op === 'drawLine');
     expect(baseLines.length).toBe(offsetLines.length);

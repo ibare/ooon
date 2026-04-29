@@ -32,3 +32,8 @@ export { renderSong } from './renderers/song-renderer.js';
 export type { SongRenderOptions } from './renderers/song-renderer.js';
 export { drawSongPlayheadOverlay } from './renderers/playhead-overlay.js';
 export type { SongPlayheadOverlayOptions } from './renderers/playhead-overlay.js';
+export { drawKeyboardHighlights } from './renderers/keyboard-highlights.js';
+export type {
+  KeyboardHighlightInput,
+  KeyboardHighlightOptions,
+} from './renderers/keyboard-highlights.js';

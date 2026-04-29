@@ -1,14 +1,21 @@
-export { calculateKeyboardLayout } from './keyboard-layout.js';
+export { calculateKeyboardLayout, deriveKeyboardRange } from './keyboard-layout.js';
 export type { KeyboardLayoutOptions } from './keyboard-layout.js';
 
 export { calculateFretboardLayout } from './fretboard-layout.js';
 export type { FretboardLayoutOptions } from './fretboard-layout.js';
 
-export { calculateDrumLayout } from './drum-layout.js';
-export type { DrumLayoutOptions } from './drum-layout.js';
+export { calculateDrumLayout, calculateDrumSystemLayout } from './drum-layout.js';
+export type { DrumLayoutOptions, DrumSystemBar, DrumSystemLayoutOptions } from './drum-layout.js';
 
-export { calculateProgressionLayout } from './progression-layout.js';
-export type { ProgressionLayoutOptions } from './progression-layout.js';
+export {
+  calculateProgressionLayout,
+  calculateProgressionSystemLayout,
+} from './progression-layout.js';
+export type {
+  ProgressionLayoutOptions,
+  ProgressionSystemBar,
+  ProgressionSystemLayoutOptions,
+} from './progression-layout.js';
 
 export { getDrumPlayheadX, getProgressionPlayheadX } from './playhead.js';
 

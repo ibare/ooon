@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { parseBlock, type SongNode } from '@oon/core';
 import { calculateSongLayout } from './song-layout.js';
-import { getSongPlayhead } from './playhead.js';
+import { getSongPlayhead, getSongActiveNotes } from './playhead.js';
 
 function parseSong(dsl: string): SongNode {
   const n = parseBlock(dsl);
@@ -14,41 +14,83 @@ const SONG_WITH_DRUM = `song 4/4 key:C bpm:100
   C | G |
   C4/q D4/q E4/q F4/q | G4/q A4/q B4/q C5/q |`;
 
+const SONG_NO_DRUM = `song 4/4 key:C bpm:100
+  C | G |
+  C4/q D4/q E4/q F4/q | G4/q A4/q B4/q C5/q |`;
+
 describe('getSongPlayhead', () => {
-  it('returns x positions for chord and score; drum present when beat row exists', () => {
+  it('returns chord/score/drum positions when drum row exists', () => {
     const node = parseSong(SONG_WITH_DRUM);
     const layout = calculateSongLayout(node, { width: 600 });
     const pos = getSongPlayhead(layout, 0, 4);
-    expect(pos.chord.x).toBe(layout.chordRow.cards[0]!.rect.x);
-    expect(pos.score).not.toBeNull();
+    expect(pos.systemIndex).toBeGreaterThanOrEqual(0);
+    expect(pos.chord).toBeDefined();
+    expect(pos.score).toBeDefined();
     expect(pos.drum).toBeDefined();
   });
 
-  it('row y matches the row layout y', () => {
+  it('row y is absolute (>= system y + row inner y)', () => {
     const node = parseSong(SONG_WITH_DRUM);
     const layout = calculateSongLayout(node, { width: 600 });
     const pos = getSongPlayhead(layout, 0, 4);
-    expect(pos.chord.y).toBe(layout.chordRow.y);
+    const sys = layout.systems[pos.systemIndex]!;
+    expect(pos.chord!.y).toBe(sys.y + sys.progression!.y);
+    expect(pos.drum!.y).toBe(sys.y + sys.drum!.y);
     if (pos.score) {
-      expect(pos.score.y).toBeGreaterThanOrEqual(layout.scoreRow.y);
+      expect(pos.score.y).toBeGreaterThanOrEqual(sys.y);
     }
-    expect(pos.drum?.y).toBe(layout.drumRow!.y);
   });
 
-  it('chord and drum advance to next bar at boundary', () => {
+  it('chord x equals first bar card.x at beat 0', () => {
+    const node = parseSong(SONG_WITH_DRUM);
+    const layout = calculateSongLayout(node, { width: 600 });
+    const pos = getSongPlayhead(layout, 0, 4);
+    const sys = layout.systems[0]!;
+    expect(pos.chord!.x).toBeCloseTo(sys.progression!.cards[0]!.rect.x, 5);
+  });
+
+  it('chord and drum advance to next bar at beat=4 (within same system)', () => {
     const node = parseSong(SONG_WITH_DRUM);
     const layout = calculateSongLayout(node, { width: 600 });
     const pos = getSongPlayhead(layout, 4, 4);
-    expect(pos.chord.x).toBeCloseTo(layout.chordRow.cards[1]!.rect.x, 5);
-    expect(pos.drum!.x).toBeCloseTo(layout.drumRow!.drum.barDividers[1]!.x, 5);
+    const sys = layout.systems[pos.systemIndex]!;
+    // 한 system에 2마디가 들어가므로 beat=4는 같은 system 안에서 두번째 카드 시작
+    expect(pos.chord!.x).toBeCloseTo(sys.progression!.cards[1]!.rect.x, 5);
+    expect(pos.drum!.x).toBeCloseTo(sys.drum!.layout.barDividers[1]!.x, 5);
   });
 
-  it('omits drum field when no drum row', () => {
-    const node = parseSong(`song 4/4 key:C bpm:100
-  C | G |
-  C4/q D4/q E4/q F4/q | G4/q A4/q B4/q C5/q |`);
+  it('omits drum when no drum row', () => {
+    const node = parseSong(SONG_NO_DRUM);
     const layout = calculateSongLayout(node, { width: 600 });
     const pos = getSongPlayhead(layout, 0, 4);
     expect(pos.drum).toBeUndefined();
+  });
+});
+
+describe('getSongActiveNotes', () => {
+  // 고정 옥타브 정책: root MIDI = 48 + pc, intervals [0,4,7]
+  it('C major → C3/E3/G3 (48/52/55)', () => {
+    const node = parseSong(SONG_WITH_DRUM);
+    const active = getSongActiveNotes(node, 0, 4);
+    expect([...active.chordMidis].sort((a, b) => a - b)).toEqual([48, 52, 55]);
+  });
+
+  it('returns melody midi for current beat (beat=0 → C4)', () => {
+    const node = parseSong(SONG_WITH_DRUM);
+    const active = getSongActiveNotes(node, 0, 4);
+    expect(active.melodyMidi).toBe(60);
+  });
+
+  it('G major → G3/B3/D4 (55/59/62) regardless of melody', () => {
+    const node = parseSong(SONG_WITH_DRUM);
+    const active = getSongActiveNotes(node, 4, 4);
+    expect([...active.chordMidis].sort((a, b) => a - b)).toEqual([55, 59, 62]);
+    expect(active.melodyMidi).toBe(67);
+  });
+
+  it('past end clamps to last bar (G voicing)', () => {
+    const node = parseSong(SONG_WITH_DRUM);
+    const active = getSongActiveNotes(node, 100, 4);
+    expect([...active.chordMidis].sort((a, b) => a - b)).toEqual([55, 59, 62]);
   });
 });

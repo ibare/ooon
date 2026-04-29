@@ -117,9 +117,19 @@ export interface FretboardNode {
   dots: FretDot[];
 }
 
+export interface SongChord {
+  symbol: string;
+  root: string;
+  quality: string;
+  intervals: readonly number[];
+  notes: readonly string[];
+  bass?: string;
+  beats: number;
+}
+
 export interface SongBar {
   barNumber: number;
-  chord: { symbol: string; notes: readonly string[]; beats: number };
+  chord: SongChord;
   melody: NoteEvent[];
   drum?: Partial<Record<DrumTrackKey, boolean[]>>;
 }

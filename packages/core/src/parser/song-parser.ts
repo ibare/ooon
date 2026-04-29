@@ -97,7 +97,7 @@ export function parseSongBlock(t: BlockTokenized): SongNode {
 
     const bar: SongBar = {
       barNumber: i + 1,
-      chord: { symbol: parsedChord.symbol, notes: parsedChord.notes, beats: expected },
+      chord: { ...parsedChord, beats: expected },
       melody,
     };
     if (beatPattern) {

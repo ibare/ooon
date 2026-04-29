@@ -72,3 +72,32 @@ export function calculateKeyboardLayout(opts: KeyboardLayoutOptions = {}): Keybo
     highMidi,
   };
 }
+
+const DEFAULT_LOW_MIDI = 48; // C3
+const DEFAULT_HIGH_MIDI = 72; // C5
+
+/**
+ * 등장 음정 MIDI 집합으로부터 키보드 음역을 산출한다.
+ * - 옥타브 경계로 정렬: 최저음 옥타브의 C부터 최고음 옥타브의 B까지.
+ * - 입력이 비면 기본 C3–C5.
+ * - 옵션 padOctaves로 양쪽에 옥타브 단위 여유를 더할 수 있다.
+ */
+export function deriveKeyboardRange(
+  midis: readonly number[],
+  opts: { padOctaves?: number; minLow?: number; maxHigh?: number } = {},
+): { lowMidi: number; highMidi: number } {
+  if (midis.length === 0) {
+    return { lowMidi: DEFAULT_LOW_MIDI, highMidi: DEFAULT_HIGH_MIDI };
+  }
+  const pad = opts.padOctaves ?? 0;
+  const min = Math.min(...midis);
+  const max = Math.max(...midis);
+  const lowOctC = Math.floor(min / 12) * 12 - pad * 12;
+  const highOctB = Math.floor(max / 12) * 12 + 11 + pad * 12;
+  const minLow = opts.minLow ?? 0;
+  const maxHigh = opts.maxHigh ?? 127;
+  return {
+    lowMidi: Math.max(minLow, lowOctC),
+    highMidi: Math.min(maxHigh, highOctB),
+  };
+}

@@ -17,16 +17,18 @@ const DSL = `song 4/4 key:C bpm:100
   C4/q D4/q E4/q F4/q | G4/q A4/q B4/q C5/q |`;
 
 describe('renderSong', () => {
-  it('renders chord + score + drum rows', () => {
+  it('renders keyboard + progression + score + drum', () => {
     const node = parseSong(DSL);
     const layout = calculateSongLayout(node, { width: 600 });
     const projector = new FakeProjector();
     renderSong(projector, layout);
     const texts = projector.texts();
     expect(texts).toContain('C');
-    expect(texts).toContain(layout.scoreRow.score.systems[0]!.clef.glyph);
+    expect(texts).toContain(layout.systems[0]!.score.layout.systems[0]!.clef.glyph);
     const drumHits = projector.hitAreas.filter((h) => h.id.startsWith('drum:'));
     expect(drumHits.length).toBeGreaterThan(0);
+    const keyHits = projector.hitAreas.filter((h) => h.id.startsWith('key:'));
+    expect(keyHits.length).toBeGreaterThan(0);
   });
 
   it('omits drum row when no beat specified', () => {
