@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { calculateProgressionLayout, parseBlock } from '@oon/core';
+import { parseBlock } from '@oon/core';
 import type { ProgressionNode } from '@oon/core';
+import { calculateProgressionLayout } from '@oon/instrument-layouts';
 import { renderProgression } from './progression-renderer.js';
 import { FakeProjector } from '../testing/fake-projector.js';
 

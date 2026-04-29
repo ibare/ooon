@@ -1,11 +1,5 @@
-import {
-  calculateDrumLayout,
-  calculateProgressionLayout,
-  type DrumNode,
-  type ProgressionNode,
-  type ScoreNode,
-  type SongNode,
-} from '@oon/core';
+import type { DrumNode, ProgressionNode, ScoreNode, SongNode } from '@oon/core';
+import { calculateDrumLayout, calculateProgressionLayout } from '@oon/instrument-layouts';
 import { calculateScoreLayout } from './score-layout.js';
 import type { SongLayout } from './types.js';
 

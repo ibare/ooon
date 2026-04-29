@@ -1,4 +1,4 @@
-import type { FretboardNode } from '../ast/types.js';
+import type { FretboardNode } from '@oon/core';
 import type {
   FretboardDotLayout,
   FretboardFretLine,

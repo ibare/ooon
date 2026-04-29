@@ -1,5 +1,5 @@
 import type { Projector } from '@oon/shared';
-import type { KeyboardLayout } from '@oon/core';
+import type { KeyboardLayout } from '@oon/instrument-layouts';
 import { FONT, METRICS, THEME } from '../theme.js';
 
 export interface KeyboardRenderOptions {

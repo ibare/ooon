@@ -1,6 +1,6 @@
 import type { CanvasProjector } from '@oon/projector-web';
 import { parseInline, pitchToMidi } from '@oon/core';
-import { calculateKeyboardLayout } from '@oon/core';
+import { calculateKeyboardLayout } from '@oon/instrument-layouts';
 import { renderChord, renderNote, renderScale } from '@oon/projector-web';
 import type { OonRuntime } from './runtime.js';
 

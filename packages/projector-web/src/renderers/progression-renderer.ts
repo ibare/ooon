@@ -1,5 +1,5 @@
 import type { Projector } from '@oon/shared';
-import type { ProgressionLayout } from '@oon/core';
+import type { ProgressionLayout } from '@oon/instrument-layouts';
 import { FONT, METRICS, THEME } from '../theme.js';
 
 export interface ProgressionRenderOptions {

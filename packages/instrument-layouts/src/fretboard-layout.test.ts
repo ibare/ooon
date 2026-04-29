@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseBlock } from '../parser/parser.js';
-import type { FretboardNode } from '../ast/types.js';
+import { parseBlock, type FretboardNode } from '@oon/core';
 import { calculateFretboardLayout } from './fretboard-layout.js';
 
 function parseFretboard(dsl: string): FretboardNode {

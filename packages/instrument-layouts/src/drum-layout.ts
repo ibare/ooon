@@ -1,4 +1,4 @@
-import type { DrumNode, DrumTrackKey } from '../ast/types.js';
+import type { DrumNode, DrumTrackKey } from '@oon/core';
 import type { DrumCellLayout, DrumLayout } from './types.js';
 
 export interface DrumLayoutOptions {

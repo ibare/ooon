@@ -1,4 +1,4 @@
-import type { ProgressionNode } from '../ast/types.js';
+import type { ProgressionNode } from '@oon/core';
 import type { ProgressionCardLayout, ProgressionLayout } from './types.js';
 
 export interface ProgressionLayoutOptions {

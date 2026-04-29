@@ -1,10 +1,10 @@
 import { useEffect, useRef } from 'react';
+import { parseBlock } from '@oon/core';
 import {
   calculateDrumLayout,
   calculateFretboardLayout,
   calculateProgressionLayout,
-  parseBlock,
-} from '@oon/core';
+} from '@oon/instrument-layouts';
 import { calculateScoreLayout, calculateSongLayout } from '@oon/score-engraving';
 import {
   CanvasProjector,

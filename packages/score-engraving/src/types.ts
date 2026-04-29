@@ -1,4 +1,5 @@
-import type { LayoutBase, ProgressionCardLayout, DrumLayout } from '@oon/core';
+import type { LayoutBase } from '@oon/core';
+import type { ProgressionCardLayout, DrumLayout } from '@oon/instrument-layouts';
 
 export interface ScoreStaff {
   y: number;
