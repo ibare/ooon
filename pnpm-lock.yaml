@@ -172,8 +172,8 @@ importers:
         specifier: workspace:*
         version: link:../../configs/tsconfig
       smplr:
-        specifier: ^0.16.0
-        version: 0.16.4
+        specifier: ^0.20.0
+        version: 0.20.0
       tsup:
         specifier: ^8.2.4
         version: 8.5.1(postcss@8.5.10)(tsx@4.21.0)(typescript@5.9.3)
@@ -275,8 +275,8 @@ importers:
         specifier: ^4.0.2
         version: 4.0.2
       smplr:
-        specifier: ^0.16.0
-        version: 0.16.4
+        specifier: ^0.20.0
+        version: 0.20.0
     devDependencies:
       '@oon/tsconfig':
         specifier: workspace:*
@@ -1939,8 +1939,8 @@ packages:
   siginfo@2.0.0:
     resolution: {integrity: sha512-ybx0WO1/8bSBLEWXZvEd7gMW3Sn3JFlW3TvX1nREbDLRNQNaeNN8WK0meBwPdAaOI7TtRRRJn/Es1zhrrCHu7g==}
 
-  smplr@0.16.4:
-    resolution: {integrity: sha512-huIW2uSAuHTqjqCf2sqg3q03q/y1D1fhj2fR5jkP/u3cakbB5bMTk1z7SCdN45G5DRakrWwtUPcovsfMpeNr1w==}
+  smplr@0.20.0:
+    resolution: {integrity: sha512-XGxPL4ANBP0qzs30y673HYqvAEl/fJq/SKLv1oJpRuoo0VDqUcRGBz5A99PzN7srKT2WYtFU+yl6uqGHz/21zQ==}
     engines: {node: '>=14.0.0'}
 
   source-map-js@1.2.1:
@@ -3776,7 +3776,7 @@ snapshots:
 
   siginfo@2.0.0: {}
 
-  smplr@0.16.4: {}
+  smplr@0.20.0: {}
 
   source-map-js@1.2.1: {}
 

@@ -100,8 +100,8 @@ async function downloadMany(
 
 function parsePianoSampleNames(src: string): string[] {
   // LAYERS 배열 안의 [midi, "샘플 이름"] 패턴 추출.
-  // 샘플 이름은 항상 `<레이어 약어> <피치>` 형태(예: "PP B-1", "MF C#5").
-  const re = /"([A-Z]+\s[A-G]#?b?-?\d+)"/g;
+  // 샘플 이름은 `<레이어 약어> <피치>` 형태이며, 약어는 대문자/혼합(`PP`, `FF`, `Mf`, `Mp`).
+  const re = /"([A-Za-z]+\s[A-G]#?b?-?\d+)"/g;
   const set = new Set<string>();
   for (const m of src.matchAll(re)) {
     set.add(m[1]!);
@@ -114,9 +114,12 @@ async function fetchPiano(): Promise<number> {
   const src = await fetchText(PIANO_SOURCE_URL);
   const names = parsePianoSampleNames(src);
   console.log(`[piano] 샘플 ${names.length}건 → ${PIANO_LOCAL_DIR}`);
+  // 원격 소스/smplr 런타임은 "FF G#4" 공백 형식을 사용하지만, 일부 정적 서버는
+  // 경로의 `%20`/`%23`을 잘못 처리하므로 로컬 저장 시 `공백→-`, `#→s`로 치환한다.
+  // 런타임 storage가 동일 치환을 수행해 URL을 일치시킨다 (smplr-audio-engine 참조).
   const jobs = names.map((name) => ({
     url: `${PIANO_REMOTE_BASE}/${encodeURIComponent(name)}.ogg`,
-    dest: resolve(PIANO_LOCAL_DIR, `${name}.ogg`),
+    dest: resolve(PIANO_LOCAL_DIR, `${name.replace(/ /g, '-').replace(/#/g, 's')}.ogg`),
   }));
   return await downloadMany(jobs, 'piano');
 }

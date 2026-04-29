@@ -23,7 +23,7 @@
     "react-dom": "^19.0.0",
     "react-router-dom": "^7.6.2",
     "shiki": "^4.0.2",
-    "smplr": "^0.16.0"
+    "smplr": "^0.20.0"
   },
   "devDependencies": {
     "@oon/tsconfig": "workspace:*",

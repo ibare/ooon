@@ -1,5 +1,13 @@
 import type { AudioEngine, DrumSample } from '@oon/shared';
-import { DrumMachine, SplendidGrandPiano } from 'smplr';
+import { DrumMachine, SplendidGrandPiano, type Storage } from 'smplr';
+
+// smplr 0.20.0은 sample 이름을 공백 형식("FF A#4")로 보존하고 fetch 직전에
+// `%20`/`%23`로 인코딩해 storage에 넘긴다. 로컬 호스팅 시 정적 서버가 `%23`을
+// fragment로 잘못 처리하는 이슈를 피하기 위해 파일명을 `공백→-`, `#→s`로
+// 저장하므로(`FF-As4.ogg`), storage 단계에서 동일 매핑을 적용해 URL을 일치시킨다.
+const sanitizingStorage: Storage = {
+  fetch: (url) => fetch(url.replace(/%20/g, '-').replace(/%23/g, 's')),
+};
 
 export interface SmplrAudioEngineOptions {
   /** SplendidGrandPiano 샘플 호스팅 base URL. 미지정 시 smplr의 원격 기본값 사용. */
@@ -40,6 +48,7 @@ export class SmplrAudioEngine implements AudioEngine {
     const piano = new SplendidGrandPiano(ctx, {
       baseUrl: this.opts.pianoBaseUrl,
       volume: this.opts.pianoVolume ?? 100,
+      storage: this.opts.pianoBaseUrl ? sanitizingStorage : undefined,
     });
     const drums = this.opts.drumKitUrl
       ? new DrumMachine(ctx, { url: this.opts.drumKitUrl, volume: this.opts.drumVolume ?? 100 })

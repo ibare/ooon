@@ -28,11 +28,11 @@
     "@oon/shared": "workspace:*"
   },
   "peerDependencies": {
-    "smplr": ">=0.16.0"
+    "smplr": ">=0.20.0"
   },
   "devDependencies": {
     "@oon/tsconfig": "workspace:*",
-    "smplr": "^0.16.0",
+    "smplr": "^0.20.0",
     "tsup": "^8.2.4",
     "typescript": "^5.5.4",
     "vitest": "^2.1.1"
