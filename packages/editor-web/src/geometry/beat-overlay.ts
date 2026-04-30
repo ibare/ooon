@@ -4,15 +4,17 @@ import type { ScoreNode } from '@oon/core';
 export interface BeatSlotRect {
   systemIndex: number;
   barIndex: number; // ScoreNode.bars 내 인덱스 (0-based)
-  beatIndex: number; // 마디 내 박자 인덱스
+  beatIndex: number; // 슬롯이 시작하는 박자 위치(0-based, 정수 또는 분수)
   x: number;
   y: number;
   width: number;
   height: number;
 }
 
-// 마디가 비었을 때만 박자 슬롯을 노출한다(채워진 마디는 노트로 표현되므로 슬롯 불필요).
-// width는 (bar.width - 좌우 inner pad)를 박자 수로 균등 분할. 모든 마디는 같은 박자 수.
+// 박자 슬롯은 "남은 박자 영역"을 가변 폭 슬롯 시퀀스로 표현한다.
+// usedBeats가 분수면 다음 정수 박자 경계까지 폭이 좁은 부분 슬롯 하나(예: 8분음표 자리)를
+// 노출하고, 그 이후부터는 1박 폭의 정수 박자 슬롯들을 노출한다.
+// 예) 4/4에 q + e(=1.5박 사용) → 슬롯 3개: [1.5~2 폭=0.5박, 2~3 폭=1박, 3~4 폭=1박].
 export function calculateBeatSlots(
   layout: ScoreLayout,
   node: ScoreNode,
@@ -26,8 +28,9 @@ export function calculateBeatSlots(
       const barIdx = bar.barNumber - 1;
       const sourceBar = node.bars[barIdx];
       if (!sourceBar) continue;
-      if (sourceBar.notes.length > 0) continue;
-      result.push(...slotsForBar(system, bar, barIdx, beatsPerBar));
+      const usedBeats = sourceBar.notes.reduce((sum, n) => sum + n.beats, 0);
+      if (usedBeats >= beatsPerBar - 1e-9) continue;
+      result.push(...slotsForBar(system, bar, barIdx, beatsPerBar, usedBeats));
     }
   }
   return result;
@@ -38,25 +41,46 @@ function slotsForBar(
   bar: ScoreBarLayout,
   barIndex: number,
   beats: number,
+  usedBeats: number,
 ): BeatSlotRect[] {
   const innerPad = system.staff.lineGap * 0.6;
   const x0 = bar.x + innerPad;
   const x1 = bar.barlineX - innerPad;
   const usable = Math.max(0, x1 - x0);
-  const slotWidth = usable / beats;
+  const beatPx = usable / beats;
   const y = system.staff.top;
   const height = system.staff.bottom - system.staff.top;
   const slots: BeatSlotRect[] = [];
-  for (let b = 0; b < beats; b++) {
+
+  let cursor = usedBeats;
+  // 첫 슬롯이 박자 경계에 정렬되지 않으면 다음 정수 박자까지를 부분 슬롯으로 노출.
+  // 점4분(1.5박) 사용 후 0.5박 빈 영역에 8분음표 슬롯이 보이도록 하기 위함.
+  const fractional = cursor - Math.floor(cursor + 1e-9);
+  if (cursor < beats - 1e-9 && fractional > 1e-9) {
+    const nextInt = Math.floor(cursor + 1e-9) + 1;
+    const slotBeats = nextInt - cursor;
     slots.push({
       systemIndex: system.index,
       barIndex,
-      beatIndex: b,
-      x: x0 + b * slotWidth,
+      beatIndex: cursor,
+      x: x0 + cursor * beatPx,
       y,
-      width: slotWidth,
+      width: slotBeats * beatPx,
       height,
     });
+    cursor = nextInt;
+  }
+  while (cursor < beats - 1e-9) {
+    slots.push({
+      systemIndex: system.index,
+      barIndex,
+      beatIndex: cursor,
+      x: x0 + cursor * beatPx,
+      y,
+      width: beatPx,
+      height,
+    });
+    cursor += 1;
   }
   return slots;
 }

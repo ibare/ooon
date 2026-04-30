@@ -117,6 +117,25 @@ describe('calculateScoreLayout', () => {
     for (const sys of layout.systems) expect(sys.bars.length).toBe(2);
   });
 
+  it('박자 격자 정렬: 단일 4분음표는 박자 0 슬롯 시작에 위치하고, 4개는 등간격', () => {
+    // distributeNotesByBeat에서 첫 음표 offset=0 이므로 x = innerX(박자 0 슬롯 시작).
+    // leadingShift 제거 후, q 1개와 q 4개의 첫 음표 x가 같아야 격자 정렬이 성립.
+    const node1 = parseScore('score 4/4\n  A4/q |');
+    const layout1 = calculateScoreLayout(node1, { width: 400 });
+    const x1 = layout1.systems[0]!.bars[0]!.notes[0]!.x;
+
+    const node4 = parseScore('score 4/4\n  A4/q A4/q A4/q A4/q |');
+    const layout4 = calculateScoreLayout(node4, { width: 400 });
+    const xs = layout4.systems[0]!.bars[0]!.notes.map((n) => n.x);
+
+    expect(xs[0]).toBeCloseTo(x1, 4);
+    const d01 = xs[1]! - xs[0]!;
+    const d12 = xs[2]! - xs[1]!;
+    const d23 = xs[3]! - xs[2]!;
+    expect(d01).toBeCloseTo(d12, 4);
+    expect(d12).toBeCloseTo(d23, 4);
+  });
+
   it('lays out a header-only score as a single empty bar (no notes)', () => {
     const node = parseScore('score 4/4');
     const layout = calculateScoreLayout(node, { width: 400 });

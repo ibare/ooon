@@ -4,6 +4,7 @@ import {
   defaultClefWidthSp,
   defaultTimeSigWidthSp,
   distributeNotes,
+  distributeNotesByBeat,
   noteRequiredWidth,
 } from './spacing.js';
 
@@ -85,6 +86,59 @@ describe('distributeNotes', () => {
 
   it('빈 입력은 빈 결과', () => {
     expect(distributeNotes([], [], 100)).toEqual([]);
+  });
+});
+
+describe('distributeNotesByBeat — 박자 격자 + 박자 내부 광학', () => {
+  it('4/4에 4분 4개는 박자 격자 균등(폭 25씩, offset 0/25/50/75)', () => {
+    const slots = distributeNotesByBeat([1, 1, 1, 1], [5, 5, 5, 5], 100, 4);
+    expect(slots.map((s) => s.offset)).toEqual([0, 25, 50, 75]);
+    expect(slots.map((s) => s.slotWidth)).toEqual([25, 25, 25, 25]);
+  });
+
+  it('4/4에 4분 1개는 1박자 슬롯 폭(25)만 차지하고 시작은 0', () => {
+    const slots = distributeNotesByBeat([1], [5], 100, 4);
+    expect(slots[0]).toEqual({ offset: 0, slotWidth: 25 });
+  });
+
+  it('4/4에 4분 1개 + 4분 1개 = 슬롯 0과 1 시작에 정렬', () => {
+    const slots = distributeNotesByBeat([1, 1], [5, 5], 100, 4);
+    expect(slots[0]?.offset).toBe(0);
+    expect(slots[1]?.offset).toBe(25);
+    expect(slots[0]?.slotWidth).toBe(25);
+    expect(slots[1]?.slotWidth).toBe(25);
+  });
+
+  it('4/4에 8분 2개(한 박자 안)는 그 박자 슬롯 폭 안에서 광학 분배(둘 다 박자 0 시작에서)', () => {
+    const slots = distributeNotesByBeat([0.5, 0.5], [3, 3], 100, 4);
+    // 두 음표 모두 박자 0 슬롯 안. 광학 분배: 균등 → offset 0과 12.5
+    expect(slots[0]?.offset).toBeCloseTo(0, 4);
+    expect(slots[1]?.offset).toBeCloseTo(12.5, 4);
+    // 슬롯 폭 합은 박자 슬롯 폭(25)과 같음
+    expect((slots[0]?.slotWidth ?? 0) + (slots[1]?.slotWidth ?? 0)).toBeCloseTo(25, 4);
+  });
+
+  it('점4분(1.5박)은 시작 박자 0에서 시작하고 폭은 1.5박자(=37.5)', () => {
+    const slots = distributeNotesByBeat([1.5], [5], 100, 4);
+    expect(slots[0]).toEqual({ offset: 0, slotWidth: 37.5 });
+  });
+
+  it('점4분(1.5박) + 8분(0.5박) = 둘 다 박자 0 시작은 아니다(8분은 박자 1 슬롯에 배정)', () => {
+    // 누적 startBeat: 0, 1.5 → 두 번째는 floor(1.5)=1 → 박자 1 슬롯
+    const slots = distributeNotesByBeat([1.5, 0.5], [5, 5], 100, 4);
+    expect(slots[0]?.offset).toBe(0);
+    expect(slots[1]?.offset).toBe(25);
+  });
+
+  it('빈 입력은 빈 결과', () => {
+    expect(distributeNotesByBeat([], [], 100, 4)).toEqual([]);
+  });
+
+  it('beatsPerBar=0이면 fallback으로 기존 distributeNotes 동작', () => {
+    const slots = distributeNotesByBeat([1, 1], [1, 1], 100, 0);
+    expect(slots.length).toBe(2);
+    // 광학 분배 fallback이라 균등에 가까운 결과
+    expect(slots[0]?.slotWidth).toBeCloseTo(50, 4);
   });
 });
 

@@ -31,7 +31,7 @@ import { placeStem, stemDirection } from './passes/stem.js';
 import {
   defaultClefWidthSp,
   defaultTimeSigWidthSp,
-  distributeNotes,
+  distributeNotesByBeat,
   noteRequiredWidth,
 } from './passes/spacing.js';
 import { groupBeams, type BeamGroup } from './passes/beams.js';
@@ -179,21 +179,33 @@ function accidentalGlyph(kind: AccidentalKind): string | null {
   }
 }
 
-// 마디의 최소 폭(px) 추정. 음표마다 noteRequiredWidth(sp)*pxPerSp 합 + 좌우 inner padding.
+// 마디의 최소 폭(px) 추정. 박자 격자(distributeNotesByBeat)와 정렬된 추정이라야
+// 시스템 분할 단계에서 "한 박자 슬롯에 음표가 들어가지 못해 옆 박자를 침범"하는 마디를
+// 미리 감지해 다음 시스템으로 넘길 수 있다.
+//   minBarWidth = max(박자별 음표 requiredWidth 합) × beatsPerBar + 2*barPadding
+// 가장 빡빡한 박자 슬롯이 들어갈 만큼 모든 박자 슬롯 폭을 보장한다.
 function estimateMinBarWidthPx(
   bar: ScoreBar,
   keySig: KeySignatureMap,
   pxPerSp: number,
   barPaddingPx: number,
+  timeSignature: TimeSignature,
 ): number {
   const accDecisions = resolveAccidentals(bar.notes, keySig);
-  let sum = 0;
+  const beatsPerBar = Math.max(1, timeSignature.beats);
+  const perBeat = new Array<number>(beatsPerBar).fill(0);
+  let acc = 0;
   for (let i = 0; i < bar.notes.length; i += 1) {
     const note = bar.notes[i]!;
     const kind = accDecisions[i]?.kind ?? null;
-    sum += noteRequiredWidth(note, kind) * pxPerSp;
+    const w = noteRequiredWidth(note, kind) * pxPerSp;
+    const slotIdx = Math.min(beatsPerBar - 1, Math.max(0, Math.floor(acc + 1e-9)));
+    perBeat[slotIdx]! += w;
+    acc += note.beats;
   }
-  return sum + barPaddingPx * 2;
+  let maxPerBeat = 0;
+  for (const w of perBeat) if (w > maxPerBeat) maxPerBeat = w;
+  return maxPerBeat * beatsPerBar + barPaddingPx * 2;
 }
 
 interface SystemBuildArgs {
@@ -277,12 +289,12 @@ function buildSystem(args: SystemBuildArgs): ScoreSystemLayout {
     const requiredWidthsPx = bar.notes.map(
       (n, i) => noteRequiredWidth(n, accidentalDecisions[i]?.kind ?? null) * pxPerSp,
     );
-    const slots = distributeNotes(beatsList, requiredWidthsPx, innerWidth);
-
-    const lastSlot = slots[slots.length - 1];
-    const lastRequired = requiredWidthsPx[requiredWidthsPx.length - 1] ?? 0;
-    const trailingResidual = lastSlot ? Math.max(0, lastSlot.slotWidth - lastRequired) : 0;
-    const leadingShift = trailingResidual / 2;
+    const slots = distributeNotesByBeat(
+      beatsList,
+      requiredWidthsPx,
+      innerWidth,
+      timeSignature.beats,
+    );
 
     const beamGroups = groupBeams(bar.notes, timeSignature);
     const forcedDirByIdx = new Map<number, 'up' | 'down'>();
@@ -297,7 +309,7 @@ function buildSystem(args: SystemBuildArgs): ScoreSystemLayout {
 
     const notes: ScoreNoteLayout[] = bar.notes.map((note, noteIdx) => {
       const slot = slots[noteIdx];
-      const noteX = innerX + (slot?.offset ?? 0) + leadingShift;
+      const noteX = innerX + (slot?.offset ?? 0);
       const decision = accidentalDecisions[noteIdx];
       return buildNoteLayout({
         note,
@@ -355,7 +367,7 @@ export function calculateScoreLayout(node: ScoreNode, opts: ScoreLayoutOptions):
 
   // 마디별 minBarWidth 사전 산출 (분할 결정에 사용)
   const minBarWidthsPx = node.bars.map((bar) =>
-    estimateMinBarWidthPx(bar, keySig, pxPerSp, barPaddingPx),
+    estimateMinBarWidthPx(bar, keySig, pxPerSp, barPaddingPx, node.timeSignature),
   );
 
   // 시스템 분할
