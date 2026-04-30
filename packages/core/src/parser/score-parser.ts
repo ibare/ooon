@@ -35,7 +35,15 @@ export function parseScoreBlock(t: BlockTokenized): ScoreNode {
 
   const content = t.contentLines.join(' ').trim();
   if (!content) {
-    const node: ScoreNode = { type: 'score', timeSignature, bpm, bars: [], warnings };
+    // 본문 없는 score는 "편집 시작점"으로서 빈 한 마디 AST를 반환한다.
+    // padding rest를 넣지 않는 이유: notes 0개여야 첫 입력이 "추가"로 자연스럽게 정의된다.
+    const node: ScoreNode = {
+      type: 'score',
+      timeSignature,
+      bpm,
+      bars: [{ barNumber: 1, notes: [] }],
+      warnings,
+    };
     if (key !== undefined) node.key = key;
     return node;
   }

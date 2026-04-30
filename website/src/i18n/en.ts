@@ -6,6 +6,7 @@ export const en: Dictionary = {
     examples: 'Examples',
     showcase: 'Showcase',
     syntax: 'Syntax',
+    playground: 'Playground',
     github: 'GitHub',
   },
   hero: {
@@ -97,5 +98,9 @@ export const en: Dictionary = {
       song: 'song',
       inline: 'Inline tokens',
     },
+  },
+  playgroundPage: {
+    title: 'Playground',
+    sub: 'A single empty bar — the canvas where the editing UX gets shaped.',
   },
 };

@@ -1,0 +1,32 @@
+{
+  "name": "@oon/editor-core",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Oon 편집 코어 — 프레임워크 비종속 ScoreNode 편집 모델과 커맨드, observer 기반 onChange 발행",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": ["dist", "README.md"],
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "clean": "rm -rf dist .tsbuildinfo"
+  },
+  "dependencies": {
+    "@oon/core": "workspace:*"
+  },
+  "devDependencies": {
+    "@oon/tsconfig": "workspace:*",
+    "tsup": "^8.2.4",
+    "typescript": "^5.5.4",
+    "vitest": "^2.1.1"
+  }
+}

@@ -116,4 +116,14 @@ describe('calculateScoreLayout', () => {
     expect(layout.systems.length).toBe(3);
     for (const sys of layout.systems) expect(sys.bars.length).toBe(2);
   });
+
+  it('lays out a header-only score as a single empty bar (no notes)', () => {
+    const node = parseScore('score 4/4');
+    const layout = calculateScoreLayout(node, { width: 400 });
+    expect(layout.systems.length).toBe(1);
+    expect(layout.systems[0]!.bars.length).toBe(1);
+    expect(layout.systems[0]!.bars[0]?.notes.length).toBe(0);
+    expect(layout.systems[0]!.staff.lines.length).toBe(5);
+    expect(layout.systems[0]!.timeSig.topGlyph).toBeTruthy();
+  });
 });

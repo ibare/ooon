@@ -11,6 +11,7 @@ export interface Dictionary {
     examples: string;
     showcase: string;
     syntax: string;
+    playground: string;
     github: string;
   };
   hero: {
@@ -66,5 +67,9 @@ export interface Dictionary {
     title: string;
     sub: string;
     sections: Record<string, string>;
+  };
+  playgroundPage: {
+    title: string;
+    sub: string;
   };
 }

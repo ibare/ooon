@@ -6,6 +6,7 @@ export const ko: Dictionary = {
     examples: '예제',
     showcase: '쇼케이스',
     syntax: '문법',
+    playground: '플레이그라운드',
     github: 'GitHub',
   },
   hero: {
@@ -97,5 +98,9 @@ export const ko: Dictionary = {
       song: 'song',
       inline: '인라인 토큰',
     },
+  },
+  playgroundPage: {
+    title: '플레이그라운드',
+    sub: '빈 한 마디 악보 위에서 편집 UX를 깎는다.',
   },
 };

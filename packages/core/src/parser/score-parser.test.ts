@@ -48,4 +48,13 @@ describe('parseScoreBlock', () => {
     if (n.type !== 'score') throw new Error('type');
     expect(n.bpm).toBe(100);
   });
+
+  it('header-only score yields a single empty bar', () => {
+    const n = parseBlock('score 4/4');
+    if (n.type !== 'score') throw new Error('type');
+    expect(n.bars.length).toBe(1);
+    expect(n.bars[0]?.barNumber).toBe(1);
+    expect(n.bars[0]?.notes.length).toBe(0);
+    expect(n.warnings).toEqual([]);
+  });
 });

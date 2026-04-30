@@ -13,6 +13,7 @@
     "clean": "rm -rf dist node_modules/.vite public/fonts/Bravura.woff2"
   },
   "dependencies": {
+    "@oon/editor-web": "workspace:*",
     "@oon/player-web": "workspace:*",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",

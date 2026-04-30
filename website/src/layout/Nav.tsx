@@ -12,6 +12,7 @@ export default function Nav() {
     { to: 'examples', label: t.nav.examples },
     { to: 'showcase', label: t.nav.showcase },
     { to: 'syntax', label: t.nav.syntax },
+    { to: 'playground', label: t.nav.playground },
   ];
 
   return (

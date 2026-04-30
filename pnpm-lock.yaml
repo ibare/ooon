@@ -91,6 +91,62 @@ importers:
         specifier: ^2.1.1
         version: 2.1.9(@types/node@20.19.39)
 
+  packages/editor-core:
+    dependencies:
+      '@oon/core':
+        specifier: workspace:*
+        version: link:../core
+    devDependencies:
+      '@oon/tsconfig':
+        specifier: workspace:*
+        version: link:../../configs/tsconfig
+      tsup:
+        specifier: ^8.2.4
+        version: 8.5.1(postcss@8.5.10)(tsx@4.21.0)(typescript@5.9.3)
+      typescript:
+        specifier: ^5.5.4
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.1
+        version: 2.1.9(@types/node@20.19.39)
+
+  packages/editor-web:
+    dependencies:
+      '@oon/core':
+        specifier: workspace:*
+        version: link:../core
+      '@oon/editor-core':
+        specifier: workspace:*
+        version: link:../editor-core
+      '@oon/instrument-layouts':
+        specifier: workspace:*
+        version: link:../instrument-layouts
+      '@oon/projector-web':
+        specifier: workspace:*
+        version: link:../projector-web
+      '@oon/score-engraving':
+        specifier: workspace:*
+        version: link:../score-engraving
+      '@oon/shared':
+        specifier: workspace:*
+        version: link:../shared
+    devDependencies:
+      '@oon/tsconfig':
+        specifier: workspace:*
+        version: link:../../configs/tsconfig
+      smplr:
+        specifier: ^0.20.0
+        version: 0.20.0
+      tsup:
+        specifier: ^8.2.4
+        version: 8.5.1(postcss@8.5.10)(tsx@4.21.0)(typescript@5.9.3)
+      typescript:
+        specifier: ^5.5.4
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.1
+        version: 2.1.9(@types/node@20.19.39)
+
   packages/instrument-layouts:
     dependencies:
       '@oon/core':
@@ -281,6 +337,9 @@ importers:
 
   website:
     dependencies:
+      '@oon/editor-web':
+        specifier: workspace:*
+        version: link:../packages/editor-web
       '@oon/player-web':
         specifier: workspace:*
         version: link:../packages/player-web
