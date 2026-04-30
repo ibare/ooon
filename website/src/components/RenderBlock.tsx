@@ -100,17 +100,46 @@ function paint(
     case 'fretboard':
       renderFretboard(projector, state.layout);
       return;
-    case 'song':
-      renderSong(projector, state.layout, { showNoteNames });
+    case 'song': {
+      const playing = playheadBeat !== null;
+      let activeBarNumber: number | undefined;
+      let activeChordIndex: number | undefined;
+      let activeStep: number | undefined;
+      if (playheadBeat !== null) {
+        const beatsPerBar = state.beatsPerBar;
+        const totalBars = state.node.bars.length;
+        const barIdx = Math.min(
+          Math.max(0, Math.floor(playheadBeat / beatsPerBar)),
+          totalBars - 1,
+        );
+        activeBarNumber = state.node.bars[barIdx]?.barNumber;
+        activeChordIndex = 0;
+        // step 단위는 drum layout의 실제 resolution을 따른다.
+        // shuffle(resolution=12)·기본(16)에 모두 정합. drum 트랙이 없는 곡은 16으로 폴백.
+        const drumResolution = state.layout.systems[0]?.drum?.layout.resolution ?? 16;
+        const cellsPerBeat = drumResolution / state.beatsPerBar;
+        activeStep = Math.floor(playheadBeat * cellsPerBeat);
+      }
+      // 1) 마디 배경 + 점선은 본문 아래에 깔린다.
+      if (playheadBeat !== null) {
+        drawSongPlayheadOverlay(projector, state.layout, playheadBeat, state.beatsPerBar);
+      }
+      renderSong(projector, state.layout, {
+        showNoteNames,
+        playing,
+        ...(activeBarNumber !== undefined ? { activeBarNumber } : {}),
+        ...(activeChordIndex !== undefined ? { activeChordIndex } : {}),
+        ...(activeStep !== undefined ? { activeStep } : {}),
+      });
       if (playheadBeat !== null) {
         const active = getSongActiveNotes(state.node, playheadBeat, state.beatsPerBar);
         drawKeyboardHighlights(projector, state.layout.keyboard.layout, active, {
           originY: state.layout.keyboard.y,
         });
         drawSongDrumHits(projector, state.layout, playheadBeat, state.beatsPerBar);
-        drawSongPlayheadOverlay(projector, state.layout, playheadBeat, state.beatsPerBar);
       }
       return;
+    }
   }
 }
 

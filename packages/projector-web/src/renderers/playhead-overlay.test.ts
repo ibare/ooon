@@ -19,38 +19,41 @@ const SONG_NO_DRUM = `song 4/4 key:C bpm:100
   C | G |
   C4/q D4/q E4/q F4/q | G4/q A4/q B4/q C5/q |`;
 
-function countOverlayLines(projector: FakeProjector): number {
-  return projector.calls.filter((c) => c.op === 'drawLine').length;
+function lineCalls(p: FakeProjector) {
+  return p.calls.filter((c) => c.op === 'drawLine');
+}
+function rectCalls(p: FakeProjector) {
+  return p.calls.filter((c) => c.op === 'drawRect');
 }
 
 describe('drawSongPlayheadOverlay', () => {
-  it('draws progression + score + drum lines for active system', () => {
+  it('draws a single through-line and a bar background', () => {
     const node = parseSong(SONG_WITH_DRUM);
     const layout = calculateSongLayout(node, { width: 600 });
     const projector = new FakeProjector();
     drawSongPlayheadOverlay(projector, layout, 0, 4);
-    expect(countOverlayLines(projector)).toBe(3);
+    expect(lineCalls(projector).length).toBe(1);
+    expect(rectCalls(projector).length).toBe(1);
   });
 
-  it('omits drum line when drum row absent', () => {
+  it('also draws a single through-line when drum row absent', () => {
     const node = parseSong(SONG_NO_DRUM);
     const layout = calculateSongLayout(node, { width: 600 });
     const projector = new FakeProjector();
     drawSongPlayheadOverlay(projector, layout, 0, 4);
-    expect(countOverlayLines(projector)).toBe(2);
+    expect(lineCalls(projector).length).toBe(1);
   });
 
-  it('lines are vertical (constant x per row)', () => {
+  it('line is vertical (constant x)', () => {
     const node = parseSong(SONG_NO_DRUM);
     const layout = calculateSongLayout(node, { width: 600 });
     const projector = new FakeProjector();
     drawSongPlayheadOverlay(projector, layout, 2, 4);
-    const lines = projector.calls.filter((c) => c.op === 'drawLine');
-    for (const call of lines) {
-      const [from, to] = call.args as [{ x: number; y: number }, { x: number; y: number }];
-      expect(from.x).toBeCloseTo(to.x, 5);
-      expect(from.y).not.toBe(to.y);
-    }
+    const lines = lineCalls(projector);
+    expect(lines.length).toBe(1);
+    const [from, to] = lines[0]!.args as [{ x: number; y: number }, { x: number; y: number }];
+    expect(from.x).toBeCloseTo(to.x, 5);
+    expect(from.y).not.toBe(to.y);
   });
 
   it('respects originX/originY offsets', () => {
@@ -60,8 +63,8 @@ describe('drawSongPlayheadOverlay', () => {
     drawSongPlayheadOverlay(baseProjector, layout, 1, 4);
     const offsetProjector = new FakeProjector();
     drawSongPlayheadOverlay(offsetProjector, layout, 1, 4, { originX: 50, originY: 30 });
-    const baseLines = baseProjector.calls.filter((c) => c.op === 'drawLine');
-    const offsetLines = offsetProjector.calls.filter((c) => c.op === 'drawLine');
+    const baseLines = lineCalls(baseProjector);
+    const offsetLines = lineCalls(offsetProjector);
     expect(baseLines.length).toBe(offsetLines.length);
     for (let i = 0; i < baseLines.length; i += 1) {
       const [bFrom] = baseLines[i]!.args as [{ x: number; y: number }];

@@ -67,6 +67,43 @@ export function resolveRoman(input: string, key: string, mode: Mode): ResolvedRo
   return { roman: input, symbol, root, quality, notes };
 }
 
+export type RomanFunction = 'tonic' | 'subdominant' | 'dominant';
+
+const FUNCTION_BY_DEGREE: Record<number, RomanFunction> = {
+  0: 'tonic',
+  1: 'subdominant',
+  2: 'tonic',
+  3: 'subdominant',
+  4: 'dominant',
+  5: 'tonic',
+  6: 'dominant',
+};
+
+/**
+ * 로마 숫자에서 화성 기능을 분류한다.
+ * 차수 매핑: I/iii/vi → tonic, ii/IV → subdominant, V/vii° → dominant.
+ * 보조 도미넌트(`V/x`, `V7/x` 등)는 dominant로 본다.
+ * 인식 불가능한 입력은 null. 예외는 던지지 않는다.
+ */
+export function romanFunction(input: string): RomanFunction | null {
+  if (!input) return null;
+  const head = input.split('/')[0]?.trim() ?? '';
+  if (!head) return null;
+  const m = ROMAN_RE.exec(head);
+  if (!m) {
+    // V/x 같이 슬래시가 분리되었음에도 head가 ROMAN_RE에 안 맞으면 numeral만 추출 시도
+    const fallback = /([ivIV]+)/.exec(head);
+    if (!fallback) return null;
+    const upper = fallback[1]!.toUpperCase();
+    const deg = ROMAN_DEGREES[upper];
+    return deg === undefined ? null : (FUNCTION_BY_DEGREE[deg] ?? null);
+  }
+  const numeral = (m[2] ?? '').toUpperCase();
+  const degree = ROMAN_DEGREES[numeral];
+  if (degree === undefined) return null;
+  return FUNCTION_BY_DEGREE[degree] ?? null;
+}
+
 function chordNotesForQuality(root: string, quality: string): { notes: readonly string[] } {
   const map: Record<string, readonly number[]> = {
     '': [0, 4, 7],

@@ -1,4 +1,4 @@
-import { pitchToMidi } from '@oon/core';
+import { pitchClassOf, pitchToMidi } from '@oon/core';
 import type { DrumNode, ScoreNode, SongBar, SongNode } from '@oon/core';
 import {
   calculateKeyboardLayout,
@@ -18,18 +18,24 @@ export interface SongLayoutOptions {
   chordHeight?: number;
   /** drum 트랙 한 줄 높이. */
   drumTrackHeight?: number;
-  /** 영역 사이 수직 간격. */
+  /** 영역 사이 수직 간격(progression↔score↔drum). */
   gap?: number;
+  /** 시스템 사이 수직 간격(시스템 간 줄바꿈 간격). */
+  systemGap?: number;
+  /** 한 system이 담을 수 있는 최대 마디 수. 기본 4. */
+  maxBarsPerSystem?: number;
   /** keyboard 흰 건반 한 칸의 px 폭(미지정 시 width 기반 산정). */
   keyboardKeyWidth?: number;
   /** keyboard 흰 건반 높이. */
   keyboardHeight?: number;
 }
 
-const DEFAULT_GAP = 12;
-const DEFAULT_CHORD_HEIGHT = 80;
-const DEFAULT_DRUM_TRACK_HEIGHT = 28;
+const DEFAULT_GAP = 4;
+const DEFAULT_SYSTEM_GAP = 20;
+const DEFAULT_CHORD_HEIGHT = 56;
+const DEFAULT_DRUM_TRACK_HEIGHT = 16;
 const DEFAULT_KEYBOARD_HEIGHT = 96;
+const DEFAULT_MAX_BARS_PER_SYSTEM = 4;
 const MIN_KEYBOARD_KEY_WIDTH = 16;
 const MAX_KEYBOARD_KEY_WIDTH = 32;
 const TARGET_KEYBOARD_KEY_WIDTH = 24;
@@ -37,9 +43,11 @@ const TARGET_KEYBOARD_KEY_WIDTH = 24;
 export function calculateSongLayout(node: SongNode, opts: SongLayoutOptions): SongLayout {
   const width = opts.width;
   const gap = opts.gap ?? DEFAULT_GAP;
+  const systemGap = opts.systemGap ?? DEFAULT_SYSTEM_GAP;
   const chordHeight = opts.chordHeight ?? DEFAULT_CHORD_HEIGHT;
   const drumTrackHeight = opts.drumTrackHeight ?? DEFAULT_DRUM_TRACK_HEIGHT;
   const keyboardHeight = opts.keyboardHeight ?? DEFAULT_KEYBOARD_HEIGHT;
+  const maxBarsPerSystem = opts.maxBarsPerSystem ?? DEFAULT_MAX_BARS_PER_SYSTEM;
 
   const hasProgression = node.bars.length > 0;
   const hasDrum = !!node.beat && node.bars.some((b) => b.drum);
@@ -74,7 +82,7 @@ export function calculateSongLayout(node: SongNode, opts: SongLayoutOptions): So
     bars: node.bars.map((b) => ({ barNumber: b.barNumber, notes: [...b.melody] })),
     warnings: [],
   };
-  const scoreFull = calculateScoreLayout(scoreFullAdapter, { width });
+  const scoreFull = calculateScoreLayout(scoreFullAdapter, { width, maxBarsPerSystem });
   const systemBarGroups: number[][] = scoreFull.systems.map((sys) =>
     sys.bars.map((b) => b.barNumber),
   );
@@ -84,7 +92,7 @@ export function calculateSongLayout(node: SongNode, opts: SongLayoutOptions): So
   const beatsPerBar = node.timeSignature.beats;
 
   const songSystems: SongSystemRow[] = [];
-  let cursorY = keyboardHeight + gap;
+  let cursorY = keyboardHeight + systemGap;
 
   for (let si = 0; si < systemBarGroups.length; si += 1) {
     const barNumbers = systemBarGroups[si]!;
@@ -116,6 +124,7 @@ export function calculateSongLayout(node: SongNode, opts: SongLayoutOptions): So
         const sb = sysScoreSystem.bars.find((x) => x.barNumber === b.barNumber);
         const x = sb?.x ?? 0;
         const w = sb?.width ?? 0;
+        const roman = deriveRomanFromChord(b.chord, node.key);
         return {
           barNumber: b.barNumber,
           x,
@@ -125,6 +134,7 @@ export function calculateSongLayout(node: SongNode, opts: SongLayoutOptions): So
               symbol: b.chord.symbol,
               notes: b.chord.notes,
               beats: b.chord.beats,
+              ...(roman !== undefined ? { roman } : {}),
             },
           ],
         };
@@ -184,10 +194,10 @@ export function calculateSongLayout(node: SongNode, opts: SongLayoutOptions): So
     if (drumBlock) songSystem.drum = drumBlock;
     songSystems.push(songSystem);
 
-    cursorY += systemHeight + gap;
+    cursorY += systemHeight + systemGap;
   }
 
-  const totalHeight = songSystems.length === 0 ? keyboardHeight : cursorY - gap;
+  const totalHeight = songSystems.length === 0 ? keyboardHeight : cursorY - systemGap;
 
   return {
     width,
@@ -275,6 +285,36 @@ function fitKeyboardToWidth(args: FitKeyboardArgs): {
   if (keyWidth > maxKeyWidth) keyWidth = maxKeyWidth;
 
   return { lowMidi, highMidi, keyWidth };
+}
+
+/**
+ * SongChord와 곡의 key로부터 표시용 로마 숫자를 추정한다.
+ * 곡이 major 모드라고 가정한 단순 매핑 — 다이어토닉 외 코드(b/# 변이)는 undefined.
+ * 결과 문자열은 progression-renderer의 기능 분류(romanFunction) 입력으로 쓰인다.
+ */
+function deriveRomanFromChord(
+  chord: { root: string; quality: string },
+  key: string,
+): string | undefined {
+  let rootPc: number;
+  let keyPc: number;
+  try {
+    rootPc = pitchClassOf(chord.root);
+    keyPc = pitchClassOf(key);
+  } catch {
+    return undefined;
+  }
+  const MAJOR = [0, 2, 4, 5, 7, 9, 11];
+  const NUMERALS = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII'] as const;
+  const diff = (rootPc - keyPc + 12) % 12;
+  const idx = MAJOR.indexOf(diff);
+  if (idx < 0) return undefined;
+  let r: string = NUMERALS[idx]!;
+  const q = chord.quality;
+  const isMinorish = q === 'm' || q === 'm7' || q === 'm7b5' || q === 'm6' || q === 'dim' || q === 'dim7';
+  if (isMinorish) r = r.toLowerCase();
+  if (q === 'dim' || q === 'dim7' || q === 'm7b5') r += '°';
+  return r;
 }
 
 function deriveDrumResolution(node: SongNode): number {
