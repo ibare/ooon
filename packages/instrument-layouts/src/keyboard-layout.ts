@@ -7,11 +7,15 @@ export interface KeyboardLayoutOptions {
   whiteKeyWidth?: number;
   whiteKeyHeight?: number;
   blackKeyHeightRatio?: number;
+  /** 검은 건반 폭 / 흰 건반 폭 비율 (기본 0.58) */
+  blackKeyWidthRatio?: number;
   highlighted?: ReadonlySet<number>;
   showLabels?: boolean;
 }
 
 const BLACK_PC: ReadonlySet<number> = new Set([1, 3, 6, 8, 10]);
+const DEFAULT_BLACK_KEY_WIDTH_RATIO = 0.58;
+const DEFAULT_BLACK_KEY_HEIGHT_RATIO = 0.62;
 
 function isBlack(midi: number): boolean {
   return BLACK_PC.has(((midi % 12) + 12) % 12);
@@ -22,7 +26,8 @@ export function calculateKeyboardLayout(opts: KeyboardLayoutOptions = {}): Keybo
   const highMidi = opts.highMidi ?? 72;
   const whiteWidth = opts.whiteKeyWidth ?? 24;
   const whiteHeight = opts.whiteKeyHeight ?? 120;
-  const blackHeight = whiteHeight * (opts.blackKeyHeightRatio ?? 0.62);
+  const blackHeight = whiteHeight * (opts.blackKeyHeightRatio ?? DEFAULT_BLACK_KEY_HEIGHT_RATIO);
+  const blackWidthRatio = opts.blackKeyWidthRatio ?? DEFAULT_BLACK_KEY_WIDTH_RATIO;
   const highlighted = opts.highlighted ?? new Set<number>();
   const showLabels = opts.showLabels ?? false;
 
@@ -47,16 +52,17 @@ export function calculateKeyboardLayout(opts: KeyboardLayoutOptions = {}): Keybo
     }
   }
 
+  const blackWidth = whiteWidth * blackWidthRatio;
   for (let m = lowMidi; m <= highMidi; m++) {
     if (isBlack(m)) {
       const leftWhite = whiteByMidi.get(m - 1);
       if (leftWhite === undefined) continue;
-      const x = (leftWhite + 1) * whiteWidth - whiteWidth * 0.3;
+      const x = (leftWhite + 1) * whiteWidth - blackWidth / 2;
       const pitch = midiToPitch(m);
       const key: KeyLayout = {
         midi: m,
         isBlack: true,
-        rect: { x, y: 0, width: whiteWidth * 0.6, height: blackHeight },
+        rect: { x, y: 0, width: blackWidth, height: blackHeight },
         highlighted: highlighted.has(m),
       };
       if (showLabels) key.label = pitch;

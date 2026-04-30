@@ -279,6 +279,23 @@ export class CanvasProjector implements Projector {
     this.hitAreas = [];
   }
 
+  /**
+   * 웹 전용 escape hatch — `Projector` 인터페이스 외부 기능(linear/radial gradient,
+   * shadow, pattern 등)을 직접 캔버스 2D ctx에 그릴 때 사용한다.
+   *
+   * 콜백 진입 전에 `ctx.save()`, 종료 후 `ctx.restore()`를 자동 호출해 변환행렬과
+   * 스타일을 보존한다. 콜백 내부의 좌표는 `Projector`의 콘텐츠 좌표계와 동일하다
+   * (현재 setTransform(dpr × contentScale, …)이 적용된 상태).
+   */
+  withCanvas2D(cb: (ctx: CanvasRenderingContext2D) => void): void {
+    this.ctx.save();
+    try {
+      cb(this.ctx);
+    } finally {
+      this.ctx.restore();
+    }
+  }
+
   getHitAreas(): readonly HitArea[] {
     return this.hitAreas;
   }

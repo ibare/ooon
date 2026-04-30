@@ -1,4 +1,4 @@
-import { pitchToMidi, type SongNode } from '@oon/core';
+import { pitchClassOf, pitchToMidi, type SongNode } from '@oon/core';
 import {
   getDrumPlayheadX,
   getProgressionPlayheadX,
@@ -103,6 +103,8 @@ export interface SongActiveNotes {
   melodyMidi: number | null;
   /** 현재 마디 chord의 고정 옥타브(C3..B3) root-position voicing MIDI 배열. */
   chordMidis: number[];
+  /** 현재 마디 chord의 루트 MIDI(고정 옥타브 C3..B3). chord.root 미해석 시 null. */
+  rootMidi: number | null;
 }
 
 /**
@@ -117,7 +119,7 @@ export function getSongActiveNotes(
   beatsPerBar: number,
 ): SongActiveNotes {
   if (node.bars.length === 0) {
-    return { melodyMidi: null, chordMidis: [] };
+    return { melodyMidi: null, chordMidis: [], rootMidi: null };
   }
 
   const totalBeats = node.bars.length * beatsPerBar;
@@ -144,5 +146,13 @@ export function getSongActiveNotes(
     cursor = next;
   }
 
-  return { melodyMidi, chordMidis: chooseChordVoicingMidis(bar.chord) };
+  // 루트 MIDI: voicing과 동일한 고정 옥타브 정책(48 + pitchClass(root)).
+  let rootMidi: number | null = null;
+  try {
+    rootMidi = 48 + pitchClassOf(bar.chord.root);
+  } catch {
+    rootMidi = null;
+  }
+
+  return { melodyMidi, chordMidis: chooseChordVoicingMidis(bar.chord), rootMidi };
 }

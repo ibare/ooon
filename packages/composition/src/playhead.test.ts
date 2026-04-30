@@ -128,4 +128,10 @@ describe('getSongActiveNotes', () => {
     const active = getSongActiveNotes(node, 100, 4);
     expect([...active.chordMidis].sort((a, b) => a - b)).toEqual([55, 59, 62]);
   });
+
+  it('returns rootMidi at fixed octave (C major → 48, G major → 55)', () => {
+    const node = parseSong(SONG_WITH_DRUM);
+    expect(getSongActiveNotes(node, 0, 4).rootMidi).toBe(48);
+    expect(getSongActiveNotes(node, 4, 4).rootMidi).toBe(55);
+  });
 });

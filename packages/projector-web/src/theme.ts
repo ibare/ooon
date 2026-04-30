@@ -45,6 +45,7 @@ export const METRICS = {
   drumCellActiveInset: 2,
   drumCellActiveRadius: 2,
   drumBarlineWidth: 1,
+  blackKeyRadius: 3.5,
 } as const;
 
 export type ThemeKey = keyof typeof THEME;

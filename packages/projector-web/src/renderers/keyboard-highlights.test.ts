@@ -11,7 +11,7 @@ describe('drawKeyboardHighlights', () => {
   it('does nothing when no active notes', () => {
     const layout = calculateKeyboardLayout({ lowMidi: 60, highMidi: 71 });
     const p = new FakeProjector();
-    drawKeyboardHighlights(p, layout, { melodyMidi: null, chordMidis: [] });
+    drawKeyboardHighlights(p, layout, { melodyMidi: null, chordMidis: [], rootMidi: null });
     expect(rectCalls(p).length).toBe(0);
   });
 
@@ -22,6 +22,7 @@ describe('drawKeyboardHighlights', () => {
     drawKeyboardHighlights(p, layout, {
       melodyMidi: null,
       chordMidis: [48, 52, 55],
+      rootMidi: 48,
     });
     expect(rectCalls(p).length).toBe(3);
   });
@@ -33,8 +34,8 @@ describe('drawKeyboardHighlights', () => {
     drawKeyboardHighlights(p, layout, {
       melodyMidi: null,
       chordMidis: [48, 52, 55],
+      rootMidi: 48,
     });
-    // 정확히 3개
     expect(rectCalls(p).length).toBe(3);
   });
 
@@ -42,8 +43,9 @@ describe('drawKeyboardHighlights', () => {
     const layout = calculateKeyboardLayout({ lowMidi: 48, highMidi: 83 });
     const p = new FakeProjector();
     drawKeyboardHighlights(p, layout, {
-      melodyMidi: 60, // melody C4 — chord midis(48/52/55)와 겹치지 않음
+      melodyMidi: 60,
       chordMidis: [48, 52, 55],
+      rootMidi: 48,
     });
     expect(rectCalls(p).length).toBe(4);
   });
@@ -54,7 +56,7 @@ describe('drawKeyboardHighlights', () => {
     drawKeyboardHighlights(
       p,
       layout,
-      { melodyMidi: 60, chordMidis: [] },
+      { melodyMidi: 60, chordMidis: [], rootMidi: null },
       { originX: 50, originY: 30 },
     );
     const translates = p.calls.filter((c) => c.op === 'translate');
