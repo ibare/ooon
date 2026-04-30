@@ -14,6 +14,15 @@ export class FakeProjector implements Projector {
     this.size = size;
   }
 
+  resize(
+    width: number,
+    height: number,
+    opts?: { contentScale?: number; devicePixelRatio?: number },
+  ): void {
+    this.size = { width, height };
+    this.calls.push({ op: 'resize', args: [width, height, opts] });
+  }
+
   drawRect(
     rect: Rect,
     fill?: Color,

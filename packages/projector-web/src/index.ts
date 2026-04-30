@@ -7,7 +7,7 @@ export type { LoadBravuraOptions } from './font-loader.js';
 export { SmplrAudioEngine } from './smplr-audio-engine.js';
 export type { SmplrAudioEngineOptions } from './smplr-audio-engine.js';
 
-export { hitTest, canvasPointFromEvent } from './interactions/hit-testing.js';
+export { hitTest } from './interactions/hit-testing.js';
 
 export { THEME, FONT, METRICS } from './theme.js';
 export type { ThemeKey, FontKey } from './theme.js';

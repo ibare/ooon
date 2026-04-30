@@ -131,12 +131,11 @@ export default function RenderBlock({
   const stateRef = useRef<ParsedLayout | null>(null);
   const rafRef = useRef<number | null>(null);
   const startTimeRef = useRef<number>(0);
-  // 컨테이너 폭. width prop이 명시되면 그것을 사용, 아니면 ResizeObserver가 채운다.
-  const [autoWidth, setAutoWidth] = useState<number | null>(null);
+  // 실제 컨테이너 측정 폭. width prop과 무관하게 항상 추적해 contentScale을 산출한다.
+  const [containerWidth, setContainerWidth] = useState<number | null>(null);
 
-  // ResizeObserver: width prop 미지정 시에만 컨테이너 폭 추적
+  // ResizeObserver는 width prop 유무와 무관하게 항상 동작 — 컨테이너 폭이 항상 표시 fit의 진실.
   useEffect(() => {
-    if (width !== undefined) return;
     const el = containerRef.current;
     if (!el) return;
 
@@ -148,34 +147,41 @@ export default function RenderBlock({
       const w = Math.max(MIN_AUTO_WIDTH, Math.floor(entry.contentRect.width));
       if (timer !== null) clearTimeout(timer);
       timer = setTimeout(() => {
-        setAutoWidth((prev) => (prev === w ? prev : w));
+        setContainerWidth((prev) => (prev === w ? prev : w));
       }, RESIZE_DEBOUNCE_MS);
     });
     ro.observe(el);
-    // 초기치
+    // 초기치 — 첫 paint를 디바운스 우회로 즉시 트리거.
     const rect = el.getBoundingClientRect();
     if (rect.width > 0) {
-      setAutoWidth(Math.max(MIN_AUTO_WIDTH, Math.floor(rect.width)));
+      setContainerWidth(Math.max(MIN_AUTO_WIDTH, Math.floor(rect.width)));
     }
     return () => {
       if (timer !== null) clearTimeout(timer);
       ro.disconnect();
     };
-  }, [width]);
+  }, []);
 
-  const effectiveWidth = width ?? autoWidth;
+  // layoutBudget: layout 산출에 입력할 폭 — 작성자가 의도한 콘텐츠 밀도(width prop) 우선,
+  //              미지정 시 컨테이너 폭으로 fallback.
+  const layoutBudget = width ?? containerWidth;
 
   useEffect(() => {
     const canvas = canvasRef.current;
     const errorEl = errorRef.current;
     if (!canvas || !errorEl) return;
-    if (effectiveWidth === null || effectiveWidth <= 0) return;
+    if (layoutBudget === null || layoutBudget <= 0) return;
+    if (containerWidth === null || containerWidth <= 0) return;
 
     let cancelled = false;
     const projector = new CanvasProjector(canvas);
     projectorRef.current = projector;
 
-    async function init(err: HTMLDivElement, w: number): Promise<void> {
+    async function init(
+      err: HTMLDivElement,
+      budget: number,
+      cw: number,
+    ): Promise<void> {
       try {
         await loadBravura({ url: FONT_URL });
       } catch {
@@ -183,7 +189,7 @@ export default function RenderBlock({
       }
       if (cancelled) return;
 
-      const built = buildLayout(source, w);
+      const built = buildLayout(source, budget);
       if ('error' in built) {
         err.textContent = built.error;
         stateRef.current = null;
@@ -194,12 +200,13 @@ export default function RenderBlock({
 
       const layoutWidth = built.layout.width;
       const layoutHeight = built.layout.height;
-      const canvasWidth = Math.max(layoutWidth, w);
-      projector.resize(canvasWidth, layoutHeight);
+      // 표시 fit은 항상 컨테이너 폭 기준 — width prop이 명시되어도 컨테이너가 더 좁으면 축소.
+      const contentScale = Math.min(1, cw / layoutWidth);
+      projector.resize(layoutWidth, layoutHeight, { contentScale });
       paint(projector, built, showNoteNames, null);
     }
 
-    void init(errorEl, effectiveWidth);
+    void init(errorEl, layoutBudget, containerWidth);
     return () => {
       cancelled = true;
       if (rafRef.current !== null) {
@@ -209,7 +216,7 @@ export default function RenderBlock({
       projectorRef.current = null;
       stateRef.current = null;
     };
-  }, [source, effectiveWidth, showNoteNames]);
+  }, [source, layoutBudget, containerWidth, showNoteNames]);
 
   useEffect(() => {
     if (rafRef.current !== null) {

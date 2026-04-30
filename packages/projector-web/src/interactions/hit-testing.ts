@@ -11,8 +11,3 @@ export function hitTest(areas: readonly HitArea[], point: Point): HitArea | unde
   }
   return undefined;
 }
-
-export function canvasPointFromEvent(canvas: HTMLCanvasElement, clientX: number, clientY: number): Point {
-  const rect = canvas.getBoundingClientRect();
-  return { x: clientX - rect.left, y: clientY - rect.top };
-}

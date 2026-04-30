@@ -20,6 +20,14 @@ class FakeProjector implements Projector {
   readonly calls: DrawCall[] = [];
   readonly hitAreas: HitArea[] = [];
 
+  resize(
+    width: number,
+    height: number,
+    opts?: { contentScale?: number; devicePixelRatio?: number },
+  ): void {
+    this.calls.push({ op: 'resize', args: [width, height, opts] });
+  }
+
   drawRect(
     rect: Rect,
     fill?: Color,
