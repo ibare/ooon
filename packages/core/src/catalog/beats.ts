@@ -23,9 +23,9 @@ export const BEAT_CATALOG: Record<string, BeatPattern> = {
   ballad: {
     resolution: 16,
     tracks: {
-      HH: '--x---x---x---x-',
-      SN: '----x-------x---',
-      KK: 'x---------x-----',
+      HH: 'x-x-x-x-x-x-x-x-',
+      SN: '--------x-------',
+      KK: 'x-------------x-',
     },
   },
   '16beat': {
@@ -48,8 +48,8 @@ export const BEAT_CATALOG: Record<string, BeatPattern> = {
     resolution: 16,
     tracks: {
       HH: 'x-x-x-x-x-x-x-x-',
-      SN: '---x---x---x---x',
-      KK: 'x-----x---x-----',
+      SN: 'x--x--x---x-x---',
+      KK: 'x---x---x---x---',
     },
   },
 };
