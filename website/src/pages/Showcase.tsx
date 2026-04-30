@@ -1,8 +1,6 @@
-import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import BlockPlayer from '../components/BlockPlayer';
 import CodeBlock from '../components/CodeBlock';
-import PlayButton from '../components/PlayButton';
-import RenderBlock from '../components/RenderBlock';
 import { showcase } from '../data/showcase-data';
 import { useLang } from '../i18n/context';
 
@@ -11,11 +9,6 @@ export default function Showcase() {
   const { genre } = useParams<{ genre: string }>();
   const activeId = genre ?? showcase[0]?.id ?? 'blues';
   const active = showcase.find((s) => s.id === activeId) ?? showcase[0];
-  const [playing, setPlaying] = useState(false);
-
-  useEffect(() => {
-    setPlaying(false);
-  }, [activeId]);
 
   return (
     <section className="section">
@@ -41,20 +34,9 @@ export default function Showcase() {
 
         {active && (
           <article>
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                gap: '1em',
-                marginBottom: '1em',
-              }}
-            >
-              <div>
-                <h2 style={{ fontSize: '1.4em', marginBottom: '0.2em' }}>{active.title}</h2>
-                <p style={{ color: 'var(--color-muted)', fontSize: '0.9em' }}>{active.subtitle}</p>
-              </div>
-              <PlayButton source={active.source} onPlayingChange={setPlaying} />
+            <div style={{ marginBottom: '1em' }}>
+              <h2 style={{ fontSize: '1.4em', marginBottom: '0.2em' }}>{active.title}</h2>
+              <p style={{ color: 'var(--color-muted)', fontSize: '0.9em' }}>{active.subtitle}</p>
             </div>
             <details style={{ marginBottom: '1em' }}>
               <summary
@@ -86,7 +68,7 @@ export default function Showcase() {
               >
                 {t.showcasePage.render_label}
               </div>
-              <RenderBlock source={active.source} width={880} playing={playing} />
+              <BlockPlayer source={active.source} width={880} />
             </div>
           </article>
         )}

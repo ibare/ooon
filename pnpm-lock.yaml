@@ -110,6 +110,43 @@ importers:
         specifier: ^2.1.1
         version: 2.1.9(@types/node@20.19.39)
 
+  packages/player-web:
+    dependencies:
+      '@oon/composition':
+        specifier: workspace:*
+        version: link:../composition
+      '@oon/core':
+        specifier: workspace:*
+        version: link:../core
+      '@oon/instrument-layouts':
+        specifier: workspace:*
+        version: link:../instrument-layouts
+      '@oon/projector-web':
+        specifier: workspace:*
+        version: link:../projector-web
+      '@oon/score-engraving':
+        specifier: workspace:*
+        version: link:../score-engraving
+      '@oon/shared':
+        specifier: workspace:*
+        version: link:../shared
+    devDependencies:
+      '@oon/tsconfig':
+        specifier: workspace:*
+        version: link:../../configs/tsconfig
+      smplr:
+        specifier: ^0.20.0
+        version: 0.20.0
+      tsup:
+        specifier: ^8.2.4
+        version: 8.5.1(postcss@8.5.10)(tsx@4.21.0)(typescript@5.9.3)
+      typescript:
+        specifier: ^5.5.4
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.1
+        version: 2.1.9(@types/node@20.19.39)
+
   packages/plugin-tiptap:
     dependencies:
       '@oon/composition':
@@ -244,24 +281,9 @@ importers:
 
   website:
     dependencies:
-      '@oon/composition':
+      '@oon/player-web':
         specifier: workspace:*
-        version: link:../packages/composition
-      '@oon/core':
-        specifier: workspace:*
-        version: link:../packages/core
-      '@oon/instrument-layouts':
-        specifier: workspace:*
-        version: link:../packages/instrument-layouts
-      '@oon/projector-web':
-        specifier: workspace:*
-        version: link:../packages/projector-web
-      '@oon/score-engraving':
-        specifier: workspace:*
-        version: link:../packages/score-engraving
-      '@oon/shared':
-        specifier: workspace:*
-        version: link:../packages/shared
+        version: link:../packages/player-web
       react:
         specifier: ^19.0.0
         version: 19.2.5

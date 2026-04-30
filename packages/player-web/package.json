@@ -1,0 +1,41 @@
+{
+  "name": "@oon/player-web",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Oon 인터랙티브 블록 플레이어 — DSL 한 줄로 캔버스 + 컨트롤 + 오디오 통합 컨테이너",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": ["dist", "README.md"],
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "clean": "rm -rf dist .tsbuildinfo"
+  },
+  "dependencies": {
+    "@oon/composition": "workspace:*",
+    "@oon/core": "workspace:*",
+    "@oon/instrument-layouts": "workspace:*",
+    "@oon/projector-web": "workspace:*",
+    "@oon/score-engraving": "workspace:*",
+    "@oon/shared": "workspace:*"
+  },
+  "peerDependencies": {
+    "smplr": ">=0.20.0"
+  },
+  "devDependencies": {
+    "@oon/tsconfig": "workspace:*",
+    "smplr": "^0.20.0",
+    "tsup": "^8.2.4",
+    "typescript": "^5.5.4",
+    "vitest": "^2.1.1"
+  }
+}

@@ -1,6 +1,6 @@
 import { Link, useParams } from 'react-router-dom';
 import { useLang } from '../../i18n/context';
-import RenderBlock from '../../components/RenderBlock';
+import BlockPlayer from '../../components/BlockPlayer';
 
 const DEMO_SOURCE = 'score 4/4\n  C4/q E4/q G4/q C5/q | G4/q E4/q C4/q r/q |';
 
@@ -40,7 +40,7 @@ export default function HeroSection() {
           </a>
         </div>
         <div style={{ marginTop: '3em', maxWidth: 640, marginLeft: 'auto', marginRight: 'auto' }}>
-          <RenderBlock source={DEMO_SOURCE} width={640} />
+          <BlockPlayer source={DEMO_SOURCE} width={640} />
         </div>
       </div>
     </section>
