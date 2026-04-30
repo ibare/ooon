@@ -1,9 +1,19 @@
 import type { Projector } from '@oon/shared';
 import type { SongLayout } from '@oon/composition';
+import { CanvasProjector } from '../canvas-projector.js';
 import { renderDrum } from './drum-renderer.js';
 import { renderKeyboard } from './keyboard-renderer.js';
 import { renderProgression } from './progression-renderer.js';
 import { renderScore } from './score-renderer.js';
+
+/** mute된 트랙을 시각적으로 디머할 때 적용하는 globalAlpha 배율. */
+const MUTE_ALPHA = 0.3;
+
+export interface SongTrackMute {
+  chord?: boolean;
+  melody?: boolean;
+  drum?: boolean;
+}
 
 export interface SongRenderOptions {
   originX?: number;
@@ -17,6 +27,8 @@ export interface SongRenderOptions {
   activeStep?: number;
   /** 재생 중 여부. drum 렌더러에 글로우 효과를 켤지 결정. */
   playing?: boolean;
+  /** 트랙별 mute 시각 디머. CanvasProjector 백엔드에서만 alpha가 적용된다. */
+  mute?: SongTrackMute;
 }
 
 export function renderSong(
@@ -38,6 +50,11 @@ export function renderSong(
     showLabels: true,
   });
 
+  const mute = opts.mute;
+  const dimChord = mute?.chord === true;
+  const dimMelody = mute?.melody === true;
+  const dimDrum = mute?.drum === true;
+
   // 2) 시스템 순회: progression → score → drum
   for (let i = 0; i < layout.systems.length; i++) {
     const sys = layout.systems[i]!;
@@ -45,42 +62,65 @@ export function renderSong(
     const isFirstSystem = i === 0;
 
     if (sys.progression) {
-      renderProgression(
-        projector,
-        {
-          width: 0,
-          height: sys.progression.height,
-          cards: sys.progression.cards,
-        },
-        {
-          originX: ox,
-          originY: sysOriginY + sys.progression.y,
-          ...(activeBar !== undefined ? { activeBarNumber: activeBar } : {}),
-          ...(activeChord !== undefined ? { activeChordIndex: activeChord } : {}),
-        },
-      );
+      const progSys = sys.progression;
+      const drawProgression = (): void => {
+        renderProgression(
+          projector,
+          {
+            width: 0,
+            height: progSys.height,
+            cards: progSys.cards,
+          },
+          {
+            originX: ox,
+            originY: sysOriginY + progSys.y,
+            ...(activeBar !== undefined ? { activeBarNumber: activeBar } : {}),
+            ...(activeChord !== undefined ? { activeChordIndex: activeChord } : {}),
+          },
+        );
+      };
+      if (dimChord && projector instanceof CanvasProjector) {
+        projector.withGlobalAlpha(MUTE_ALPHA, drawProgression);
+      } else {
+        drawProgression();
+      }
     }
 
-    renderScore(projector, sys.score.layout, {
-      originX: ox,
-      originY: sysOriginY + sys.score.y,
-      ...(opts.showNoteNames !== undefined ? { showNoteNames: opts.showNoteNames } : {}),
-    });
+    const drawScore = (): void => {
+      renderScore(projector, sys.score.layout, {
+        originX: ox,
+        originY: sysOriginY + sys.score.y,
+        ...(opts.showNoteNames !== undefined ? { showNoteNames: opts.showNoteNames } : {}),
+      });
+    };
+    if (dimMelody && projector instanceof CanvasProjector) {
+      projector.withGlobalAlpha(MUTE_ALPHA, drawScore);
+    } else {
+      drawScore();
+    }
 
     if (sys.drum) {
       // 시스템 내 활성 step은 system local로 변환 — system이 담는 첫 마디부터 0이 시작.
+      const drumBlock = sys.drum;
       const sysScore = sys.score.layout.systems[0];
       const firstBarNum = sysScore?.bars[0]?.barNumber ?? 1;
-      const sysFirstStep = (firstBarNum - 1) * sys.drum.layout.resolution;
+      const sysFirstStep = (firstBarNum - 1) * drumBlock.layout.resolution;
       const localActiveStep =
         activeStep !== undefined ? activeStep - sysFirstStep : undefined;
-      renderDrum(projector, sys.drum.layout, {
-        originX: ox,
-        originY: sysOriginY + sys.drum.y,
-        showLabels: isFirstSystem,
-        playing,
-        ...(localActiveStep !== undefined ? { activeStep: localActiveStep } : {}),
-      });
+      const drawDrum = (): void => {
+        renderDrum(projector, drumBlock.layout, {
+          originX: ox,
+          originY: sysOriginY + drumBlock.y,
+          showLabels: isFirstSystem,
+          playing,
+          ...(localActiveStep !== undefined ? { activeStep: localActiveStep } : {}),
+        });
+      };
+      if (dimDrum && projector instanceof CanvasProjector) {
+        projector.withGlobalAlpha(MUTE_ALPHA, drawDrum);
+      } else {
+        drawDrum();
+      }
     }
   }
 }

@@ -296,6 +296,20 @@ export class CanvasProjector implements Projector {
     }
   }
 
+  /**
+   * 콜백 동안 globalAlpha를 곱셈식으로 적용한다. 콜백 종료 후 자동 복원.
+   * 트랙 mute 디머처럼 다른 렌더러 호출 전체를 반투명 처리할 때 사용한다.
+   */
+  withGlobalAlpha(alpha: number, fn: () => void): void {
+    this.ctx.save();
+    this.ctx.globalAlpha *= alpha;
+    try {
+      fn();
+    } finally {
+      this.ctx.restore();
+    }
+  }
+
   getHitAreas(): readonly HitArea[] {
     return this.hitAreas;
   }
