@@ -65,6 +65,41 @@ describe('getSongPlayhead', () => {
     const pos = getSongPlayhead(layout, 0, 4);
     expect(pos.drum).toBeUndefined();
   });
+
+  it('score x advances across wrapped systems (not stuck at first bar)', () => {
+    // 좁은 width로 system이 2개 이상 생기는 곡
+    const dsl = `song 4/4 key:C bpm:100
+  C | G | Am | F | C | G | Am | F | C | G |
+  C4/w | G4/w | A4/w | F4/w | C4/w | G4/w | A4/w | F4/w | C4/w | G4/w |`;
+    const node = parseSong(dsl);
+    const layout = calculateSongLayout(node, { width: 600 });
+    expect(layout.systems.length).toBeGreaterThanOrEqual(2);
+
+    const sys1 = layout.systems[1]!;
+    const sys1Bars = sys1.score.layout.systems[0]!.bars;
+    const sys1FirstBarBeat = sys1Bars[0]!.barNumber - 1; // 0-based
+    const beatsPerBar = 4;
+    const sys1StartBeat = sys1FirstBarBeat * beatsPerBar;
+
+    // system 1 첫 마디 시작
+    const posStart = getSongPlayhead(layout, sys1StartBeat, beatsPerBar);
+    expect(posStart.systemIndex).toBe(1);
+    expect(posStart.score!.x).toBeCloseTo(sys1Bars[0]!.x, 5);
+
+    // system 1 두 번째 마디 시작 — 첫 마디 시작에 멈춰 있으면 안 됨
+    const posSecond = getSongPlayhead(layout, sys1StartBeat + beatsPerBar, beatsPerBar);
+    expect(posSecond.systemIndex).toBe(1);
+    expect(posSecond.score!.x).toBeCloseTo(sys1Bars[1]!.x, 5);
+    expect(posSecond.score!.x).toBeGreaterThan(sys1Bars[0]!.x);
+
+    // system 1 첫 마디 중간(beat 절반) — 첫 마디 x보다 진행해야 함
+    const posMid = getSongPlayhead(layout, sys1StartBeat + beatsPerBar / 2, beatsPerBar);
+    expect(posMid.systemIndex).toBe(1);
+    expect(posMid.score!.x).toBeCloseTo(
+      sys1Bars[0]!.x + sys1Bars[0]!.width / 2,
+      5,
+    );
+  });
 });
 
 describe('getSongActiveNotes', () => {

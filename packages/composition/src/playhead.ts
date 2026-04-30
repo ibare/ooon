@@ -69,7 +69,10 @@ export function getSongPlayhead(
     };
   }
 
-  const scoreRaw = getScorePlayhead(sys.score.layout, beatInSystem, beatsPerBar);
+  // sys.score.layout의 bars는 절대 barNumber(예: system1 = bars 6..10)를 그대로 보존하므로
+  // getScorePlayhead에는 system-local이 아닌 절대 beat(클램프됨)를 넘겨야 한다.
+  const absoluteBeat = beatStart + beatInSystem;
+  const scoreRaw = getScorePlayhead(sys.score.layout, absoluteBeat, beatsPerBar);
   if (scoreRaw) {
     positions.score = {
       systemIndex: scoreRaw.systemIndex,
