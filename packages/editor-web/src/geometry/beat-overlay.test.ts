@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { ScoreLayout } from '@oon/score-engraving';
 import type { ScoreNode } from '@oon/core';
-import { calculateBeatSlots } from './beat-overlay.js';
+import { calculateBeatSlots, groupBeatSlots } from './beat-overlay.js';
 
 // 슬롯 생성 로직 자체만 검증하는 단위 테스트.
 // staff/clef/keySig/timeSig는 calculateBeatSlots가 staff.{top,bottom,lineGap}만 참조하므로
@@ -177,5 +177,67 @@ describe('calculateBeatSlots — 그룹 메타', () => {
     );
     expect(slots.map((s) => s.groupIndex)).toEqual([0, 0, 0, 1, 1]);
     expect(slots.map((s) => s.isGroupStart)).toEqual([true, false, false, true, false]);
+  });
+});
+
+describe('groupBeatSlots — 메인박 단위 union rect', () => {
+  it('빈 4/4([4]) 단일 그룹 → 그룹 1개, 멤버 4개, union 폭 = 4박 합', () => {
+    const slots = calculateBeatSlots(makeLayout(), makeNodeEmpty());
+    const groups = groupBeatSlots(slots);
+    expect(groups).toHaveLength(1);
+    expect(groups[0]?.groupIndex).toBe(0);
+    expect(groups[0]?.members).toHaveLength(4);
+    const expectedWidth = slots[3]!.x + slots[3]!.width - slots[0]!.x;
+    expect(groups[0]?.width).toBeCloseTo(expectedWidth, 5);
+  });
+
+  it('빈 6/8([3,3]) → 그룹 2개, 각 멤버 3개씩', () => {
+    const slots = calculateBeatSlots(
+      makeLayout(),
+      makeNodeTs({ beats: 6, beatValue: 8 }, []),
+    );
+    const groups = groupBeatSlots(slots);
+    expect(groups).toHaveLength(2);
+    expect(groups.map((g) => g.groupIndex)).toEqual([0, 1]);
+    expect(groups.map((g) => g.members.length)).toEqual([3, 3]);
+  });
+
+  it('6/8에서 q.(=3박) 사용 후엔 두 번째 그룹 union 1개만 반환', () => {
+    const slots = calculateBeatSlots(
+      makeLayout(),
+      makeNodeTs({ beats: 6, beatValue: 8 }, [3]),
+    );
+    const groups = groupBeatSlots(slots);
+    expect(groups).toHaveLength(1);
+    expect(groups[0]?.groupIndex).toBe(1);
+    expect(groups[0]?.members).toHaveLength(3);
+  });
+
+  it('5/4([3,2]) → 그룹 2개, 멤버 3·2', () => {
+    const slots = calculateBeatSlots(
+      makeLayout(),
+      makeNodeTs({ beats: 5, beatValue: 4 }, []),
+    );
+    const groups = groupBeatSlots(slots);
+    expect(groups.map((g) => g.members.length)).toEqual([3, 2]);
+  });
+
+  it('빈 입력은 빈 배열 반환', () => {
+    expect(groupBeatSlots([])).toEqual([]);
+  });
+
+  it('union rect 좌표는 첫 슬롯 x ~ 마지막 슬롯 우측, y/height는 동일', () => {
+    const slots = calculateBeatSlots(
+      makeLayout(),
+      makeNodeTs({ beats: 6, beatValue: 8 }, []),
+    );
+    const groups = groupBeatSlots(slots);
+    expect(groups[0]?.x).toBe(slots[0]!.x);
+    expect(groups[0]?.y).toBe(slots[0]!.y);
+    expect(groups[0]?.height).toBe(slots[0]!.height);
+    expect(groups[0]?.width).toBeCloseTo(
+      slots[2]!.x + slots[2]!.width - slots[0]!.x,
+      5,
+    );
   });
 });

@@ -117,6 +117,10 @@ concerns:
 # ─────────────────────────────────────
 # Specifics (Domain-specific)
 # ─────────────────────────────────────
-# 새 프로젝트로 아직 도메인별 규칙은 없음.
-# 도메인이 정해지는 시점에 S-{도메인}.md로 추가한다.
-specifics: []
+specifics:
+  - id: S-editor-web-canvas
+    file: specifics/S-editor-web-canvas.md
+    description: editor-web 트리플 캔버스 stacking과 그리기/이벤트 수신 분리
+    triggers:
+      paths:
+        - "packages/editor-web/**"

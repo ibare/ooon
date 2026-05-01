@@ -1,4 +1,4 @@
-import type { ScoreNode } from '@oon/core';
+import { getBeatGroups, type ScoreNode } from '@oon/core';
 import {
   CanvasProjector,
   loadBravura,
@@ -34,7 +34,6 @@ import {
   type TimeSigHitRect,
 } from './geometry/time-sig-hit.js';
 import { drawBeatOverlay } from './render/draw-overlay.js';
-import { drawGroupBoundaries } from './render/draw-group-boundary.js';
 import { drawPluckZones } from './render/draw-pluck.js';
 import { drawVibrationLine, isVibrationFinished } from './render/draw-vibration.js';
 import { drawPicker, layoutPicker } from './render/draw-picker.js';
@@ -91,20 +90,30 @@ export function mountScoreEditor(host: HTMLElement, opts: MountScoreEditorOption
 
   const root = document.createElement('div');
   root.className = 'oon-editor';
-  // 듀얼 캔버스: score-canvas는 DOM 흐름 안, ui-canvas는 그 위로 absolute 오버레이.
-  // ui-canvas는 위·아래 패드만큼 score-canvas보다 키워 픽커 등 UI가 score 영역 밖으로
-  // 펼쳐질 공간을 확보한다. 기본 pointer-events:none이라 평소엔 이벤트가 그대로
-  // score-canvas로 통과하고, 픽커가 열렸을 때만 'auto'로 토글하여 모달처럼 동작한다.
+  // 트리플 캔버스 stacking:
+  //  - score-canvas: DOM 흐름 안. 보표/음표/박자표 등 본 score만. pointer-events:none(아래 깔림).
+  //  - edit-canvas: score 위 absolute, 같은 크기/위치, transparent. 박자 오버레이/튕기기/진동/debug
+  //    hits 등 편집 UX를 그리며 hover/click 이벤트를 항상 수신한다. 박자 오버레이 punch가 score
+  //    오선을 깎지 않도록 별도 레이어로 분리.
+  //  - ui-canvas: 위·아래 패드만큼 더 큰 absolute 레이어로 picker 모달 전용. 평소 pointer-events:none
+  //    이라 없는 셈 취급되고, 픽커가 열렸을 때만 'auto'로 토글하여 주변 DOM을 덮는 모달처럼 동작.
   const canvasWrap = document.createElement('div');
   canvasWrap.className = 'oon-editor__canvas';
   canvasWrap.style.position = 'relative';
   const scoreCanvas = document.createElement('canvas');
+  scoreCanvas.style.pointerEvents = 'none';
+  const editCanvas = document.createElement('canvas');
+  editCanvas.style.position = 'absolute';
+  editCanvas.style.left = '0';
+  editCanvas.style.top = '0';
+  editCanvas.style.pointerEvents = 'auto';
   const uiCanvas = document.createElement('canvas');
   uiCanvas.style.position = 'absolute';
   uiCanvas.style.left = '0';
   uiCanvas.style.top = `${-UI_CANVAS_PAD_TOP}px`;
   uiCanvas.style.pointerEvents = 'none';
   canvasWrap.appendChild(scoreCanvas);
+  canvasWrap.appendChild(editCanvas);
   canvasWrap.appendChild(uiCanvas);
   const errorEl = document.createElement('div');
   errorEl.style.color = '#b91c1c';
@@ -115,6 +124,7 @@ export function mountScoreEditor(host: HTMLElement, opts: MountScoreEditorOption
   host.appendChild(root);
 
   const scoreProjector = new CanvasProjector(scoreCanvas);
+  const editProjector = new CanvasProjector(editCanvas);
   const uiProjector = new CanvasProjector(uiCanvas);
   const metronome = new Metronome();
   const preview = new PreviewEngine(
@@ -150,12 +160,14 @@ export function mountScoreEditor(host: HTMLElement, opts: MountScoreEditorOption
 
   const layoutBudget = (): number | null => opts.width ?? containerWidth;
 
-  // 두 projector를 같은 contentScale로 동기 리사이즈한다. score 캔버스는 layout 크기 그대로,
-  // ui 캔버스는 위·아래 패드만큼 더 큰 콘텐츠 영역을 갖는다(좌표계는 paintUI에서 정렬).
+  // 세 projector를 같은 contentScale로 동기 리사이즈한다. score/edit 캔버스는 layout 크기 그대로
+  // (서로 정확히 겹쳐 좌표계 동치), ui 캔버스는 위·아래 패드만큼 더 큰 콘텐츠 영역을 갖는다
+  // (좌표계는 paintUI에서 translate로 정렬).
   const applyResize = (): void => {
     if (!layout || containerWidth === null) return;
     const contentScale = Math.min(1, containerWidth / layout.width);
     scoreProjector.resize(layout.width, layout.height, { contentScale });
+    editProjector.resize(layout.width, layout.height, { contentScale });
     uiProjector.resize(
       layout.width,
       layout.height + UI_CANVAS_PAD_TOP + UI_CANVAS_PAD_BOTTOM,
@@ -174,24 +186,30 @@ export function mountScoreEditor(host: HTMLElement, opts: MountScoreEditorOption
     applyResize();
   };
 
-  // score 캔버스: 보표 + 박자 오버레이 + 튕기기 zone + 진동선.
+  // score 캔버스: 보표(오선/음표/박자표 등) 본 score만.
+  // edit 캔버스: 박자 오버레이 + 튕기기 zone + 진동선 + debug hits 등 편집 UX (이벤트 수신 layer).
   // ui 캔버스: 픽커만(score 좌표계와 정렬을 위해 translate로 위쪽 패드만큼 보정).
   const paintScore = (): void => {
     if (!layout) return;
     scoreProjector.clear();
     renderScore(scoreProjector, layout);
-    drawBeatOverlay(scoreProjector, beatSlots, {
+  };
+
+  const paintEdit = (): void => {
+    if (!layout) return;
+    editProjector.clear();
+    drawBeatOverlay(editProjector, beatSlots, {
       hovered: state.hoveredSlot,
       blinkSlot: currentBlinkSlot(),
+      useNesting: getBeatGroups(editable.getNode().timeSignature).length > 1,
     });
-    drawGroupBoundaries(scoreProjector, beatSlots);
-    drawPluckZones(scoreProjector, pluckZones, {
+    drawPluckZones(editProjector, pluckZones, {
       hovered: state.hoveredZone,
       hoverSnappedY: state.pluckSnappedY,
     });
     if (state.vibration) {
       const elapsed = (performance.now() - state.vibration.startTime) / 1000;
-      drawVibrationLine(scoreProjector, {
+      drawVibrationLine(editProjector, {
         elapsedSec: elapsed,
         centerY: state.vibration.centerY,
         x1: state.vibration.x1,
@@ -199,7 +217,7 @@ export function mountScoreEditor(host: HTMLElement, opts: MountScoreEditorOption
       });
     }
     if (state.debugShowHits) {
-      drawDebugNoteHits(scoreProjector, noteHits);
+      drawDebugNoteHits(editProjector, noteHits);
     }
   };
 
@@ -214,6 +232,7 @@ export function mountScoreEditor(host: HTMLElement, opts: MountScoreEditorOption
 
   const paint = (): void => {
     paintScore();
+    paintEdit();
     paintUI();
   };
 
@@ -246,11 +265,11 @@ export function mountScoreEditor(host: HTMLElement, opts: MountScoreEditorOption
     if (rafId === null) rafId = requestAnimationFrame(tickRaf);
   };
 
-  // 양 캔버스의 이벤트는 모두 score 좌표계로 환산해 처리한다.
-  // scoreProjector.clientToContentPoint는 client 좌표를 score 캔버스 콘텐츠 좌표로 바꾸므로
+  // edit/ui 두 캔버스의 이벤트는 모두 edit 좌표계로 환산해 처리한다.
+  // edit 캔버스는 score와 정확히 같은 위치/크기/contentScale로 정렬되어 좌표계가 동치이며,
   // ui 캔버스에서 발생한 이벤트도 (위쪽 패드 영역의 클릭은 음수 y로) 일관되게 표현된다.
   const onPointerMove = (ev: PointerEvent): void => {
-    const p = scoreProjector.clientToContentPoint(ev.clientX, ev.clientY);
+    const p = editProjector.clientToContentPoint(ev.clientX, ev.clientY);
     if (state.picker) {
       const rows = state.picker.layout.rows;
       let hoveredIndex: number | null = null;
@@ -278,12 +297,12 @@ export function mountScoreEditor(host: HTMLElement, opts: MountScoreEditorOption
       pitch = r.pitch;
     }
     state = { ...state, hoveredSlot: slot, hoveredZone: zone, pluckSnappedY: snapped, pluckPitch: pitch };
-    scoreCanvas.style.cursor = slot || zone ? 'pointer' : 'default';
+    editCanvas.style.cursor = slot || zone ? 'pointer' : 'default';
     paint();
   };
 
   const onPointerDown = (ev: PointerEvent): void => {
-    const p = scoreProjector.clientToContentPoint(ev.clientX, ev.clientY);
+    const p = editProjector.clientToContentPoint(ev.clientX, ev.clientY);
     if (state.picker) {
       const row = state.picker.layout.rows.find(
         (r) => p.x >= r.x && p.x <= r.x + r.width && p.y >= r.y && p.y <= r.y + r.height,
@@ -596,8 +615,8 @@ export function mountScoreEditor(host: HTMLElement, opts: MountScoreEditorOption
 
   // 양 캔버스에 모두 부착. ui 캔버스는 평소 pointer-events:none이라 이벤트가 score 캔버스로
   // 통과하고, 픽커가 열린 동안에만 pointer-events:auto로 토글되어 ui 캔버스가 이벤트를 받는다.
-  scoreCanvas.addEventListener('pointermove', onPointerMove);
-  scoreCanvas.addEventListener('pointerdown', onPointerDown);
+  editCanvas.addEventListener('pointermove', onPointerMove);
+  editCanvas.addEventListener('pointerdown', onPointerDown);
   uiCanvas.addEventListener('pointermove', onPointerMove);
   uiCanvas.addEventListener('pointerdown', onPointerDown);
 
@@ -674,8 +693,8 @@ export function mountScoreEditor(host: HTMLElement, opts: MountScoreEditorOption
       ro.disconnect();
       if (resizeTimer !== null) clearTimeout(resizeTimer);
       if (rafId !== null) cancelAnimationFrame(rafId);
-      scoreCanvas.removeEventListener('pointermove', onPointerMove);
-      scoreCanvas.removeEventListener('pointerdown', onPointerDown);
+      editCanvas.removeEventListener('pointermove', onPointerMove);
+      editCanvas.removeEventListener('pointerdown', onPointerDown);
       uiCanvas.removeEventListener('pointermove', onPointerMove);
       uiCanvas.removeEventListener('pointerdown', onPointerDown);
       window.removeEventListener('keydown', onKeyDown);

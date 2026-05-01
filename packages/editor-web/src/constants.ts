@@ -1,18 +1,24 @@
 // 편집 UX에서 사용하는 매직 상수 모음.
 // 픽셀 단위는 layout 좌표계(논리 좌표) 기준이며, projector가 DPR 스케일을 처리한다.
 
-// 박자 오버레이
-export const BEAT_OVERLAY_FILL = 'rgba(56, 132, 255, 0.08)';
-export const BEAT_OVERLAY_STROKE = 'rgba(56, 132, 255, 0.45)';
-export const BEAT_OVERLAY_HOVER_FILL = 'rgba(56, 132, 255, 0.18)';
-export const BEAT_OVERLAY_BLINK_FILL = 'rgba(56, 132, 255, 0.55)';
+// 박자 오버레이 — 큰박(그룹)과 작은박(슬롯)의 포함 관계를 색상 농도 nesting으로 표현.
+// outer(진한 반투명 파랑) = 그룹 union, inner(옅은 반투명 파랑) = 그룹 안에 inset된 슬롯.
+// 둘 다 반투명이라 오선지가 그대로 비치는 것이 오버레이의 기본 원칙. 알파 누적으로 inner가
+// 더 진해지는 문제는 draw-overlay에서 destination-out으로 outer를 inner 영역에서 punch한 뒤
+// inner를 그려 회피한다(누적 없이 inner 알파만 보임 → inner > outer 밝기 위계 유지).
+export const BEAT_OVERLAY_OUTER_FILL = 'rgba(56, 132, 255, 0.45)';
+export const BEAT_OVERLAY_INNER_FILL = 'rgba(56, 132, 255, 0.20)';
+export const BEAT_OVERLAY_HOVER_FILL = 'rgba(56, 132, 255, 0.65)';
+export const BEAT_OVERLAY_BLINK_FILL = 'rgba(56, 132, 255, 0.85)';
 export const BEAT_OVERLAY_BLINK_MS = 220;
 
-// 박자 그룹 경계 점선 — 빈 영역에서 음악적 메인박 그룹의 시작 위치를 시각화.
-// 음표가 채워진 마디는 beam grouping이 그룹을 표현하므로 별도 점선 없이 살아남.
-export const BEAT_GROUP_BOUNDARY_COLOR = 'rgba(56, 132, 255, 0.55)';
-export const BEAT_GROUP_BOUNDARY_DASH: readonly [number, number] = [3, 3];
-export const BEAT_GROUP_BOUNDARY_LINE_WIDTH = 1;
+// 그룹 사이 갭(좌·우 GAP/2씩 inset).
+export const BEAT_GROUP_GAP = 12;
+// 슬롯 inset — 위계: 그룹 갭(12) > 슬롯 사이 갭(EDGE_INSET 미적용 슬롯 사이 = MID*2 = 8) > inner.
+// 그룹 첫·마지막 슬롯은 EDGE_INSET를 적용해 outer 그룹 좌/우 안쪽으로 충분히 padding되어 보이도록 한다.
+export const BEAT_SLOT_INSET_Y = 3;
+export const BEAT_SLOT_INSET_MID = 4;
+export const BEAT_SLOT_INSET_EDGE = 10;
 
 // 메트로놈 클릭(WebAudio)
 export const METRONOME_CLICK_FREQ_HZ = 1500;

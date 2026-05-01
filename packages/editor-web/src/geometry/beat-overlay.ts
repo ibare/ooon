@@ -131,3 +131,53 @@ export function findSlotAt(
   }
   return null;
 }
+
+// 메인박(그룹) 단위로 슬롯들을 묶은 union rect. 시각 표현용이며, hit/hover/blink는 여전히
+// 슬롯(작은박) 단위라 멤버 슬롯 배열을 함께 보존한다.
+export interface GroupedSlotRect {
+  systemIndex: number;
+  barIndex: number;
+  groupIndex: number;
+  /** 그룹 union의 좌측 x. 그룹의 첫 슬롯과 동일. */
+  x: number;
+  y: number;
+  /** 그룹 첫 슬롯의 x ~ 마지막 슬롯의 우측까지의 합산 폭. */
+  width: number;
+  height: number;
+  /** 그룹에 속한 작은박 슬롯들. 작은박 분할 점선 등 내부 시각화에 사용. */
+  members: readonly BeatSlotRect[];
+}
+
+// 슬롯 시퀀스를 같은 (systemIndex, barIndex, groupIndex)끼리 묶어 union rect로 환산.
+// calculateBeatSlots 결과는 마디 내부에서 이미 row-major 순서이므로 in-place 그룹 단위로
+// 잘라내면 된다 — 다른 마디/시스템 슬롯이 끼어들지 않는다.
+export function groupBeatSlots(slots: readonly BeatSlotRect[]): GroupedSlotRect[] {
+  const out: GroupedSlotRect[] = [];
+  let i = 0;
+  while (i < slots.length) {
+    const head = slots[i]!;
+    let j = i + 1;
+    while (
+      j < slots.length &&
+      slots[j]!.systemIndex === head.systemIndex &&
+      slots[j]!.barIndex === head.barIndex &&
+      slots[j]!.groupIndex === head.groupIndex
+    ) {
+      j++;
+    }
+    const last = slots[j - 1]!;
+    const members = slots.slice(i, j);
+    out.push({
+      systemIndex: head.systemIndex,
+      barIndex: head.barIndex,
+      groupIndex: head.groupIndex,
+      x: head.x,
+      y: head.y,
+      width: last.x + last.width - head.x,
+      height: head.height,
+      members,
+    });
+    i = j;
+  }
+  return out;
+}
