@@ -53,3 +53,6 @@ export const PICKER_BORDER = 'rgba(255, 255, 255, 0.18)';
 export const PICKER_TEXT = 'rgba(245, 245, 248, 0.95)';
 export const PICKER_HOVER_BG = 'rgba(124, 196, 255, 0.20)';
 export const PICKER_EMPTY_BG = 'rgba(255, 255, 255, 0.04)';
+// 픽커는 클릭 위치(staff 안쪽)에서 펼쳐지면 오선지를 가리므로, anchorY는 클릭 위치가 아니라
+// 그 시스템의 staff.bottom 아래 GAP 만큼 떨어진 위치로 둔다. anchorX(가로)는 그대로 유지.
+export const PICKER_BELOW_STAFF_GAP = 8;

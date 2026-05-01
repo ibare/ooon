@@ -48,6 +48,7 @@ import {
 } from './interactions/state.js';
 import {
   BEAT_OVERLAY_BLINK_MS,
+  PICKER_BELOW_STAFF_GAP,
   UI_CANVAS_PAD_BOTTOM,
   UI_CANVAS_PAD_TOP,
 } from './constants.js';
@@ -358,7 +359,7 @@ export function mountScoreEditor(host: HTMLElement, opts: MountScoreEditorOption
     // 수 있다. score 좌표계 기준 [-PAD_TOP, layout.height + PAD_BOTTOM] 범위로 클램프한다.
     const pickerLayout = layoutPicker({
       anchorX: slot.x + slot.width + 6,
-      anchorY: slot.y,
+      anchorY: staff.bottom + PICKER_BELOW_STAFF_GAP,
       options,
       contentWidth: layout.width,
       contentMinY: -UI_CANVAS_PAD_TOP,
@@ -401,9 +402,11 @@ export function mountScoreEditor(host: HTMLElement, opts: MountScoreEditorOption
       beatValue: node.timeSignature.beatValue,
     });
     if (options.length === 0) return;
+    const replaceStaff = layout.systems.find((s) => s.index === hit.systemIndex)?.staff;
+    if (!replaceStaff) return;
     const pickerLayout = layoutPicker({
       anchorX: hit.x + hit.width + 6,
-      anchorY: hit.y,
+      anchorY: replaceStaff.bottom + PICKER_BELOW_STAFF_GAP,
       options,
       contentWidth: layout.width,
       contentMinY: -UI_CANVAS_PAD_TOP,
@@ -429,9 +432,11 @@ export function mountScoreEditor(host: HTMLElement, opts: MountScoreEditorOption
     const node = editable.getNode();
     const options = buildTimeSigOptions({ current: node.timeSignature });
     if (options.length === 0) return;
+    const tsStaff = layout.systems.find((s) => s.index === hit.systemIndex)?.staff;
+    if (!tsStaff) return;
     const pickerLayout = layoutPicker({
       anchorX: hit.x + hit.width + 6,
-      anchorY: hit.y,
+      anchorY: tsStaff.bottom + PICKER_BELOW_STAFF_GAP,
       options,
       contentWidth: layout.width,
       contentMinY: -UI_CANVAS_PAD_TOP,
