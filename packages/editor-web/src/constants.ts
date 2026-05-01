@@ -45,6 +45,9 @@ export const PICKER_PADDING = 8;
 export const PICKER_TILE_SIZE = 40;
 export const PICKER_TILE_GAP = 4;
 export const PICKER_GLYPH_SIZE = 28;
+// 박자 picker 셀 내부 상하 padding. 두 글리프(분자/분모)가 셀 안에 padding을 두고 위·아래로
+// 나눠 가지므로, fontSize는 (TILE_SIZE - PAD*2)/2 로 도출된다 — 매직 비율 곱 대신 셀 크기에서.
+export const PICKER_TIMESIG_INTERNAL_PAD = 4;
 export const PICKER_BG = 'rgba(20, 22, 28, 0.94)';
 export const PICKER_BORDER = 'rgba(255, 255, 255, 0.18)';
 export const PICKER_TEXT = 'rgba(245, 245, 248, 0.95)';

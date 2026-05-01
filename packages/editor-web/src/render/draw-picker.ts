@@ -10,6 +10,7 @@ import {
   PICKER_TEXT,
   PICKER_TILE_GAP,
   PICKER_TILE_SIZE,
+  PICKER_TIMESIG_INTERNAL_PAD,
 } from '../constants.js';
 import type { PickerOption } from '../geometry/picker-options.js';
 
@@ -177,26 +178,29 @@ function drawNoteRow(projector: Projector, row: PickerRowRect): void {
 
 // 박자 옵션은 분자/분모 두 글리프를 셀 가운데에 위·아래로 그린다.
 // 음표 셀의 stem 공간이 필요 없으므로 셀 중앙 정렬이 자연스럽다.
+// 레이아웃: 셀을 위·아래 반으로 나눠 각 반의 중앙에 글리프 시각 중앙(textBaseline 'middle')을 둠.
+// fontSize는 "PAD + 분자 + 분모 + PAD = 셀 높이" 제약에서 도출 — 셀 크기가 바뀌어도 자동 정합.
 function drawTimeSigRow(projector: Projector, row: PickerRowRect): void {
   const opt = row.option;
   if (opt.kind !== 'setTimeSignature') return;
   const cx = row.x + row.width * 0.5;
-  const fontSize = PICKER_GLYPH_SIZE * 0.85;
-  // 두 글리프 간격은 fontSize의 0.5 정도. 각각의 alphabetic baseline을 cy ± gap/2 즈음에.
-  const topBaselineY = row.y + row.height * 0.5;
-  const bottomBaselineY = row.y + row.height * 0.5 + fontSize * 0.95;
+  const fontSize = (row.height - PICKER_TIMESIG_INTERNAL_PAD * 2) / 2;
+  const topCY = row.y + row.height * 0.25;
+  const bottomCY = row.y + row.height * 0.75;
   const font = `${BRAVURA_FONT_FAMILY}, system-ui`;
-  projector.drawText(opt.topGlyph, { x: cx, y: topBaselineY }, {
+  projector.drawText(opt.topGlyph, { x: cx, y: topCY }, {
     font,
     fontSize,
     fill: PICKER_TEXT,
     align: 'center',
+    baseline: 'middle',
   });
-  projector.drawText(opt.bottomGlyph, { x: cx, y: bottomBaselineY }, {
+  projector.drawText(opt.bottomGlyph, { x: cx, y: bottomCY }, {
     font,
     fontSize,
     fill: PICKER_TEXT,
     align: 'center',
+    baseline: 'middle',
   });
 }
 
