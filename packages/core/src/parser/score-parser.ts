@@ -6,7 +6,7 @@ import type { BlockTokenized } from './tokenizer.js';
 
 const NOTE_RE = /^([A-Ga-gr])([#b]?)(-?\d+)?\/([whqes]\.?)$/;
 
-function parseNoteToken(token: string): NoteEvent {
+function parseNoteToken(token: string, beatValue: number): NoteEvent {
   const m = NOTE_RE.exec(token);
   if (!m) throw new ParseError(`Invalid note token: ${token}`);
   const letter = m[1];
@@ -16,7 +16,7 @@ function parseNoteToken(token: string): NoteEvent {
   if (!letter || !dur || !isDurationSymbol(dur)) {
     throw new ParseError(`Invalid note token: ${token}`);
   }
-  const beats = durationToBeats(dur);
+  const beats = durationToBeats(dur, beatValue);
   const isRest = letter.toLowerCase() === 'r';
   if (isRest) {
     return { pitch: '', duration: dur, beats, isRest: true };
@@ -51,7 +51,7 @@ export function parseScoreBlock(t: BlockTokenized): ScoreNode {
 
   const bars: ScoreBar[] = barStrings.map((barStr, idx) => {
     const tokens = barStr.split(/\s+/).filter((s) => s.length > 0);
-    const notes = tokens.map(parseNoteToken);
+    const notes = tokens.map((tok) => parseNoteToken(tok, timeSignature.beatValue));
     const total = notes.reduce((sum, n) => sum + n.beats, 0);
     const expected = timeSignature.beats;
     if (total < expected) {

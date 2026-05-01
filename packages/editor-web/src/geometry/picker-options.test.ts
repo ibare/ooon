@@ -3,7 +3,7 @@ import { buildPickerOptions, buildReplaceOptions } from './picker-options.js';
 
 describe('buildPickerOptions', () => {
   it('빈 4/4 마디(remain=4)에서는 모든 후보 노출', () => {
-    const opts = buildPickerOptions({ remainBeats: 4, beatsPerBar: 4 });
+    const opts = buildPickerOptions({ remainBeats: 4, beatsPerBar: 4, beatValue: 4 });
     const durs = opts.map((o) => o.duration);
     expect(durs).toContain('w');
     expect(durs).toContain('h.');
@@ -12,7 +12,7 @@ describe('buildPickerOptions', () => {
   });
 
   it('남은 1박에서는 q 이하만 노출', () => {
-    const opts = buildPickerOptions({ remainBeats: 1, beatsPerBar: 4 });
+    const opts = buildPickerOptions({ remainBeats: 1, beatsPerBar: 4, beatValue: 4 });
     const durs = opts.map((o) => o.duration);
     expect(durs).not.toContain('w');
     expect(durs).not.toContain('h');
@@ -21,11 +21,11 @@ describe('buildPickerOptions', () => {
   });
 
   it('남은 0박에서는 빈 배열', () => {
-    expect(buildPickerOptions({ remainBeats: 0, beatsPerBar: 4 })).toEqual([]);
+    expect(buildPickerOptions({ remainBeats: 0, beatsPerBar: 4, beatValue: 4 })).toEqual([]);
   });
 
   it('점음표는 비점음표와 같은 글리프 + dotted=true (음표만)', () => {
-    const opts = buildPickerOptions({ remainBeats: 4, beatsPerBar: 4 });
+    const opts = buildPickerOptions({ remainBeats: 4, beatsPerBar: 4, beatValue: 4 });
     const notes = opts.filter((o) => o.kind === 'insertNote');
     const q = notes.find((o) => o.duration === 'q');
     const qDot = notes.find((o) => o.duration === 'q.');
@@ -36,7 +36,7 @@ describe('buildPickerOptions', () => {
   });
 
   it('음표 duration별 글리프 매핑', () => {
-    const opts = buildPickerOptions({ remainBeats: 4, beatsPerBar: 4 });
+    const opts = buildPickerOptions({ remainBeats: 4, beatsPerBar: 4, beatValue: 4 });
     const notes = opts.filter((o) => o.kind === 'insertNote');
     const byDur = (d: string) => notes.find((o) => o.duration === d);
     expect(byDur('w')?.glyph).toBe('noteWhole');
@@ -46,7 +46,7 @@ describe('buildPickerOptions', () => {
   });
 
   it('각 옵션은 insertNote 또는 insertRest kind를 갖는다', () => {
-    const opts = buildPickerOptions({ remainBeats: 4, beatsPerBar: 4 });
+    const opts = buildPickerOptions({ remainBeats: 4, beatsPerBar: 4, beatValue: 4 });
     expect(opts.length).toBeGreaterThan(0);
     for (const o of opts) {
       expect(['insertNote', 'insertRest']).toContain(o.kind);
@@ -54,7 +54,7 @@ describe('buildPickerOptions', () => {
   });
 
   it('빈 4/4 마디에서 음표 9개 + 쉼표 9개 = 18개 노출, 음표가 먼저', () => {
-    const opts = buildPickerOptions({ remainBeats: 4, beatsPerBar: 4 });
+    const opts = buildPickerOptions({ remainBeats: 4, beatsPerBar: 4, beatValue: 4 });
     const notes = opts.filter((o) => o.kind === 'insertNote');
     const rests = opts.filter((o) => o.kind === 'insertRest');
     expect(notes.length).toBe(9);
@@ -65,7 +65,7 @@ describe('buildPickerOptions', () => {
   });
 
   it('쉼표 duration별 글리프 매핑 (점쉼표는 베이스와 동일 글리프 + dotted=true)', () => {
-    const opts = buildPickerOptions({ remainBeats: 4, beatsPerBar: 4 });
+    const opts = buildPickerOptions({ remainBeats: 4, beatsPerBar: 4, beatValue: 4 });
     const rests = opts.filter((o) => o.kind === 'insertRest');
     const byDur = (d: string) => rests.find((o) => o.duration === d);
     expect(byDur('w')?.glyph).toBe('restWhole');
@@ -83,7 +83,7 @@ describe('buildPickerOptions', () => {
   });
 
   it('남은 1박에서는 음표/쉼표 모두 q 이하만 노출', () => {
-    const opts = buildPickerOptions({ remainBeats: 1, beatsPerBar: 4 });
+    const opts = buildPickerOptions({ remainBeats: 1, beatsPerBar: 4, beatValue: 4 });
     const rests = opts.filter((o) => o.kind === 'insertRest');
     const restDurs = rests.map((o) => o.duration);
     expect(restDurs).not.toContain('w');
@@ -101,6 +101,7 @@ describe('buildReplaceOptions', () => {
       currentIsRest: false,
       beatsPerBar: 4,
       otherUsedBeats: 0,
+      beatValue: 4,
     });
     const notes = opts.filter((o) => o.kind === 'replaceNote');
     const rests = opts.filter((o) => o.kind === 'replaceWithRest');
@@ -117,6 +118,7 @@ describe('buildReplaceOptions', () => {
       currentIsRest: true,
       beatsPerBar: 4,
       otherUsedBeats: 0,
+      beatValue: 4,
     });
     const notes = opts.filter((o) => o.kind === 'replaceNote');
     const rests = opts.filter((o) => o.kind === 'replaceWithRest');
@@ -132,6 +134,7 @@ describe('buildReplaceOptions', () => {
       currentIsRest: false,
       beatsPerBar: 4,
       otherUsedBeats: 3,
+      beatValue: 4,
     });
     const notes = opts.filter((o) => o.kind === 'replaceNote');
     const rests = opts.filter((o) => o.kind === 'replaceWithRest');
@@ -147,6 +150,7 @@ describe('buildReplaceOptions', () => {
       currentIsRest: false,
       beatsPerBar: 4,
       otherUsedBeats: 0,
+      beatValue: 4,
     });
     const notes = opts.filter((o) => o.kind === 'replaceNote');
     expect(notes.some((o) => o.duration === 'q.')).toBe(false);
@@ -159,6 +163,7 @@ describe('buildReplaceOptions', () => {
       currentIsRest: false,
       beatsPerBar: 4,
       otherUsedBeats: 4,
+      beatValue: 4,
     });
     expect(opts).toEqual([]);
   });

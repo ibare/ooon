@@ -309,7 +309,11 @@ export function mountScoreEditor(host: HTMLElement, opts: MountScoreEditorOption
     const beatsPerBar = node.timeSignature.beats;
     const usedBeats = (node.bars[slot.barIndex]?.notes ?? []).reduce((s, n) => s + n.beats, 0);
     const remain = Math.max(0, beatsPerBar - usedBeats);
-    const options = buildPickerOptions({ remainBeats: remain, beatsPerBar });
+    const options = buildPickerOptions({
+      remainBeats: remain,
+      beatsPerBar,
+      beatValue: node.timeSignature.beatValue,
+    });
     if (options.length === 0) return;
     const system = layout.systems.find((s) => s.index === slot.systemIndex);
     const staff = system?.staff;
@@ -359,6 +363,7 @@ export function mountScoreEditor(host: HTMLElement, opts: MountScoreEditorOption
       currentIsRest: current.isRest,
       beatsPerBar,
       otherUsedBeats,
+      beatValue: node.timeSignature.beatValue,
     });
     if (options.length === 0) return;
     const pickerLayout = layoutPicker({

@@ -57,14 +57,20 @@ export interface ReplaceWithRestOption {
 export interface BuildOptionsInput {
   remainBeats: number;
   beatsPerBar: number;
+  /** 박자 분모. 1박 = 1/beatValue whole note. duration 토큰을 박 수로 환산할 때 사용. */
+  beatValue: number;
 }
 
-export function buildPickerOptions({ remainBeats, beatsPerBar }: BuildOptionsInput): PickerOption[] {
+export function buildPickerOptions({
+  remainBeats,
+  beatsPerBar,
+  beatValue,
+}: BuildOptionsInput): PickerOption[] {
   if (remainBeats <= 0 || beatsPerBar <= 0) return [];
   const out: PickerOption[] = [];
   for (const d of NOTE_CANDIDATES) {
     if (!isDurationSymbol(d)) continue;
-    const beats = durationToBeats(d);
+    const beats = durationToBeats(d, beatValue);
     if (beats > remainBeats + 1e-9) continue;
     out.push({
       kind: 'insertNote',
@@ -76,7 +82,7 @@ export function buildPickerOptions({ remainBeats, beatsPerBar }: BuildOptionsInp
   }
   for (const d of REST_CANDIDATES) {
     if (!isDurationSymbol(d)) continue;
-    const beats = durationToBeats(d);
+    const beats = durationToBeats(d, beatValue);
     if (beats > remainBeats + 1e-9) continue;
     out.push({
       kind: 'insertRest',
@@ -98,6 +104,8 @@ export interface BuildReplaceOptionsInput {
   beatsPerBar: number;
   /** 자기 자신을 제외한 마디 내 다른 음표들의 박자 합. (allowed = beatsPerBar - otherUsedBeats) */
   otherUsedBeats: number;
+  /** 박자 분모. 1박 = 1/beatValue whole note. */
+  beatValue: number;
 }
 
 // 음표 클릭 시 picker가 노출할 옵션들을 빌드한다. 자기 자신(같은 종류+같은 duration)은 빼고,
@@ -107,6 +115,7 @@ export function buildReplaceOptions({
   currentIsRest,
   beatsPerBar,
   otherUsedBeats,
+  beatValue,
 }: BuildReplaceOptionsInput): PickerOption[] {
   if (beatsPerBar <= 0) return [];
   const allowed = beatsPerBar - otherUsedBeats;
@@ -114,7 +123,7 @@ export function buildReplaceOptions({
   const out: PickerOption[] = [];
   for (const d of NOTE_CANDIDATES) {
     if (!isDurationSymbol(d)) continue;
-    const beats = durationToBeats(d);
+    const beats = durationToBeats(d, beatValue);
     if (beats > allowed + 1e-9) continue;
     if (!currentIsRest && d === currentDuration) continue;
     out.push({
@@ -127,7 +136,7 @@ export function buildReplaceOptions({
   }
   for (const d of REST_CANDIDATES) {
     if (!isDurationSymbol(d)) continue;
-    const beats = durationToBeats(d);
+    const beats = durationToBeats(d, beatValue);
     if (beats > allowed + 1e-9) continue;
     if (currentIsRest && d === currentDuration) continue;
     out.push({

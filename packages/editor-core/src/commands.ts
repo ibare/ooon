@@ -68,7 +68,7 @@ function applyInsertNote(node: ScoreNode, cmd: InsertNoteCommand): ScoreNode {
   const bar = node.bars[cmd.barIndex];
   if (!bar) throw new CommandError(`insertNote: bar ${cmd.barIndex} not found`);
 
-  const beats = durationToBeats(cmd.duration);
+  const beats = durationToBeats(cmd.duration, node.timeSignature.beatValue);
   const used = bar.notes.reduce((sum, n) => sum + n.beats, 0);
   const remaining = node.timeSignature.beats - used;
   if (beats > remaining + 1e-9) {
@@ -92,7 +92,7 @@ function applyInsertRest(node: ScoreNode, cmd: InsertRestCommand): ScoreNode {
   const bar = node.bars[cmd.barIndex];
   if (!bar) throw new CommandError(`insertRest: bar ${cmd.barIndex} not found`);
 
-  const beats = durationToBeats(cmd.duration);
+  const beats = durationToBeats(cmd.duration, node.timeSignature.beatValue);
   const used = bar.notes.reduce((sum, n) => sum + n.beats, 0);
   const remaining = node.timeSignature.beats - used;
   if (beats > remaining + 1e-9) {
@@ -129,7 +129,7 @@ function applyReplaceNote(node: ScoreNode, cmd: ReplaceNoteCommand): ScoreNode {
     );
   }
 
-  const newBeats = durationToBeats(cmd.duration);
+  const newBeats = durationToBeats(cmd.duration, node.timeSignature.beatValue);
   const otherBeats = bar.notes.reduce((sum, n, i) => (i === cmd.noteIndex ? sum : sum + n.beats), 0);
   const remaining = node.timeSignature.beats - otherBeats;
   if (newBeats > remaining + 1e-9) {
@@ -161,7 +161,7 @@ function applyReplaceWithRest(node: ScoreNode, cmd: ReplaceWithRestCommand): Sco
     );
   }
 
-  const newBeats = durationToBeats(cmd.duration);
+  const newBeats = durationToBeats(cmd.duration, node.timeSignature.beatValue);
   const otherBeats = bar.notes.reduce((sum, n, i) => (i === cmd.noteIndex ? sum : sum + n.beats), 0);
   const remaining = node.timeSignature.beats - otherBeats;
   if (newBeats > remaining + 1e-9) {

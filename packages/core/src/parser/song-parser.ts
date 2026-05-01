@@ -19,7 +19,7 @@ function looksLikeChordToken(t: string): boolean {
   return CHORD_HINT_RE.test(t) && !NOTE_RE.test(t);
 }
 
-function parseNoteToken(token: string): NoteEvent {
+function parseNoteToken(token: string, beatValue: number): NoteEvent {
   const m = NOTE_RE.exec(token);
   if (!m) throw new ParseError(`Invalid note token: ${token}`);
   const letter = m[1];
@@ -29,7 +29,7 @@ function parseNoteToken(token: string): NoteEvent {
   if (!letter || !dur || !isDurationSymbol(dur)) {
     throw new ParseError(`Invalid note token: ${token}`);
   }
-  const beats = durationToBeats(dur);
+  const beats = durationToBeats(dur, beatValue);
   const isRest = letter.toLowerCase() === 'r';
   if (isRest) return { pitch: '', duration: dur, beats, isRest: true };
   const octStr = oct !== undefined ? oct : '4';
@@ -85,7 +85,7 @@ export function parseSongBlock(t: BlockTokenized): SongNode {
     const parsedChord = parseChordSymbol(chordToken);
 
     const melodyTokens = melodyBarRaw.split(/\s+/).filter((s) => s.length > 0);
-    const melody = melodyTokens.map(parseNoteToken);
+    const melody = melodyTokens.map((tok) => parseNoteToken(tok, timeSignature.beatValue));
     const melodyTotal = melody.reduce((sum, n) => sum + n.beats, 0);
     const expected = timeSignature.beats;
     if (melodyTotal < expected) {
