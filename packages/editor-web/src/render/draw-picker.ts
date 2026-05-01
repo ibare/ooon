@@ -127,34 +127,10 @@ export function drawPicker(
         4,
       );
     }
-    // 글리프 baseline은 셀 하단 가까이 — stem이 위로 솟아 셀 안에 자리잡도록.
-    const glyphX = row.x + row.width * 0.32;
-    const baselineY = row.y + row.height * 0.78;
-    // SMUFL 맵에는 timeSigDigit 같은 함수 엔트리도 있어 인덱스 결과가 union(string | function)으로
-    // 좁혀지지 않는다. picker가 사용하는 글리프 키(noteX, restX, augmentationDot)는 모두 문자열
-    // 상수임이 GlyphName 정의에서 보장되므로 string으로 좁혀준다.
-    const glyphChar = SMUFL[row.option.glyph] as string;
-    projector.drawText(
-      glyphChar,
-      { x: glyphX, y: baselineY },
-      {
-        font: `${BRAVURA_FONT_FAMILY}, system-ui`,
-        fontSize: PICKER_GLYPH_SIZE,
-        fill: PICKER_TEXT,
-        align: 'left',
-      },
-    );
-    if (row.option.dotted) {
-      projector.drawText(
-        SMUFL.augmentationDot,
-        { x: glyphX + PICKER_GLYPH_SIZE * 0.5, y: baselineY },
-        {
-          font: `${BRAVURA_FONT_FAMILY}, system-ui`,
-          fontSize: PICKER_GLYPH_SIZE,
-          fill: PICKER_TEXT,
-          align: 'left',
-        },
-      );
+    if (row.option.kind === 'setTimeSignature') {
+      drawTimeSigRow(projector, row);
+    } else {
+      drawNoteRow(projector, row);
     }
     projector.registerHitArea(`picker:${row.index}`, {
       x: row.x,
@@ -163,6 +139,65 @@ export function drawPicker(
       height: row.height,
     });
   }
+}
+
+function drawNoteRow(projector: Projector, row: PickerRowRect): void {
+  // 글리프 baseline은 셀 하단 가까이 — stem이 위로 솟아 셀 안에 자리잡도록.
+  const glyphX = row.x + row.width * 0.32;
+  const baselineY = row.y + row.height * 0.78;
+  // SMUFL 맵에는 timeSigDigit 같은 함수 엔트리도 있어 인덱스 결과가 union(string | function)으로
+  // 좁혀지지 않는다. picker가 사용하는 글리프 키(noteX, restX, augmentationDot)는 모두 문자열
+  // 상수임이 GlyphName 정의에서 보장되므로 string으로 좁혀준다.
+  const opt = row.option;
+  if (opt.kind === 'setTimeSignature') return; // type guard용
+  const glyphChar = SMUFL[opt.glyph] as string;
+  projector.drawText(
+    glyphChar,
+    { x: glyphX, y: baselineY },
+    {
+      font: `${BRAVURA_FONT_FAMILY}, system-ui`,
+      fontSize: PICKER_GLYPH_SIZE,
+      fill: PICKER_TEXT,
+      align: 'left',
+    },
+  );
+  if (opt.dotted) {
+    projector.drawText(
+      SMUFL.augmentationDot,
+      { x: glyphX + PICKER_GLYPH_SIZE * 0.5, y: baselineY },
+      {
+        font: `${BRAVURA_FONT_FAMILY}, system-ui`,
+        fontSize: PICKER_GLYPH_SIZE,
+        fill: PICKER_TEXT,
+        align: 'left',
+      },
+    );
+  }
+}
+
+// 박자 옵션은 분자/분모 두 글리프를 셀 가운데에 위·아래로 그린다.
+// 음표 셀의 stem 공간이 필요 없으므로 셀 중앙 정렬이 자연스럽다.
+function drawTimeSigRow(projector: Projector, row: PickerRowRect): void {
+  const opt = row.option;
+  if (opt.kind !== 'setTimeSignature') return;
+  const cx = row.x + row.width * 0.5;
+  const fontSize = PICKER_GLYPH_SIZE * 0.85;
+  // 두 글리프 간격은 fontSize의 0.5 정도. 각각의 alphabetic baseline을 cy ± gap/2 즈음에.
+  const topBaselineY = row.y + row.height * 0.5;
+  const bottomBaselineY = row.y + row.height * 0.5 + fontSize * 0.95;
+  const font = `${BRAVURA_FONT_FAMILY}, system-ui`;
+  projector.drawText(opt.topGlyph, { x: cx, y: topBaselineY }, {
+    font,
+    fontSize,
+    fill: PICKER_TEXT,
+    align: 'center',
+  });
+  projector.drawText(opt.bottomGlyph, { x: cx, y: bottomBaselineY }, {
+    font,
+    fontSize,
+    fill: PICKER_TEXT,
+    align: 'center',
+  });
 }
 
 function clamp(v: number, lo: number, hi: number): number {

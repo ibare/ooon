@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { buildPickerOptions, buildReplaceOptions } from './picker-options.js';
+import { SMUFL } from '@oon/core';
+import { buildPickerOptions, buildReplaceOptions, buildTimeSigOptions } from './picker-options.js';
 
 describe('buildPickerOptions', () => {
   it('빈 4/4 마디(remain=4)에서는 모든 후보 노출', () => {
@@ -166,5 +167,43 @@ describe('buildReplaceOptions', () => {
       beatValue: 4,
     });
     expect(opts).toEqual([]);
+  });
+});
+
+describe('buildTimeSigOptions', () => {
+  it('current 미지정 시 4종 후보(2/4·3/4·4/4·6/8) 모두 노출', () => {
+    const opts = buildTimeSigOptions();
+    expect(opts.length).toBe(4);
+    const labels = opts.map((o) => o.label);
+    expect(labels).toEqual(['2/4', '3/4', '4/4', '6/8']);
+    for (const o of opts) expect(o.kind).toBe('setTimeSignature');
+  });
+
+  it('current=4/4면 4/4 제외하고 3종 노출', () => {
+    const opts = buildTimeSigOptions({ current: { beats: 4, beatValue: 4 } });
+    expect(opts.length).toBe(3);
+    expect(opts.map((o) => o.label)).toEqual(['2/4', '3/4', '6/8']);
+  });
+
+  it('current=6/8이면 6/8 제외하고 3종 노출', () => {
+    const opts = buildTimeSigOptions({ current: { beats: 6, beatValue: 8 } });
+    expect(opts.length).toBe(3);
+    expect(opts.map((o) => o.label)).toEqual(['2/4', '3/4', '4/4']);
+  });
+
+  it('각 옵션의 timeSignature/topGlyph/bottomGlyph는 SMUFL.timeSigDigit 결과와 일치', () => {
+    const opts = buildTimeSigOptions();
+    const six = opts.find((o) => o.label === '6/8')!;
+    expect(six.timeSignature).toEqual({ beats: 6, beatValue: 8 });
+    expect(six.topGlyph).toBe(SMUFL.timeSigDigit(6));
+    expect(six.bottomGlyph).toBe(SMUFL.timeSigDigit(8));
+    const four = opts.find((o) => o.label === '4/4')!;
+    expect(four.topGlyph).toBe(SMUFL.timeSigDigit(4));
+    expect(four.bottomGlyph).toBe(SMUFL.timeSigDigit(4));
+  });
+
+  it('카탈로그에 없는 박자(예: 5/4)를 current로 지정해도 후보는 4종 유지', () => {
+    const opts = buildTimeSigOptions({ current: { beats: 5, beatValue: 4 } });
+    expect(opts.length).toBe(4);
   });
 });

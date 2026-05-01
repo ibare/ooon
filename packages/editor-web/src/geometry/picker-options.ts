@@ -1,4 +1,4 @@
-import { durationToBeats, isDurationSymbol, type GlyphName } from '@oon/core';
+import { durationToBeats, isDurationSymbol, SMUFL, type GlyphName, type TimeSignature } from '@oon/core';
 
 // 음표 후보 duration 심볼. 픽커는 이 순서대로 노출하되, 남은 박자(remainBeats)에
 // 들어맞는 것만 보여준다(점음표 포함, 8/16분음 가독성 유지).
@@ -17,7 +17,8 @@ export type PickerOption =
   | InsertNoteOption
   | InsertRestOption
   | ReplaceNoteOption
-  | ReplaceWithRestOption;
+  | ReplaceWithRestOption
+  | SetTimeSigOption;
 
 export interface InsertNoteOption {
   kind: 'insertNote';
@@ -52,6 +53,21 @@ export interface ReplaceWithRestOption {
   beats: number;
   glyph: GlyphName;
   dotted: boolean;
+}
+
+// 박자 변경은 음표/쉼표 옵션과 시각 표현이 다르다 — 분자/분모 두 글리프를
+// 위·아래로 배치해야 하므로 single glyph 필드 대신 top/bottom을 분리해 둔다.
+// dotted는 박자 옵션에 무의미하지만 PickerOption 공통 분기를 단순화하지 않기 위해
+// 의도적으로 두지 않는다(렌더 측이 kind로 분기).
+export interface SetTimeSigOption {
+  kind: 'setTimeSignature';
+  timeSignature: TimeSignature;
+  /** 분자 SMuFL 글리프(예: "4"). */
+  topGlyph: string;
+  /** 분모 SMuFL 글리프(예: "4"). */
+  bottomGlyph: string;
+  /** 사람 친화적 라벨(예: "4/4") — 디버그/접근성용. 렌더에는 글리프를 사용. */
+  label: string;
 }
 
 export interface BuildOptionsInput {
@@ -145,6 +161,35 @@ export function buildReplaceOptions({
       beats,
       glyph: restGlyphFor(d),
       dotted: d.endsWith('.'),
+    });
+  }
+  return out;
+}
+
+// 사용자 노출용 박자 후보. 비트 슬롯/그룹 메타와 결합해 무리 없이 동작하는 박자만 1차로 노출.
+// 5/4·7/8·9/8·12/8 등은 그룹 시각 검증 후 별도 PR에서 추가.
+const TIME_SIG_CANDIDATES: ReadonlyArray<{ beats: number; beatValue: number; label: string }> = [
+  { beats: 2, beatValue: 4, label: '2/4' },
+  { beats: 3, beatValue: 4, label: '3/4' },
+  { beats: 4, beatValue: 4, label: '4/4' },
+  { beats: 6, beatValue: 8, label: '6/8' },
+];
+
+export interface BuildTimeSigOptionsInput {
+  /** 현재 박자 — 같은 박자는 후보에서 제외(무의미한 마디 초기화 방지). */
+  current?: TimeSignature;
+}
+
+export function buildTimeSigOptions({ current }: BuildTimeSigOptionsInput = {}): SetTimeSigOption[] {
+  const out: SetTimeSigOption[] = [];
+  for (const c of TIME_SIG_CANDIDATES) {
+    if (current && current.beats === c.beats && current.beatValue === c.beatValue) continue;
+    out.push({
+      kind: 'setTimeSignature',
+      timeSignature: { beats: c.beats, beatValue: c.beatValue },
+      topGlyph: SMUFL.timeSigDigit(c.beats),
+      bottomGlyph: SMUFL.timeSigDigit(c.beatValue),
+      label: c.label,
     });
   }
   return out;

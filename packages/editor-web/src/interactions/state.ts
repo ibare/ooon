@@ -39,7 +39,15 @@ export interface ReplacePickerState {
   hoveredIndex: number | null;
 }
 
-export type PickerState = InsertPickerState | ReplacePickerState;
+// 박자표 클릭으로 열린 픽커 — 박자 교체. 변경 시 마디 초기화 부작용이 있어
+// 명시적 클릭 컨텍스트(박자표)에서만 트리거된다.
+export interface TimeSigPickerState {
+  kind: 'timeSig';
+  layout: PickerLayout;
+  hoveredIndex: number | null;
+}
+
+export type PickerState = InsertPickerState | ReplacePickerState | TimeSigPickerState;
 
 export interface EditorState {
   mode: EditorMode;

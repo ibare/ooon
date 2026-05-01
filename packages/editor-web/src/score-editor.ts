@@ -20,6 +20,7 @@ import { pitchAt } from './geometry/inverse-pitch.js';
 import {
   buildPickerOptions,
   buildReplaceOptions,
+  buildTimeSigOptions,
   type PickerOption,
 } from './geometry/picker-options.js';
 import {
@@ -27,6 +28,11 @@ import {
   findNoteHitAt,
   type NoteHitRect,
 } from './geometry/note-hit.js';
+import {
+  calculateTimeSigHits,
+  findTimeSigHitAt,
+  type TimeSigHitRect,
+} from './geometry/time-sig-hit.js';
 import { drawBeatOverlay } from './render/draw-overlay.js';
 import { drawPluckZones } from './render/draw-pluck.js';
 import { drawVibrationLine, isVibrationFinished } from './render/draw-vibration.js';
@@ -121,6 +127,7 @@ export function mountScoreEditor(host: HTMLElement, opts: MountScoreEditorOption
   let beatSlots: readonly BeatSlotRect[] = [];
   let pluckZones: readonly PluckZoneRect[] = [];
   let noteHits: readonly NoteHitRect[] = [];
+  let timeSigHits: readonly TimeSigHitRect[] = [];
   let resizeTimer: ReturnType<typeof setTimeout> | null = null;
   let rafId: number | null = null;
   let bravuraLoaded = false;
@@ -162,6 +169,7 @@ export function mountScoreEditor(host: HTMLElement, opts: MountScoreEditorOption
     beatSlots = calculateBeatSlots(layout, editable.getNode());
     pluckZones = calculatePluckZones(layout);
     noteHits = calculateNoteHits(layout);
+    timeSigHits = calculateTimeSigHits(layout);
     applyResize();
   };
 
@@ -285,6 +293,12 @@ export function mountScoreEditor(host: HTMLElement, opts: MountScoreEditorOption
       }
       return;
     }
+    // 박자표 hit은 contentStart 좌측이라 음표/슬롯과 겹치지 않지만 우선순위를 명시.
+    const tsHit = findTimeSigHitAt(timeSigHits, p.x, p.y);
+    if (tsHit) {
+      openTimeSigPicker(tsHit);
+      return;
+    }
     // 음표 hit이 박자 슬롯보다 먼저 — 빈 박자 슬롯은 마디 우측의 빈 영역만 노출되지만,
     // 점음표/쉼표 같은 분수 박자 케이스에서 그래도 우선순위를 명시한다.
     const noteHit = findNoteHitAt(noteHits, p.x, p.y);
@@ -389,6 +403,28 @@ export function mountScoreEditor(host: HTMLElement, opts: MountScoreEditorOption
     paint();
   };
 
+  const openTimeSigPicker = (hit: TimeSigHitRect): void => {
+    if (!layout) return;
+    const node = editable.getNode();
+    const options = buildTimeSigOptions({ current: node.timeSignature });
+    if (options.length === 0) return;
+    const pickerLayout = layoutPicker({
+      anchorX: hit.x + hit.width + 6,
+      anchorY: hit.y,
+      options,
+      contentWidth: layout.width,
+      contentMinY: -UI_CANVAS_PAD_TOP,
+      contentHeight: layout.height + UI_CANVAS_PAD_BOTTOM,
+    });
+    state = {
+      ...state,
+      mode: 'picker',
+      picker: { kind: 'timeSig', layout: pickerLayout, hoveredIndex: null },
+    };
+    uiCanvas.style.pointerEvents = 'auto';
+    paint();
+  };
+
   const closePicker = (): void => {
     state = { ...state, picker: null, mode: 'idle' };
     uiCanvas.style.pointerEvents = 'none';
@@ -465,6 +501,17 @@ export function mountScoreEditor(host: HTMLElement, opts: MountScoreEditorOption
         } catch (err) {
           if (opts.onError) opts.onError(err);
           else console.warn('[oon/editor-web] replaceWithRest failed', err);
+        }
+        break;
+      }
+      case 'setTimeSignature': {
+        if (picker.kind !== 'timeSig') break;
+        // 박자 변경은 마디 초기화 부작용 — applyScoreCommand 스펙 명세("전환 시 기존 음표는 초기화").
+        try {
+          editable.dispatch({ type: 'setTimeSignature', timeSignature: option.timeSignature });
+        } catch (err) {
+          if (opts.onError) opts.onError(err);
+          else console.warn('[oon/editor-web] setTimeSignature failed', err);
         }
         break;
       }
