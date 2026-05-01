@@ -31,9 +31,16 @@ function makeNodeEmpty(): ScoreNode {
 }
 
 function makeNode(beats: number[]): ScoreNode {
+  return makeNodeTs({ beats: 4, beatValue: 4 }, beats);
+}
+
+function makeNodeTs(
+  timeSignature: { beats: number; beatValue: number },
+  beats: number[],
+): ScoreNode {
   return {
     type: 'score',
-    timeSignature: { beats: 4, beatValue: 4 },
+    timeSignature,
     bpm: 120,
     bars: [
       {
@@ -91,5 +98,84 @@ describe('calculateBeatSlots — 남은 박자 영역 노출', () => {
     expect(slots[0]?.x).toBeCloseTo(106, 5);
     // 두 번째 슬롯의 x = 106 + 47 = 153
     expect(slots[1]?.x).toBeCloseTo(153, 5);
+  });
+});
+
+describe('calculateBeatSlots — 그룹 메타', () => {
+  it('4/4 단일 그룹: 모든 슬롯 groupIndex=0, 첫 슬롯만 isGroupStart', () => {
+    const slots = calculateBeatSlots(makeLayout(), makeNodeEmpty());
+    expect(slots.map((s) => s.groupIndex)).toEqual([0, 0, 0, 0]);
+    expect(slots.map((s) => s.isGroupStart)).toEqual([true, false, false, false]);
+    expect(slots.map((s) => s.beatInGroup)).toEqual([0, 1, 2, 3]);
+  });
+
+  it('6/8 컴파운드 [3,3]: 슬롯 6개가 두 그룹으로 나뉨', () => {
+    const slots = calculateBeatSlots(
+      makeLayout(),
+      makeNodeTs({ beats: 6, beatValue: 8 }, []),
+    );
+    expect(slots.map((s) => s.beatIndex)).toEqual([0, 1, 2, 3, 4, 5]);
+    expect(slots.map((s) => s.groupIndex)).toEqual([0, 0, 0, 1, 1, 1]);
+    expect(slots.map((s) => s.isGroupStart)).toEqual([true, false, false, true, false, false]);
+    expect(slots.map((s) => s.beatInGroup)).toEqual([0, 1, 2, 0, 1, 2]);
+  });
+
+  it('6/8에서 q.(=3박) 사용 후엔 두 번째 그룹만 남음', () => {
+    const slots = calculateBeatSlots(
+      makeLayout(),
+      makeNodeTs({ beats: 6, beatValue: 8 }, [3]),
+    );
+    expect(slots.map((s) => s.beatIndex)).toEqual([3, 4, 5]);
+    expect(slots.map((s) => s.groupIndex)).toEqual([1, 1, 1]);
+    expect(slots.map((s) => s.isGroupStart)).toEqual([true, false, false]);
+    expect(slots.map((s) => s.beatInGroup)).toEqual([0, 1, 2]);
+  });
+
+  it('6/8에서 부분 슬롯(분수 박자)도 진행 중인 그룹에 속함', () => {
+    // q+e(2박) 사용 → cursor=2. fractional=0이므로 부분 슬롯 없음.
+    // 더 명확하게: 0.5박만 사용 → cursor=0.5, 부분 슬롯 beatIndex=0.5(폭 0.5박), 이후 1,2,3,4,5.
+    const slots = calculateBeatSlots(
+      makeLayout(),
+      makeNodeTs({ beats: 6, beatValue: 8 }, [0.5]),
+    );
+    expect(slots.map((s) => s.beatIndex)).toEqual([0.5, 1, 2, 3, 4, 5]);
+    expect(slots.map((s) => s.groupIndex)).toEqual([0, 0, 0, 1, 1, 1]);
+    // 부분 슬롯은 그룹 시작이 아님(0.5는 경계 0과 일치하지 않음).
+    expect(slots[0]?.isGroupStart).toBe(false);
+    expect(slots[0]?.beatInGroup).toBeCloseTo(0.5, 5);
+    // 두 번째 그룹의 첫 슬롯(beatIndex=3)은 isGroupStart=true.
+    expect(slots[3]?.isGroupStart).toBe(true);
+  });
+
+  it('카탈로그 미정의 박자(11/8)는 단일 그룹으로 fallback', () => {
+    const slots = calculateBeatSlots(
+      makeLayout(),
+      makeNodeTs({ beats: 11, beatValue: 8 }, []),
+    );
+    expect(slots).toHaveLength(11);
+    expect(slots.every((s) => s.groupIndex === 0)).toBe(true);
+    // 첫 슬롯만 isGroupStart=true.
+    expect(slots.map((s) => s.isGroupStart)).toEqual([
+      true,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+    ]);
+  });
+
+  it('5/4 비대칭 [3,2]: 슬롯 5개가 3+2로 분할', () => {
+    const slots = calculateBeatSlots(
+      makeLayout(),
+      makeNodeTs({ beats: 5, beatValue: 4 }, []),
+    );
+    expect(slots.map((s) => s.groupIndex)).toEqual([0, 0, 0, 1, 1]);
+    expect(slots.map((s) => s.isGroupStart)).toEqual([true, false, false, true, false]);
   });
 });
