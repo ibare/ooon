@@ -28,13 +28,13 @@ export const VIBRATION_DECAY_SEC = 0.55;
 export const UI_CANVAS_PAD_TOP = 150;
 export const UI_CANVAS_PAD_BOTTOM = 150;
 
-// 노트 픽커
+// 노트 픽커 (5x5 정사각 타일 그리드)
 export const PICKER_PADDING = 8;
-export const PICKER_ITEM_HEIGHT = 26;
-export const PICKER_ITEM_GAP = 4;
+export const PICKER_TILE_SIZE = 40;
+export const PICKER_TILE_GAP = 4;
+export const PICKER_GLYPH_SIZE = 28;
 export const PICKER_BG = 'rgba(20, 22, 28, 0.94)';
 export const PICKER_BORDER = 'rgba(255, 255, 255, 0.18)';
 export const PICKER_TEXT = 'rgba(245, 245, 248, 0.95)';
-export const PICKER_BAR_BG = 'rgba(255, 255, 255, 0.12)';
-export const PICKER_BAR_FG = 'rgba(124, 196, 255, 0.85)';
 export const PICKER_HOVER_BG = 'rgba(124, 196, 255, 0.20)';
+export const PICKER_EMPTY_BG = 'rgba(255, 255, 255, 0.04)';

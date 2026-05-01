@@ -9,5 +9,6 @@ export { applyScoreCommand, CommandError } from './commands.js';
 export type {
   ScoreCommand,
   InsertNoteCommand,
+  InsertRestCommand,
   SetTimeSignatureCommand,
 } from './commands.js';

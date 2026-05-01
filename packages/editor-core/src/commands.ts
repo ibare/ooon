@@ -8,12 +8,18 @@ export interface InsertNoteCommand {
   duration: DurationSymbol;
 }
 
+export interface InsertRestCommand {
+  type: 'insertRest';
+  barIndex: number;
+  duration: DurationSymbol;
+}
+
 export interface SetTimeSignatureCommand {
   type: 'setTimeSignature';
   timeSignature: TimeSignature;
 }
 
-export type ScoreCommand = InsertNoteCommand | SetTimeSignatureCommand;
+export type ScoreCommand = InsertNoteCommand | InsertRestCommand | SetTimeSignatureCommand;
 
 export class CommandError extends Error {
   constructor(message: string) {
@@ -28,6 +34,8 @@ export function applyScoreCommand(node: ScoreNode, cmd: ScoreCommand): ScoreNode
   switch (cmd.type) {
     case 'insertNote':
       return applyInsertNote(node, cmd);
+    case 'insertRest':
+      return applyInsertRest(node, cmd);
     case 'setTimeSignature':
       return applySetTimeSignature(node, cmd);
   }
@@ -53,6 +61,30 @@ function applyInsertNote(node: ScoreNode, cmd: InsertNoteCommand): ScoreNode {
     isRest: false,
   };
   const newBar: ScoreBar = { barNumber: bar.barNumber, notes: [...bar.notes, note] };
+  const newBars = node.bars.map((b, i) => (i === cmd.barIndex ? newBar : b));
+  return { ...node, bars: newBars, warnings: [] };
+}
+
+function applyInsertRest(node: ScoreNode, cmd: InsertRestCommand): ScoreNode {
+  const bar = node.bars[cmd.barIndex];
+  if (!bar) throw new CommandError(`insertRest: bar ${cmd.barIndex} not found`);
+
+  const beats = durationToBeats(cmd.duration);
+  const used = bar.notes.reduce((sum, n) => sum + n.beats, 0);
+  const remaining = node.timeSignature.beats - used;
+  if (beats > remaining + 1e-9) {
+    throw new CommandError(
+      `insertRest: duration ${cmd.duration} (${beats} beats) exceeds remaining ${remaining}`,
+    );
+  }
+
+  const rest: NoteEvent = {
+    pitch: '',
+    duration: cmd.duration,
+    beats,
+    isRest: true,
+  };
+  const newBar: ScoreBar = { barNumber: bar.barNumber, notes: [...bar.notes, rest] };
   const newBars = node.bars.map((b, i) => (i === cmd.barIndex ? newBar : b));
   return { ...node, bars: newBars, warnings: [] };
 }

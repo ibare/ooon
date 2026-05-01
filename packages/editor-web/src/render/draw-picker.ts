@@ -1,15 +1,15 @@
 import type { Projector } from '@oon/shared';
 import { SMUFL, BRAVURA_FONT_FAMILY } from '@oon/core';
 import {
-  PICKER_BAR_BG,
-  PICKER_BAR_FG,
   PICKER_BG,
   PICKER_BORDER,
+  PICKER_EMPTY_BG,
+  PICKER_GLYPH_SIZE,
   PICKER_HOVER_BG,
-  PICKER_ITEM_GAP,
-  PICKER_ITEM_HEIGHT,
   PICKER_PADDING,
   PICKER_TEXT,
+  PICKER_TILE_GAP,
+  PICKER_TILE_SIZE,
 } from '../constants.js';
 import type { PickerOption } from '../geometry/picker-options.js';
 
@@ -18,7 +18,10 @@ export interface PickerLayout {
   y: number;
   width: number;
   height: number;
+  /** 옵션이 채워진 셀(row-major 순서). hit/click 대상. */
   rows: PickerRowRect[];
+  /** 옵션 없는 빈 셀. 시각용, hit area 등록 안 함. */
+  emptyCells: PickerEmptyCellRect[];
 }
 
 export interface PickerRowRect {
@@ -28,9 +31,13 @@ export interface PickerRowRect {
   y: number;
   width: number;
   height: number;
-  /** 비율 막대 영역. */
-  barX: number;
-  barWidth: number;
+}
+
+export interface PickerEmptyCellRect {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
 }
 
 export interface PickerLayoutInput {
@@ -46,45 +53,39 @@ export interface PickerLayoutInput {
   contentMinY?: number;
 }
 
-const PICKER_WIDTH = 220;
-const LABEL_WIDTH = 36;
-const GLYPH_WIDTH = 22;
-
 export function layoutPicker(input: PickerLayoutInput): PickerLayout {
-  const rows: PickerRowRect[] = [];
-  const innerW = PICKER_WIDTH - PICKER_PADDING * 2;
-  const barX = PICKER_PADDING + LABEL_WIDTH + GLYPH_WIDTH;
-  const barWidthMax = PICKER_WIDTH - barX - PICKER_PADDING;
-  const totalH =
-    PICKER_PADDING * 2 +
-    input.options.length * PICKER_ITEM_HEIGHT +
-    Math.max(0, input.options.length - 1) * PICKER_ITEM_GAP;
-
+  // 옵션 개수에 맞춰 그리드 크기 결정. 1개→1x1, 2~4개→2x2, 5~9개→3x3, 10~16개→4x4, 17~25개→5x5.
+  const gridN = Math.max(1, Math.ceil(Math.sqrt(input.options.length)));
+  const totalSize = PICKER_TILE_SIZE * gridN + PICKER_TILE_GAP * (gridN - 1) + PICKER_PADDING * 2;
   const minY = input.contentMinY ?? 0;
-  const x = clamp(input.anchorX, 0, input.contentWidth - PICKER_WIDTH);
-  const y = clamp(input.anchorY, minY, input.contentHeight - totalH);
+  const x = clamp(input.anchorX, 0, input.contentWidth - totalSize);
+  const y = clamp(input.anchorY, minY, input.contentHeight - totalSize);
 
-  for (let i = 0; i < input.options.length; i++) {
-    const opt = input.options[i]!;
-    const rowY = y + PICKER_PADDING + i * (PICKER_ITEM_HEIGHT + PICKER_ITEM_GAP);
-    rows.push({
-      index: i,
-      option: opt,
-      x: x + PICKER_PADDING,
-      y: rowY,
-      width: innerW,
-      height: PICKER_ITEM_HEIGHT,
-      barX: x + barX,
-      barWidth: barWidthMax * Math.min(1, opt.ratio),
-    });
+  const cellAt = (r: number, c: number): { x: number; y: number; width: number; height: number } => ({
+    x: x + PICKER_PADDING + c * (PICKER_TILE_SIZE + PICKER_TILE_GAP),
+    y: y + PICKER_PADDING + r * (PICKER_TILE_SIZE + PICKER_TILE_GAP),
+    width: PICKER_TILE_SIZE,
+    height: PICKER_TILE_SIZE,
+  });
+
+  const rows: PickerRowRect[] = [];
+  const emptyCells: PickerEmptyCellRect[] = [];
+  for (let r = 0; r < gridN; r++) {
+    for (let c = 0; c < gridN; c++) {
+      const i = r * gridN + c;
+      const rect = cellAt(r, c);
+      if (i < input.options.length) {
+        rows.push({ index: i, option: input.options[i]!, ...rect });
+      } else {
+        emptyCells.push(rect);
+      }
+    }
   }
-  return { x, y, width: PICKER_WIDTH, height: totalH, rows };
+  return { x, y, width: totalSize, height: totalSize, rows, emptyCells };
 }
 
 export interface DrawPickerOptions {
   hoveredIndex?: number | null;
-  /** Bravura 폰트 사용 가능 시 글리프 그리기. 폰트 미로드면 텍스트 fallback. */
-  glyphSize?: number;
 }
 
 export function drawPicker(
@@ -99,7 +100,15 @@ export function drawPicker(
     1,
     8,
   );
-  const glyphSize = opts.glyphSize ?? 18;
+  for (const c of layout.emptyCells) {
+    projector.drawRect(
+      { x: c.x, y: c.y, width: c.width, height: c.height },
+      PICKER_EMPTY_BG,
+      undefined,
+      0,
+      4,
+    );
+  }
   for (const row of layout.rows) {
     if (opts.hoveredIndex === row.index) {
       projector.drawRect(
@@ -109,39 +118,40 @@ export function drawPicker(
         0,
         4,
       );
+    } else {
+      projector.drawRect(
+        { x: row.x, y: row.y, width: row.width, height: row.height },
+        PICKER_EMPTY_BG,
+        undefined,
+        0,
+        4,
+      );
     }
+    // 글리프 baseline은 셀 하단 가까이 — stem이 위로 솟아 셀 안에 자리잡도록.
+    const glyphX = row.x + row.width * 0.32;
+    const baselineY = row.y + row.height * 0.78;
     projector.drawText(
-      formatLabel(row.option.duration),
-      { x: row.x + 4, y: row.y + row.height * 0.66 },
-      { font: 'system-ui, sans-serif', fontSize: 12, fill: PICKER_TEXT, align: 'left' },
+      SMUFL[row.option.glyph],
+      { x: glyphX, y: baselineY },
+      {
+        font: `${BRAVURA_FONT_FAMILY}, system-ui`,
+        fontSize: PICKER_GLYPH_SIZE,
+        fill: PICKER_TEXT,
+        align: 'left',
+      },
     );
-    const glyph = SMUFL[row.option.headGlyph];
-    if (typeof glyph === 'string') {
+    if (row.option.dotted) {
       projector.drawText(
-        glyph,
-        { x: row.x + 36, y: row.y + row.height * 0.78 },
+        SMUFL.augmentationDot,
+        { x: glyphX + PICKER_GLYPH_SIZE * 0.5, y: baselineY },
         {
           font: `${BRAVURA_FONT_FAMILY}, system-ui`,
-          fontSize: glyphSize,
+          fontSize: PICKER_GLYPH_SIZE,
           fill: PICKER_TEXT,
           align: 'left',
         },
       );
     }
-    projector.drawRect(
-      { x: row.barX, y: row.y + row.height * 0.34, width: row.width - (row.barX - row.x), height: row.height * 0.32 },
-      PICKER_BAR_BG,
-      undefined,
-      0,
-      3,
-    );
-    projector.drawRect(
-      { x: row.barX, y: row.y + row.height * 0.34, width: row.barWidth, height: row.height * 0.32 },
-      PICKER_BAR_FG,
-      undefined,
-      0,
-      3,
-    );
     projector.registerHitArea(`picker:${row.index}`, {
       x: row.x,
       y: row.y,
@@ -151,32 +161,8 @@ export function drawPicker(
   }
 }
 
-function formatLabel(d: string): string {
-  switch (d) {
-    case 'w':
-      return '온';
-    case 'h.':
-      return '점2';
-    case 'h':
-      return '2분';
-    case 'q.':
-      return '점4';
-    case 'q':
-      return '4분';
-    case 'e.':
-      return '점8';
-    case 'e':
-      return '8분';
-    case 's.':
-      return '점16';
-    case 's':
-      return '16분';
-    default:
-      return d;
-  }
-}
-
 function clamp(v: number, lo: number, hi: number): number {
   if (hi < lo) return lo;
   return Math.max(lo, Math.min(hi, v));
 }
+

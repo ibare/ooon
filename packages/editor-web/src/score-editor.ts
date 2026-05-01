@@ -327,13 +327,33 @@ export function mountScoreEditor(host: HTMLElement, opts: MountScoreEditorOption
   const commitPickerChoice = (option: PickerOption): void => {
     if (!state.picker) return;
     const { barIndex, pitch } = state.picker;
-    try {
-      editable.dispatch({ type: 'insertNote', barIndex, pitch, duration: option.duration });
-    } catch (err) {
-      if (opts.onError) opts.onError(err);
-      else console.warn('[oon/editor-web] insertNote failed', err);
+    switch (option.kind) {
+      case 'insertNote': {
+        try {
+          editable.dispatch({ type: 'insertNote', barIndex, pitch, duration: option.duration });
+        } catch (err) {
+          if (opts.onError) opts.onError(err);
+          else console.warn('[oon/editor-web] insertNote failed', err);
+        }
+        void preview.previewNote(pitch, option.duration);
+        break;
+      }
+      case 'insertRest': {
+        try {
+          editable.dispatch({ type: 'insertRest', barIndex, duration: option.duration });
+        } catch (err) {
+          if (opts.onError) opts.onError(err);
+          else console.warn('[oon/editor-web] insertRest failed', err);
+        }
+        // 쉼표는 무음 — preview 없음.
+        break;
+      }
+      default: {
+        // 향후 kind 추가 시 누락된 case를 컴파일 타임에 잡는다.
+        const _exhaustive: never = option;
+        void _exhaustive;
+      }
     }
-    void preview.previewNote(pitch, option.duration);
     state = { ...state, picker: null, mode: 'idle' };
     uiCanvas.style.pointerEvents = 'none';
     rebuild();

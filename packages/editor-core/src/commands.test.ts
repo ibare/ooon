@@ -64,6 +64,45 @@ describe('applyScoreCommand', () => {
     ).toThrow(CommandError);
   });
 
+  it('insertRest appends a rest note (pitch empty, isRest true) to bar', () => {
+    const node = score('score 4/4');
+    const next = applyScoreCommand(node, {
+      type: 'insertRest',
+      barIndex: 0,
+      duration: 'q',
+    });
+    expect(next.bars[0]?.notes.length).toBe(1);
+    expect(next.bars[0]?.notes[0]).toEqual({
+      pitch: '',
+      duration: 'q',
+      beats: 1,
+      isRest: true,
+    });
+    expect(node.bars[0]?.notes.length).toBe(0);
+  });
+
+  it('insertRest throws when duration exceeds remaining beats', () => {
+    const node = score('score 4/4\n  C4/h C4/q |');
+    expect(() =>
+      applyScoreCommand(node, {
+        type: 'insertRest',
+        barIndex: 0,
+        duration: 'h',
+      }),
+    ).toThrow(CommandError);
+  });
+
+  it('insertRest throws when bar index is invalid', () => {
+    const node = score('score 4/4');
+    expect(() =>
+      applyScoreCommand(node, {
+        type: 'insertRest',
+        barIndex: 9,
+        duration: 'q',
+      }),
+    ).toThrow(CommandError);
+  });
+
   it('setTimeSignature resets bars to a single empty bar', () => {
     const node = score('score 4/4\n  C4/q D4/q E4/q F4/q |');
     const next = applyScoreCommand(node, {
