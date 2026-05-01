@@ -38,6 +38,8 @@ import { drawPluckZones } from './render/draw-pluck.js';
 import { drawVibrationLine, isVibrationFinished } from './render/draw-vibration.js';
 import { drawPicker, layoutPicker } from './render/draw-picker.js';
 import { drawDebugNoteHits } from './render/draw-debug-hits.js';
+import { drawPreviewOccupancy } from './render/draw-preview-occupancy.js';
+import { previewOccupancyRect } from './geometry/preview-occupancy.js';
 import { Metronome } from './audio/metronome.js';
 import { PreviewEngine } from './audio/preview-engine.js';
 import {
@@ -220,6 +222,27 @@ export function mountScoreEditor(host: HTMLElement, opts: MountScoreEditorOption
     if (state.debugShowHits) {
       drawDebugNoteHits(editProjector, noteHits);
     }
+    drawHoverOccupancyPreview();
+  };
+
+  // picker가 열린 상태에서 옵션 hover 중일 때 그 옵션이 점유할 박자 영역을 핑크 반투명으로
+  // 미리 보여 준다. hover에서 빠지거나 picker가 닫히면 paint가 매 프레임 clear되므로 자동 소멸.
+  const drawHoverOccupancyPreview = (): void => {
+    const picker = state.picker;
+    if (!picker || picker.hoveredIndex === null) return;
+    if (picker.kind === 'timeSig') return;
+    const option = picker.layout.rows.find((r) => r.index === picker.hoveredIndex)?.option;
+    if (!option || option.kind === 'setTimeSignature') return;
+    if (!layout) return;
+    const startBeat = picker.kind === 'insert' ? picker.beatIndex : picker.startBeat;
+    const rect = previewOccupancyRect(
+      layout,
+      picker.barIndex,
+      startBeat,
+      option.beats,
+      editable.getNode().timeSignature.beats,
+    );
+    if (rect) drawPreviewOccupancy(editProjector, rect);
   };
 
   const paintUI = (): void => {
@@ -394,6 +417,9 @@ export function mountScoreEditor(host: HTMLElement, opts: MountScoreEditorOption
       (sum, n, i) => (i === hit.noteIndex ? sum : sum + n.beats),
       0,
     );
+    const startBeat = bar.notes
+      .slice(0, hit.noteIndex)
+      .reduce((sum, n) => sum + n.beats, 0);
     const options = buildReplaceOptions({
       currentDuration: current.duration,
       currentIsRest: current.isRest,
@@ -420,6 +446,7 @@ export function mountScoreEditor(host: HTMLElement, opts: MountScoreEditorOption
         layout: pickerLayout,
         barIndex: hit.barIndex,
         noteIndex: hit.noteIndex,
+        startBeat,
         hoveredIndex: null,
       },
     };

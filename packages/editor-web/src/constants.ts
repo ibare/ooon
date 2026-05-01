@@ -56,3 +56,7 @@ export const PICKER_EMPTY_BG = 'rgba(255, 255, 255, 0.04)';
 // 픽커는 클릭 위치(staff 안쪽)에서 펼쳐지면 오선지를 가리므로, anchorY는 클릭 위치가 아니라
 // 그 시스템의 staff.bottom 아래 GAP 만큼 떨어진 위치로 둔다. anchorX(가로)는 그대로 유지.
 export const PICKER_BELOW_STAFF_GAP = 8;
+
+// 픽커 옵션 hover 시 그 옵션이 차지할 박자 영역을 미리 보여주는 핑크 반투명. 박자 슬롯과
+// 같은 영역(staff top~bottom, 시작 박자~끝 박자)에 fill로 깔린다.
+export const PREVIEW_OCCUPANCY_FILL = 'rgba(236, 72, 153, 0.30)';

@@ -36,6 +36,8 @@ export interface ReplacePickerState {
   layout: PickerLayout;
   barIndex: number;
   noteIndex: number;
+  /** 클릭한 음표의 마디 내 시작 박자 위치(이전 음표들 beats 누적). 점유 미리보기에 사용. */
+  startBeat: number;
   hoveredIndex: number | null;
 }
 
