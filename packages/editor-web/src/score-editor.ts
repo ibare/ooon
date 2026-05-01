@@ -34,6 +34,7 @@ import {
   type TimeSigHitRect,
 } from './geometry/time-sig-hit.js';
 import { drawBeatOverlay } from './render/draw-overlay.js';
+import { drawGroupBoundaries } from './render/draw-group-boundary.js';
 import { drawPluckZones } from './render/draw-pluck.js';
 import { drawVibrationLine, isVibrationFinished } from './render/draw-vibration.js';
 import { drawPicker, layoutPicker } from './render/draw-picker.js';
@@ -183,6 +184,7 @@ export function mountScoreEditor(host: HTMLElement, opts: MountScoreEditorOption
       hovered: state.hoveredSlot,
       blinkSlot: currentBlinkSlot(),
     });
+    drawGroupBoundaries(scoreProjector, beatSlots);
     drawPluckZones(scoreProjector, pluckZones, {
       hovered: state.hoveredZone,
       hoverSnappedY: state.pluckSnappedY,

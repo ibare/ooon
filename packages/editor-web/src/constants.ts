@@ -8,6 +8,12 @@ export const BEAT_OVERLAY_HOVER_FILL = 'rgba(56, 132, 255, 0.18)';
 export const BEAT_OVERLAY_BLINK_FILL = 'rgba(56, 132, 255, 0.55)';
 export const BEAT_OVERLAY_BLINK_MS = 220;
 
+// 박자 그룹 경계 점선 — 빈 영역에서 음악적 메인박 그룹의 시작 위치를 시각화.
+// 음표가 채워진 마디는 beam grouping이 그룹을 표현하므로 별도 점선 없이 살아남.
+export const BEAT_GROUP_BOUNDARY_COLOR = 'rgba(56, 132, 255, 0.55)';
+export const BEAT_GROUP_BOUNDARY_DASH: readonly [number, number] = [3, 3];
+export const BEAT_GROUP_BOUNDARY_LINE_WIDTH = 1;
+
 // 메트로놈 클릭(WebAudio)
 export const METRONOME_CLICK_FREQ_HZ = 1500;
 export const METRONOME_CLICK_DECAY_SEC = 0.05;
