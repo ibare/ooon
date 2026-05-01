@@ -24,3 +24,5 @@ export type { ScaleType, ParsedScale } from './scales.js';
 
 export { RomanParseError, resolveRoman, romanFunction } from './roman.js';
 export type { Mode, ResolvedRoman, RomanFunction } from './roman.js';
+
+export { getBeatGroups } from './time-signatures.js';
