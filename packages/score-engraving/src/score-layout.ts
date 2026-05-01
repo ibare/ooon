@@ -265,9 +265,10 @@ function buildSystem(args: SystemBuildArgs): ScoreSystemLayout {
   const timeSigX = clefEndX + keySigWidthPx;
   const timeSig: ScoreTimeSig = {
     x: timeSigX,
-    topGlyph: SMUFL.timeSigDigit(timeSignature.beats),
+    cx: timeSigX + timeSigWidthPx / 2,
+    topGlyph: SMUFL.timeSigNumber(timeSignature.beats),
     topY: staffTopY + pxPerSp,
-    bottomGlyph: SMUFL.timeSigDigit(timeSignature.beatValue),
+    bottomGlyph: SMUFL.timeSigNumber(timeSignature.beatValue),
     bottomY: staffTopY + pxPerSp * 3,
   };
 

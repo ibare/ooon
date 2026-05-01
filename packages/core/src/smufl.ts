@@ -3,9 +3,15 @@ export const SMUFL = {
   fClef: '\uE062',
   cClef: '\uE05C',
 
-  timeSigDigit: (d: number): string => {
-    if (d < 0 || d > 9 || !Number.isInteger(d)) throw new Error(`Invalid time sig digit: ${d}`);
-    return String.fromCharCode(0xe080 + d);
+  // 박자 분자/분모 숫자(N자리). 12/8 같은 두 자리도 처리되도록 자릿수만큼 SMUFL digit
+  // 글리프(-)를 합성한다. 폰트가 자리별 advance를 가지므로 그대로 drawText에 넘기면
+  // 두 자리가 가로로 나란히 그려진다.
+  timeSigNumber: (n: number): string => {
+    if (n < 0 || !Number.isInteger(n)) throw new Error(`Invalid time sig number: ${n}`);
+    return String(n)
+      .split('')
+      .map((ch) => String.fromCharCode(0xe080 + Number(ch)))
+      .join('');
   },
   timeSigCommon: '\uE08A',
   timeSigCutCommon: '\uE08B',

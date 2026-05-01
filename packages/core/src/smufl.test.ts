@@ -31,16 +31,26 @@ describe('SMUFL', () => {
     }
   });
 
-  it('timeSigDigit returns single codepoint at 0xE080 + d', () => {
-    for (let d = 0; d <= 9; d++) {
-      expect(SMUFL.timeSigDigit(d).codePointAt(0)).toBe(0xe080 + d);
+  it('timeSigNumber returns single codepoint at 0xE080 + n for one-digit n', () => {
+    for (let n = 0; n <= 9; n++) {
+      expect(SMUFL.timeSigNumber(n).codePointAt(0)).toBe(0xe080 + n);
+      expect(SMUFL.timeSigNumber(n).length).toBe(1);
     }
   });
 
-  it('timeSigDigit rejects invalid digits', () => {
-    expect(() => SMUFL.timeSigDigit(-1)).toThrow();
-    expect(() => SMUFL.timeSigDigit(10)).toThrow();
-    expect(() => SMUFL.timeSigDigit(1.5)).toThrow();
+  it('timeSigNumber composes multi-digit numbers (12 → digit1 + digit2)', () => {
+    const twelve = SMUFL.timeSigNumber(12);
+    expect(twelve.length).toBe(2);
+    expect(twelve.codePointAt(0)).toBe(0xe080 + 1);
+    expect(twelve.codePointAt(1)).toBe(0xe080 + 2);
+    // 16, 128 같은 임의 자릿수도 자리별 글리프 합성
+    expect(SMUFL.timeSigNumber(16).length).toBe(2);
+    expect(SMUFL.timeSigNumber(128).length).toBe(3);
+  });
+
+  it('timeSigNumber rejects invalid input(음수, 비정수)', () => {
+    expect(() => SMUFL.timeSigNumber(-1)).toThrow();
+    expect(() => SMUFL.timeSigNumber(1.5)).toThrow();
   });
 
   it('exports Bravura font family name', () => {

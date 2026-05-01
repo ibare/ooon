@@ -8,25 +8,27 @@ import type { TimeSignature } from '../ast/types.js';
 //
 // 입력 정밀도(작은박 단위)는 손대지 않고 시각/UX 그룹핑 힌트로만 쓰인다.
 // 카탈로그에 없는 비표준 박자는 단일 그룹([beats])으로 fallback — 모든 슬롯이 동일 시각 단위.
+//
+// CATALOG는 시스템에서 지원되는 박자의 단일 진실 원천. picker 등 노출 layer는 여기서 derive한다
+// (`SUPPORTED_TIME_SIGNATURES`). 분모순(2 → 4 → 8)으로 정렬되어 그대로 UI 후보 순서로 쓰인다.
 const CATALOG: ReadonlyArray<{
   beats: number;
   beatValue: number;
   groups: readonly number[];
 }> = [
-  // 단순 박자(분모 4)
+  // 분모 2 — cut time
+  { beats: 2, beatValue: 2, groups: [2] },
+  // 분모 4 — 단순 박자 + 비대칭
   { beats: 2, beatValue: 4, groups: [2] },
   { beats: 3, beatValue: 4, groups: [3] },
   { beats: 4, beatValue: 4, groups: [4] },
-  // cut time
-  { beats: 2, beatValue: 2, groups: [2] },
-  // 컴파운드(분모 8) — 3박씩 묶음
+  { beats: 5, beatValue: 4, groups: [3, 2] },
+  // 분모 8 — 단순/컴파운드/비대칭
   { beats: 3, beatValue: 8, groups: [3] },
   { beats: 6, beatValue: 8, groups: [3, 3] },
+  { beats: 7, beatValue: 8, groups: [2, 2, 3] },
   { beats: 9, beatValue: 8, groups: [3, 3, 3] },
   { beats: 12, beatValue: 8, groups: [3, 3, 3, 3] },
-  // 비대칭 — 관습적 그룹핑(향후 사용자 override 도입 시 변경 가능)
-  { beats: 5, beatValue: 4, groups: [3, 2] },
-  { beats: 7, beatValue: 8, groups: [2, 2, 3] },
 ];
 
 export function getBeatGroups(ts: TimeSignature): number[] {
@@ -34,3 +36,10 @@ export function getBeatGroups(ts: TimeSignature): number[] {
   if (hit) return [...hit.groups];
   return [ts.beats];
 }
+
+// 시스템에서 지원되는 박자 목록(분모순). picker 등 노출 layer가 derive해서 사용한다.
+// CATALOG와 자동으로 동기화되므로 박자 추가는 위 CATALOG 한 곳만 수정하면 된다.
+export const SUPPORTED_TIME_SIGNATURES: readonly TimeSignature[] = CATALOG.map((e) => ({
+  beats: e.beats,
+  beatValue: e.beatValue,
+}));

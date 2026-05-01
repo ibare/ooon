@@ -1,4 +1,11 @@
-import { durationToBeats, isDurationSymbol, SMUFL, type GlyphName, type TimeSignature } from '@oon/core';
+import {
+  durationToBeats,
+  isDurationSymbol,
+  SMUFL,
+  SUPPORTED_TIME_SIGNATURES,
+  type GlyphName,
+  type TimeSignature,
+} from '@oon/core';
 
 // 음표 후보 duration 심볼. 픽커는 이 순서대로 노출하되, 남은 박자(remainBeats)에
 // 들어맞는 것만 보여준다(점음표 포함, 8/16분음 가독성 유지).
@@ -166,30 +173,23 @@ export function buildReplaceOptions({
   return out;
 }
 
-// 사용자 노출용 박자 후보. 비트 슬롯/그룹 메타와 결합해 무리 없이 동작하는 박자만 1차로 노출.
-// 5/4·7/8·9/8·12/8 등은 그룹 시각 검증 후 별도 PR에서 추가.
-const TIME_SIG_CANDIDATES: ReadonlyArray<{ beats: number; beatValue: number; label: string }> = [
-  { beats: 2, beatValue: 4, label: '2/4' },
-  { beats: 3, beatValue: 4, label: '3/4' },
-  { beats: 4, beatValue: 4, label: '4/4' },
-  { beats: 6, beatValue: 8, label: '6/8' },
-];
-
 export interface BuildTimeSigOptionsInput {
   /** 현재 박자 — 같은 박자는 후보에서 제외(무의미한 마디 초기화 방지). */
   current?: TimeSignature;
 }
 
+// 후보 목록은 코어가 단일 진실 원천(SUPPORTED_TIME_SIGNATURES, 분모순). picker는 라벨/글리프
+// 매핑만 담당 — 박자 추가는 코어 카탈로그 한 곳만 수정하면 자동 반영.
 export function buildTimeSigOptions({ current }: BuildTimeSigOptionsInput = {}): SetTimeSigOption[] {
   const out: SetTimeSigOption[] = [];
-  for (const c of TIME_SIG_CANDIDATES) {
-    if (current && current.beats === c.beats && current.beatValue === c.beatValue) continue;
+  for (const ts of SUPPORTED_TIME_SIGNATURES) {
+    if (current && current.beats === ts.beats && current.beatValue === ts.beatValue) continue;
     out.push({
       kind: 'setTimeSignature',
-      timeSignature: { beats: c.beats, beatValue: c.beatValue },
-      topGlyph: SMUFL.timeSigDigit(c.beats),
-      bottomGlyph: SMUFL.timeSigDigit(c.beatValue),
-      label: c.label,
+      timeSignature: { beats: ts.beats, beatValue: ts.beatValue },
+      topGlyph: SMUFL.timeSigNumber(ts.beats),
+      bottomGlyph: SMUFL.timeSigNumber(ts.beatValue),
+      label: `${ts.beats}/${ts.beatValue}`,
     });
   }
   return out;

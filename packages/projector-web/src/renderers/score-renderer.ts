@@ -118,9 +118,10 @@ function renderKeySig(
 }
 
 function renderTimeSig(projector: Projector, timeSig: ScoreTimeSig, glyphSize: number): void {
-  const style = bravuraStyle(glyphSize);
-  projector.drawText(timeSig.topGlyph, { x: timeSig.x, y: timeSig.topY }, style);
-  projector.drawText(timeSig.bottomGlyph, { x: timeSig.x, y: timeSig.bottomY }, style);
+  // 분자/분모는 자릿수가 달라도(예: 12/8) 같은 cx 기준으로 가운데 정렬되어야 한다.
+  const style = { ...bravuraStyle(glyphSize), align: 'center' as const };
+  projector.drawText(timeSig.topGlyph, { x: timeSig.cx, y: timeSig.topY }, style);
+  projector.drawText(timeSig.bottomGlyph, { x: timeSig.cx, y: timeSig.bottomY }, style);
 }
 
 function renderBarline(projector: Projector, bar: ScoreBarLayout, staff: ScoreStaff): void {

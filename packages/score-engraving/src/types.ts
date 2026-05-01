@@ -15,7 +15,10 @@ export interface ScoreGlyph {
 }
 
 export interface ScoreTimeSig {
+  /** 영역의 좌측 x — hit area 등 박자표 영역 시작점으로 쓴다. */
   x: number;
+  /** 영역의 가로 중심 cx — 분자/분모 글리프 폭이 달라도 동일 기준으로 가운데 정렬하기 위한 좌표. */
+  cx: number;
   topGlyph: string;
   topY: number;
   bottomGlyph: string;
