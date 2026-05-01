@@ -1,6 +1,11 @@
 import { GLYPHS } from '@oon/smufl-asset';
 import type { NoteEvent } from '@oon/core';
 import type { AccidentalKind } from './accidentals.js';
+import {
+  isDotted,
+  noteheadAdvanceSp,
+  restAdvanceSp,
+} from '../notation/duration-glyph.js';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // P4: 음표 최소 폭(sp) 계산
@@ -41,29 +46,9 @@ function accidentalGlyphName(kind: AccidentalKind):
   }
 }
 
-function noteheadAdvanceSp(beats: number): number {
-  if (beats >= 4) return GLYPHS.noteheadWhole.advanceWidth;
-  if (beats >= 2) return GLYPHS.noteheadHalf.advanceWidth;
-  return GLYPHS.noteheadBlack.advanceWidth;
-}
-
-function restAdvanceSp(beats: number): number {
-  if (beats >= 4) return GLYPHS.restWhole.advanceWidth;
-  if (beats >= 2) return GLYPHS.restHalf.advanceWidth;
-  if (beats >= 1) return GLYPHS.restQuarter.advanceWidth;
-  if (beats >= 0.5) return GLYPHS.rest8th.advanceWidth;
-  return GLYPHS.rest16th.advanceWidth;
-}
-
-function hasDot(beats: number): boolean {
-  const integer = Math.floor(beats);
-  const remainder = beats - integer;
-  return integer > 0 && Math.abs(remainder - integer * 0.5) < 0.001;
-}
-
 // 음표가 차지해야 할 최소 폭(sp). 임시표/점/노트헤드/우측 패딩 합산.
 export function noteRequiredWidth(note: NoteEvent, accidentalKind: AccidentalKind): number {
-  const headW = note.isRest ? restAdvanceSp(note.beats) : noteheadAdvanceSp(note.beats);
+  const headW = note.isRest ? restAdvanceSp(note.duration) : noteheadAdvanceSp(note.duration);
 
   let leftExtra = 0;
   if (!note.isRest) {
@@ -74,7 +59,7 @@ export function noteRequiredWidth(note: NoteEvent, accidentalKind: AccidentalKin
   }
 
   let rightExtra = MIN_GAP_SP;
-  if (hasDot(note.beats)) rightExtra += DOT_AREA_SP;
+  if (isDotted(note.duration)) rightExtra += DOT_AREA_SP;
 
   return leftExtra + headW + rightExtra;
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { NoteEvent } from '@oon/core';
+import type { DurationSymbol, NoteEvent } from '@oon/core';
 import {
   defaultClefWidthSp,
   defaultTimeSigWidthSp,
@@ -8,10 +8,28 @@ import {
   noteRequiredWidth,
 } from './spacing.js';
 
-function note(beats: number, opts: { rest?: boolean } = {}): NoteEvent {
+// 시각 분기는 duration symbol이 권위. 테스트도 beats만 바꾸는 게 아니라 duration까지
+// 함께 매핑해야 시각 결정(점, 머리 모양 등)이 정상 검증된다.
+function beatsToDuration(b: number): DurationSymbol {
+  const map: Record<string, DurationSymbol> = {
+    '4': 'w',
+    '2': 'h',
+    '1': 'q',
+    '0.5': 'e',
+    '0.25': 's',
+    '6': 'w.',
+    '3': 'h.',
+    '1.5': 'q.',
+    '0.75': 'e.',
+    '0.375': 's.',
+  };
+  return map[String(b)] ?? 'q';
+}
+
+function note(beats: number, opts: { rest?: boolean; duration?: DurationSymbol } = {}): NoteEvent {
   return {
     pitch: opts.rest ? '' : 'C4',
-    duration: 'q',
+    duration: opts.duration ?? beatsToDuration(beats),
     beats,
     isRest: opts.rest ?? false,
   };

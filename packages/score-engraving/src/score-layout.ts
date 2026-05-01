@@ -1,4 +1,4 @@
-import { ENGRAVING, GLYPHS, type Sp, type GlyphName } from '@oon/smufl-asset';
+import { ENGRAVING, GLYPHS, type Sp } from '@oon/smufl-asset';
 import {
   parsePitch,
   pitchToMidi,
@@ -8,6 +8,14 @@ import {
   type ScoreNode,
   type TimeSignature,
 } from '@oon/core';
+import {
+  flagKind,
+  isDotted,
+  noteHasStem,
+  noteheadGlyphName,
+  restAdvanceSp,
+  restGlyphChar,
+} from './notation/duration-glyph.js';
 import type {
   ScoreBarLayout,
   ScoreBeam,
@@ -449,8 +457,8 @@ function buildNoteLayout(args: BuildNoteArgs): ScoreNoteLayout {
     args;
 
   if (note.isRest) {
-    const restAdvance = restAdvanceSp(note.beats);
-    const glyph = restGlyph(note.beats);
+    const restAdvance = restAdvanceSp(note.duration);
+    const glyph = restGlyphChar(note.duration);
     return {
       barNumber: bar,
       noteIndex: noteIdx,
@@ -475,22 +483,22 @@ function buildNoteLayout(args: BuildNoteArgs): ScoreNoteLayout {
   const step = letterStep(parsed.letter, parsed.octave);
   const y = verticalNoteY(step, verticalCtx);
 
-  const headName = noteheadName(note.beats);
+  const headName = noteheadGlyphName(note.duration);
   const headGlyph = SMUFL[headName];
   const headAdvanceSp = GLYPHS[headName].advanceWidth;
   const effectiveDir =
     args.forcedStemDirection ?? stemDirection(step, verticalCtx.b4Step);
-  const stem: ScoreNoteLayout['stem'] =
-    note.beats >= 4
-      ? undefined
-      : (() => {
-          const placement = placeStem(headName, x, y, effectiveDir, stemCtx);
-          return { x: placement.x, y1: placement.y1, y2: placement.y2 };
-        })();
+  const stem: ScoreNoteLayout['stem'] = !noteHasStem(note.duration)
+    ? undefined
+    : (() => {
+        const placement = placeStem(headName, x, y, effectiveDir, stemCtx);
+        return { x: placement.x, y1: placement.y1, y2: placement.y2 };
+      })();
 
   let flag: ScoreGlyph | undefined;
   if (!args.suppressFlag) {
-    if (note.beats === 0.5 || note.beats === 0.75) {
+    const fk = flagKind(note.duration);
+    if (fk === '8th') {
       const fx = stem ? stem.x : x;
       const fy = stem?.y2 ?? y;
       flag = {
@@ -498,7 +506,7 @@ function buildNoteLayout(args: BuildNoteArgs): ScoreNoteLayout {
         y: fy,
         glyph: effectiveDir === 'down' ? SMUFL.flag8thDown : SMUFL.flag8thUp,
       };
-    } else if (note.beats === 0.25 || note.beats === 0.375) {
+    } else if (fk === '16th') {
       const fx = stem ? stem.x : x;
       const fy = stem?.y2 ?? y;
       flag = {
@@ -592,34 +600,8 @@ function layoutBeams(
   return result;
 }
 
-function noteheadName(beats: number): GlyphName & ('noteheadWhole' | 'noteheadHalf' | 'noteheadBlack') {
-  if (beats >= 4) return 'noteheadWhole';
-  if (beats >= 2) return 'noteheadHalf';
-  return 'noteheadBlack';
-}
-
-function restGlyph(beats: number): string {
-  if (beats >= 4) return SMUFL.restWhole;
-  if (beats >= 2) return SMUFL.restHalf;
-  if (beats >= 1) return SMUFL.restQuarter;
-  if (beats >= 0.5) return SMUFL.rest8th;
-  return SMUFL.rest16th;
-}
-
-function restAdvanceSp(beats: number): number {
-  if (beats >= 4) return GLYPHS.restWhole.advanceWidth;
-  if (beats >= 2) return GLYPHS.restHalf.advanceWidth;
-  if (beats >= 1) return GLYPHS.restQuarter.advanceWidth;
-  if (beats >= 0.5) return GLYPHS.rest8th.advanceWidth;
-  return GLYPHS.rest16th.advanceWidth;
-}
-
-function isDottedDuration(note: NoteEvent): boolean {
-  return note.duration.endsWith('.');
-}
-
 function makeDots(note: NoteEvent, x: number, y: number): { x: number; y: number }[] {
-  return isDottedDuration(note) ? [{ x, y }] : [];
+  return isDotted(note.duration) ? [{ x, y }] : [];
 }
 
 function isLineNoteStep(step: number, b4Step: number): boolean {
