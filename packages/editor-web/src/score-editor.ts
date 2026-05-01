@@ -358,7 +358,7 @@ export function mountScoreEditor(host: HTMLElement, opts: MountScoreEditorOption
     // ui 캔버스가 score 영역 위·아래 패드만큼 더 크므로 픽커는 위로(음수 y)도, 아래로도 펼쳐질
     // 수 있다. score 좌표계 기준 [-PAD_TOP, layout.height + PAD_BOTTOM] 범위로 클램프한다.
     const pickerLayout = layoutPicker({
-      anchorX: slot.x + slot.width + 6,
+      anchorX: slot.x,
       anchorY: staff.bottom + PICKER_BELOW_STAFF_GAP,
       options,
       contentWidth: layout.width,
@@ -405,7 +405,7 @@ export function mountScoreEditor(host: HTMLElement, opts: MountScoreEditorOption
     const replaceStaff = layout.systems.find((s) => s.index === hit.systemIndex)?.staff;
     if (!replaceStaff) return;
     const pickerLayout = layoutPicker({
-      anchorX: hit.x + hit.width + 6,
+      anchorX: hit.x,
       anchorY: replaceStaff.bottom + PICKER_BELOW_STAFF_GAP,
       options,
       contentWidth: layout.width,
@@ -435,7 +435,7 @@ export function mountScoreEditor(host: HTMLElement, opts: MountScoreEditorOption
     const tsStaff = layout.systems.find((s) => s.index === hit.systemIndex)?.staff;
     if (!tsStaff) return;
     const pickerLayout = layoutPicker({
-      anchorX: hit.x + hit.width + 6,
+      anchorX: hit.x,
       anchorY: tsStaff.bottom + PICKER_BELOW_STAFF_GAP,
       options,
       contentWidth: layout.width,
