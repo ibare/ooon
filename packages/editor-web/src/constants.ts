@@ -60,3 +60,16 @@ export const PICKER_BELOW_STAFF_GAP = 8;
 // 픽커 옵션 hover 시 그 옵션이 차지할 박자 영역을 미리 보여주는 핑크 반투명. 박자 슬롯과
 // 같은 영역(staff top~bottom, 시작 박자~끝 박자)에 fill로 깔린다.
 export const PREVIEW_OCCUPANCY_FILL = 'rgba(236, 72, 153, 0.30)';
+
+// 마디 추가(+) 버튼 — 마지막 시스템의 마지막 바 우측 barlineX 옆에 원형 + 글리프로 표시.
+// 클릭 시 score 끝에 빈 마디 한 개를 추가한다. radius는 hit/그리기 공통 기준.
+export const ADD_BAR_BUTTON_RADIUS = 11;
+export const ADD_BAR_BUTTON_GAP = 8;
+export const ADD_BAR_BUTTON_FILL = 'rgba(56, 132, 255, 0.18)';
+export const ADD_BAR_BUTTON_FILL_HOVER = 'rgba(56, 132, 255, 0.40)';
+export const ADD_BAR_BUTTON_STROKE = 'rgba(56, 132, 255, 0.70)';
+export const ADD_BAR_BUTTON_STROKE_HOVER = 'rgba(56, 132, 255, 1.00)';
+export const ADD_BAR_BUTTON_GLYPH = 'rgba(245, 245, 248, 0.95)';
+// + 글리프 십자선 두께/길이 비율 (radius 기준)
+export const ADD_BAR_BUTTON_GLYPH_THICKNESS = 2;
+export const ADD_BAR_BUTTON_GLYPH_LENGTH_RATIO = 0.55;

@@ -33,12 +33,18 @@ import {
   findTimeSigHitAt,
   type TimeSigHitRect,
 } from './geometry/time-sig-hit.js';
+import {
+  calculateAddBarHit,
+  findAddBarHitAt,
+  type AddBarHitRect,
+} from './geometry/add-bar-hit.js';
 import { drawBeatOverlay } from './render/draw-overlay.js';
 import { drawPluckZones } from './render/draw-pluck.js';
 import { drawVibrationLine, isVibrationFinished } from './render/draw-vibration.js';
 import { drawPicker, layoutPicker } from './render/draw-picker.js';
 import { drawDebugNoteHits } from './render/draw-debug-hits.js';
 import { drawPreviewOccupancy } from './render/draw-preview-occupancy.js';
+import { drawAddBarButton } from './render/draw-add-bar-button.js';
 import { previewOccupancyRect } from './geometry/preview-occupancy.js';
 import { Metronome } from './audio/metronome.js';
 import { PreviewEngine } from './audio/preview-engine.js';
@@ -142,6 +148,7 @@ export function mountScoreEditor(host: HTMLElement, opts: MountScoreEditorOption
   let pluckZones: readonly PluckZoneRect[] = [];
   let noteHits: readonly NoteHitRect[] = [];
   let timeSigHits: readonly TimeSigHitRect[] = [];
+  let addBarHit: AddBarHitRect | null = null;
   let resizeTimer: ReturnType<typeof setTimeout> | null = null;
   let rafId: number | null = null;
   let bravuraLoaded = false;
@@ -186,6 +193,7 @@ export function mountScoreEditor(host: HTMLElement, opts: MountScoreEditorOption
     pluckZones = calculatePluckZones(layout);
     noteHits = calculateNoteHits(layout);
     timeSigHits = calculateTimeSigHits(layout);
+    addBarHit = calculateAddBarHit(layout);
     applyResize();
   };
 
@@ -223,6 +231,9 @@ export function mountScoreEditor(host: HTMLElement, opts: MountScoreEditorOption
       drawDebugNoteHits(editProjector, noteHits);
     }
     drawHoverOccupancyPreview();
+    if (addBarHit) {
+      drawAddBarButton(editProjector, addBarHit, { hovered: state.hoveredAddBar });
+    }
   };
 
   // picker가 열린 상태에서 옵션 hover 중일 때 그 옵션이 점유할 박자 영역을 핑크 반투명으로
@@ -309,6 +320,7 @@ export function mountScoreEditor(host: HTMLElement, opts: MountScoreEditorOption
     }
     const slot = findSlotAt(beatSlots, p.x, p.y);
     const zone = findZoneAt(pluckZones, p.x, p.y);
+    const addBar = findAddBarHitAt(addBarHit, p.x, p.y);
     let snapped: number | null = null;
     let pitch: string | null = null;
     if (zone) {
@@ -320,8 +332,15 @@ export function mountScoreEditor(host: HTMLElement, opts: MountScoreEditorOption
       snapped = r.snappedY;
       pitch = r.pitch;
     }
-    state = { ...state, hoveredSlot: slot, hoveredZone: zone, pluckSnappedY: snapped, pluckPitch: pitch };
-    editCanvas.style.cursor = slot || zone ? 'pointer' : 'default';
+    state = {
+      ...state,
+      hoveredSlot: slot,
+      hoveredZone: zone,
+      pluckSnappedY: snapped,
+      pluckPitch: pitch,
+      hoveredAddBar: addBar !== null,
+    };
+    editCanvas.style.cursor = slot || zone || addBar ? 'pointer' : 'default';
     paint();
   };
 
@@ -336,6 +355,12 @@ export function mountScoreEditor(host: HTMLElement, opts: MountScoreEditorOption
       } else {
         closePicker();
       }
+      return;
+    }
+    // 마디 추가(+) 버튼은 마지막 마디 우측 바깥 영역이라 다른 hit과 겹치지 않지만 우선순위를 명시.
+    const addBar = findAddBarHitAt(addBarHit, p.x, p.y);
+    if (addBar) {
+      appendBar();
       return;
     }
     // 박자표 hit은 contentStart 좌측이라 음표/슬롯과 겹치지 않지만 우선순위를 명시.
@@ -576,6 +601,22 @@ export function mountScoreEditor(host: HTMLElement, opts: MountScoreEditorOption
     }
     state = { ...state, picker: null, mode: 'idle' };
     uiCanvas.style.pointerEvents = 'none';
+    rebuild();
+    paint();
+  };
+
+  // 마지막 마디 우측 + 버튼 클릭 시 score 끝에 빈 마디 한 개 추가.
+  // 추가 후 hover 상태는 해제(버튼 위치가 바뀌므로)하고 cursor를 default로 돌린다.
+  const appendBar = (): void => {
+    try {
+      editable.dispatch({ type: 'appendBar' });
+    } catch (err) {
+      if (opts.onError) opts.onError(err);
+      else console.warn('[oon/editor-web] appendBar failed', err);
+      return;
+    }
+    state = { ...state, hoveredAddBar: false };
+    editCanvas.style.cursor = 'default';
     rebuild();
     paint();
   };

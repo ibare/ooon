@@ -13,4 +13,5 @@ export type {
   ReplaceNoteCommand,
   ReplaceWithRestCommand,
   SetTimeSignatureCommand,
+  AppendBarCommand,
 } from './commands.js';

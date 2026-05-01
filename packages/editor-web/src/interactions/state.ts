@@ -60,6 +60,8 @@ export interface EditorState {
   picker: PickerState | null;
   vibration: VibrationState | null;
   blink: MetronomeBlinkState | null;
+  /** 마지막 마디 우측 + 버튼 hover 여부 — 그리기 색상/cursor 토글에 사용. */
+  hoveredAddBar: boolean;
   /** 디버그: Shift+S 누르고 있는 동안만 true. 음표 hit rect를 빨간 반투명으로 표시. */
   debugShowHits: boolean;
 }
@@ -74,6 +76,7 @@ export function initialState(): EditorState {
     picker: null,
     vibration: null,
     blink: null,
+    hoveredAddBar: false,
     debugShowHits: false,
   };
 }

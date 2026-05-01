@@ -33,12 +33,17 @@ export interface SetTimeSignatureCommand {
   timeSignature: TimeSignature;
 }
 
+export interface AppendBarCommand {
+  type: 'appendBar';
+}
+
 export type ScoreCommand =
   | InsertNoteCommand
   | InsertRestCommand
   | ReplaceNoteCommand
   | ReplaceWithRestCommand
-  | SetTimeSignatureCommand;
+  | SetTimeSignatureCommand
+  | AppendBarCommand;
 
 export class CommandError extends Error {
   constructor(message: string) {
@@ -61,6 +66,8 @@ export function applyScoreCommand(node: ScoreNode, cmd: ScoreCommand): ScoreNode
       return applyReplaceWithRest(node, cmd);
     case 'setTimeSignature':
       return applySetTimeSignature(node, cmd);
+    case 'appendBar':
+      return applyAppendBar(node);
   }
 }
 
@@ -186,4 +193,12 @@ function applySetTimeSignature(node: ScoreNode, cmd: SetTimeSignatureCommand): S
   // 박자 전환 시 기존 음표는 초기화 — 스펙 명세("전환 시 기존 음표는 초기화")
   const emptyBar: ScoreBar = { barNumber: 1, notes: [] };
   return { ...node, timeSignature: cmd.timeSignature, bars: [emptyBar], warnings: [] };
+}
+
+// score 끝에 빈 마디를 한 개 추가한다. barNumber는 직전 마디 + 1, 빈 bars[]면 1.
+function applyAppendBar(node: ScoreNode): ScoreNode {
+  const last = node.bars[node.bars.length - 1];
+  const nextNumber = last ? last.barNumber + 1 : 1;
+  const newBar: ScoreBar = { barNumber: nextNumber, notes: [] };
+  return { ...node, bars: [...node.bars, newBar], warnings: [] };
 }
