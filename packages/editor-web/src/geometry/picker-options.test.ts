@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildPickerOptions } from './picker-options.js';
+import { buildPickerOptions, buildReplaceOptions } from './picker-options.js';
 
 describe('buildPickerOptions', () => {
   it('빈 4/4 마디(remain=4)에서는 모든 후보 노출', () => {
@@ -91,5 +91,75 @@ describe('buildPickerOptions', () => {
     expect(restDurs).toContain('q');
     expect(restDurs).toContain('e');
     expect(restDurs).toContain('s');
+  });
+});
+
+describe('buildReplaceOptions', () => {
+  it('현재 음표 q (other=0, 4/4) → q 음표만 빠진 17개 (음표8 + 쉼표9)', () => {
+    const opts = buildReplaceOptions({
+      currentDuration: 'q',
+      currentIsRest: false,
+      beatsPerBar: 4,
+      otherUsedBeats: 0,
+    });
+    const notes = opts.filter((o) => o.kind === 'replaceNote');
+    const rests = opts.filter((o) => o.kind === 'replaceWithRest');
+    expect(notes.length).toBe(8);
+    expect(rests.length).toBe(9);
+    expect(notes.some((o) => o.duration === 'q')).toBe(false);
+    // 같은 duration의 쉼표는 남는다 (kind가 다르므로 자기 자신 아님)
+    expect(rests.some((o) => o.duration === 'q')).toBe(true);
+  });
+
+  it('현재 쉼표 q (other=0, 4/4) → q 쉼표만 빠진 17개 (음표9 + 쉼표8)', () => {
+    const opts = buildReplaceOptions({
+      currentDuration: 'q',
+      currentIsRest: true,
+      beatsPerBar: 4,
+      otherUsedBeats: 0,
+    });
+    const notes = opts.filter((o) => o.kind === 'replaceNote');
+    const rests = opts.filter((o) => o.kind === 'replaceWithRest');
+    expect(notes.length).toBe(9);
+    expect(rests.length).toBe(8);
+    expect(rests.some((o) => o.duration === 'q')).toBe(false);
+    expect(notes.some((o) => o.duration === 'q')).toBe(true);
+  });
+
+  it('마디가 꽉 찬 4/4에서 q 음표 클릭(other=3) → allowed=1, q 이하만 + 자기 q 음표 제외', () => {
+    const opts = buildReplaceOptions({
+      currentDuration: 'q',
+      currentIsRest: false,
+      beatsPerBar: 4,
+      otherUsedBeats: 3,
+    });
+    const notes = opts.filter((o) => o.kind === 'replaceNote');
+    const rests = opts.filter((o) => o.kind === 'replaceWithRest');
+    // allowed=1: 음표 q.(1.5) h h. w 빠짐 → q,e.,e,s.,s 5개에서 자기 q 빼면 4개
+    expect(notes.map((o) => o.duration).sort()).toEqual(['e', 'e.', 's', 's.']);
+    // 쉼표는 q,e,s, e., s. 5개 모두 (자기는 음표 q이므로 쉼표 q는 남음)
+    expect(rests.map((o) => o.duration).sort()).toEqual(['e', 'e.', 'q', 's', 's.']);
+  });
+
+  it('점음표 q. 클릭(other=0) → q. 만 빠지고 q는 남음', () => {
+    const opts = buildReplaceOptions({
+      currentDuration: 'q.',
+      currentIsRest: false,
+      beatsPerBar: 4,
+      otherUsedBeats: 0,
+    });
+    const notes = opts.filter((o) => o.kind === 'replaceNote');
+    expect(notes.some((o) => o.duration === 'q.')).toBe(false);
+    expect(notes.some((o) => o.duration === 'q')).toBe(true);
+  });
+
+  it('allowed=0이면 빈 배열', () => {
+    const opts = buildReplaceOptions({
+      currentDuration: 'q',
+      currentIsRest: false,
+      beatsPerBar: 4,
+      otherUsedBeats: 4,
+    });
+    expect(opts).toEqual([]);
   });
 });

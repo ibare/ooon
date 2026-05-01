@@ -20,21 +20,38 @@ export interface MetronomeBlinkState {
   barIndex: number;
 }
 
+// 빈 박자 슬롯에서 열린 픽커 — 새 음표/쉼표 삽입 컨텍스트.
+export interface InsertPickerState {
+  kind: 'insert';
+  layout: PickerLayout;
+  barIndex: number;
+  beatIndex: number;
+  pitch: string; // 자동: 보표 중앙 라인의 step 기준(B4)
+  hoveredIndex: number | null;
+}
+
+// 기존 음표/쉼표를 클릭해 열린 픽커 — 같은 자리의 duration/종류 교체 컨텍스트.
+export interface ReplacePickerState {
+  kind: 'replace';
+  layout: PickerLayout;
+  barIndex: number;
+  noteIndex: number;
+  hoveredIndex: number | null;
+}
+
+export type PickerState = InsertPickerState | ReplacePickerState;
+
 export interface EditorState {
   mode: EditorMode;
   hoveredSlot: BeatSlotRect | null;
   hoveredZone: PluckZoneRect | null;
   pluckSnappedY: number | null;
   pluckPitch: string | null;
-  picker: {
-    layout: PickerLayout;
-    barIndex: number;
-    beatIndex: number;
-    pitch: string; // 자동: 보표 중앙 라인의 step 기준(B4)
-    hoveredIndex: number | null;
-  } | null;
+  picker: PickerState | null;
   vibration: VibrationState | null;
   blink: MetronomeBlinkState | null;
+  /** 디버그: Shift+S 누르고 있는 동안만 true. 음표 hit rect를 빨간 반투명으로 표시. */
+  debugShowHits: boolean;
 }
 
 export function initialState(): EditorState {
@@ -47,5 +64,6 @@ export function initialState(): EditorState {
     picker: null,
     vibration: null,
     blink: null,
+    debugShowHits: false,
   };
 }

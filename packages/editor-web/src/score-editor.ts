@@ -17,11 +17,21 @@ import {
   type PluckZoneRect,
 } from './geometry/pluck-zone.js';
 import { pitchAt } from './geometry/inverse-pitch.js';
-import { buildPickerOptions, type PickerOption } from './geometry/picker-options.js';
+import {
+  buildPickerOptions,
+  buildReplaceOptions,
+  type PickerOption,
+} from './geometry/picker-options.js';
+import {
+  calculateNoteHits,
+  findNoteHitAt,
+  type NoteHitRect,
+} from './geometry/note-hit.js';
 import { drawBeatOverlay } from './render/draw-overlay.js';
 import { drawPluckZones } from './render/draw-pluck.js';
 import { drawVibrationLine, isVibrationFinished } from './render/draw-vibration.js';
 import { drawPicker, layoutPicker } from './render/draw-picker.js';
+import { drawDebugNoteHits } from './render/draw-debug-hits.js';
 import { Metronome } from './audio/metronome.js';
 import { PreviewEngine } from './audio/preview-engine.js';
 import {
@@ -110,6 +120,7 @@ export function mountScoreEditor(host: HTMLElement, opts: MountScoreEditorOption
   let layout: ScoreLayout | null = null;
   let beatSlots: readonly BeatSlotRect[] = [];
   let pluckZones: readonly PluckZoneRect[] = [];
+  let noteHits: readonly NoteHitRect[] = [];
   let resizeTimer: ReturnType<typeof setTimeout> | null = null;
   let rafId: number | null = null;
   let bravuraLoaded = false;
@@ -150,6 +161,7 @@ export function mountScoreEditor(host: HTMLElement, opts: MountScoreEditorOption
     layout = calculateScoreLayout(editable.getNode(), { width: budget });
     beatSlots = calculateBeatSlots(layout, editable.getNode());
     pluckZones = calculatePluckZones(layout);
+    noteHits = calculateNoteHits(layout);
     applyResize();
   };
 
@@ -175,6 +187,9 @@ export function mountScoreEditor(host: HTMLElement, opts: MountScoreEditorOption
         x1: state.vibration.x1,
         x2: state.vibration.x2,
       });
+    }
+    if (state.debugShowHits) {
+      drawDebugNoteHits(scoreProjector, noteHits);
     }
   };
 
@@ -270,6 +285,13 @@ export function mountScoreEditor(host: HTMLElement, opts: MountScoreEditorOption
       }
       return;
     }
+    // 음표 hit이 박자 슬롯보다 먼저 — 빈 박자 슬롯은 마디 우측의 빈 영역만 노출되지만,
+    // 점음표/쉼표 같은 분수 박자 케이스에서 그래도 우선순위를 명시한다.
+    const noteHit = findNoteHitAt(noteHits, p.x, p.y);
+    if (noteHit) {
+      openReplacePicker(noteHit);
+      return;
+    }
     const slot = findSlotAt(beatSlots, p.x, p.y);
     if (slot) {
       openPicker(slot, p.y);
@@ -307,10 +329,54 @@ export function mountScoreEditor(host: HTMLElement, opts: MountScoreEditorOption
       ...state,
       mode: 'picker',
       picker: {
+        kind: 'insert',
         layout: pickerLayout,
         barIndex: slot.barIndex,
         beatIndex: slot.beatIndex,
         pitch: pickResult.pitch,
+        hoveredIndex: null,
+      },
+    };
+    uiCanvas.style.pointerEvents = 'auto';
+    paint();
+  };
+
+  // 음표/쉼표 클릭 시 같은 자리에서 duration/종류를 교체하기 위한 픽커.
+  // pitch는 commit 시점에 editable에서 다시 읽으므로 state에 들고 있지 않는다.
+  const openReplacePicker = (hit: NoteHitRect): void => {
+    if (!layout) return;
+    const node = editable.getNode();
+    const bar = node.bars[hit.barIndex];
+    const current = bar?.notes[hit.noteIndex];
+    if (!bar || !current) return;
+    const beatsPerBar = node.timeSignature.beats;
+    const otherUsedBeats = bar.notes.reduce(
+      (sum, n, i) => (i === hit.noteIndex ? sum : sum + n.beats),
+      0,
+    );
+    const options = buildReplaceOptions({
+      currentDuration: current.duration,
+      currentIsRest: current.isRest,
+      beatsPerBar,
+      otherUsedBeats,
+    });
+    if (options.length === 0) return;
+    const pickerLayout = layoutPicker({
+      anchorX: hit.x + hit.width + 6,
+      anchorY: hit.y,
+      options,
+      contentWidth: layout.width,
+      contentMinY: -UI_CANVAS_PAD_TOP,
+      contentHeight: layout.height + UI_CANVAS_PAD_BOTTOM,
+    });
+    state = {
+      ...state,
+      mode: 'picker',
+      picker: {
+        kind: 'replace',
+        layout: pickerLayout,
+        barIndex: hit.barIndex,
+        noteIndex: hit.noteIndex,
         hoveredIndex: null,
       },
     };
@@ -325,27 +391,76 @@ export function mountScoreEditor(host: HTMLElement, opts: MountScoreEditorOption
   };
 
   const commitPickerChoice = (option: PickerOption): void => {
-    if (!state.picker) return;
-    const { barIndex, pitch } = state.picker;
+    const picker = state.picker;
+    if (!picker) return;
+    // option.kind와 picker.kind는 picker 빌더가 짝지어 만들었으므로 일치한다는 전제.
+    // 잘못된 조합은 무시(상태만 닫음).
     switch (option.kind) {
       case 'insertNote': {
+        if (picker.kind !== 'insert') break;
         try {
-          editable.dispatch({ type: 'insertNote', barIndex, pitch, duration: option.duration });
+          editable.dispatch({
+            type: 'insertNote',
+            barIndex: picker.barIndex,
+            pitch: picker.pitch,
+            duration: option.duration,
+          });
         } catch (err) {
           if (opts.onError) opts.onError(err);
           else console.warn('[oon/editor-web] insertNote failed', err);
         }
-        void preview.previewNote(pitch, option.duration);
+        void preview.previewNote(picker.pitch, option.duration);
         break;
       }
       case 'insertRest': {
+        if (picker.kind !== 'insert') break;
         try {
-          editable.dispatch({ type: 'insertRest', barIndex, duration: option.duration });
+          editable.dispatch({
+            type: 'insertRest',
+            barIndex: picker.barIndex,
+            duration: option.duration,
+          });
         } catch (err) {
           if (opts.onError) opts.onError(err);
           else console.warn('[oon/editor-web] insertRest failed', err);
         }
         // 쉼표는 무음 — preview 없음.
+        break;
+      }
+      case 'replaceNote': {
+        if (picker.kind !== 'replace') break;
+        const before = editable.getNode().bars[picker.barIndex]?.notes[picker.noteIndex];
+        try {
+          editable.dispatch({
+            type: 'replaceNote',
+            barIndex: picker.barIndex,
+            noteIndex: picker.noteIndex,
+            duration: option.duration,
+          });
+        } catch (err) {
+          if (opts.onError) opts.onError(err);
+          else console.warn('[oon/editor-web] replaceNote failed', err);
+          break;
+        }
+        // 교체 결과음을 미리듣기. pitch는 source(음표)에서 그대로 유지된다.
+        if (before && !before.isRest) {
+          void preview.previewNote(before.pitch, option.duration);
+        }
+        break;
+      }
+      case 'replaceWithRest': {
+        if (picker.kind !== 'replace') break;
+        try {
+          editable.dispatch({
+            type: 'replaceWithRest',
+            barIndex: picker.barIndex,
+            noteIndex: picker.noteIndex,
+            duration: option.duration,
+          });
+        } catch (err) {
+          if (opts.onError) opts.onError(err);
+          else console.warn('[oon/editor-web] replaceWithRest failed', err);
+        }
         break;
       }
       default: {
@@ -432,6 +547,25 @@ export function mountScoreEditor(host: HTMLElement, opts: MountScoreEditorOption
   uiCanvas.addEventListener('pointermove', onPointerMove);
   uiCanvas.addEventListener('pointerdown', onPointerDown);
 
+  // 디버그 토글: Shift+S 누르고 있는 동안 음표 hit rect를 빨간 반투명으로 표시.
+  // window 단위로 부착 — 캔버스는 기본 포커스를 받지 않아 키 이벤트가 도달하지 않는다.
+  // S/Shift 어느 쪽이든 떼면 즉시 해제하고, 창 blur에도 안전하게 해제한다.
+  const setDebugShowHits = (next: boolean): void => {
+    if (state.debugShowHits === next) return;
+    state = { ...state, debugShowHits: next };
+    paint();
+  };
+  const onKeyDown = (ev: KeyboardEvent): void => {
+    if (ev.shiftKey && (ev.key === 'S' || ev.key === 's')) setDebugShowHits(true);
+  };
+  const onKeyUp = (ev: KeyboardEvent): void => {
+    if (ev.key === 'Shift' || ev.key === 'S' || ev.key === 's') setDebugShowHits(false);
+  };
+  const onWindowBlur = (): void => setDebugShowHits(false);
+  window.addEventListener('keydown', onKeyDown);
+  window.addEventListener('keyup', onKeyUp);
+  window.addEventListener('blur', onWindowBlur);
+
   void fontPromise().then(() => {
     rebuild();
     paint();
@@ -490,6 +624,9 @@ export function mountScoreEditor(host: HTMLElement, opts: MountScoreEditorOption
       scoreCanvas.removeEventListener('pointerdown', onPointerDown);
       uiCanvas.removeEventListener('pointermove', onPointerMove);
       uiCanvas.removeEventListener('pointerdown', onPointerDown);
+      window.removeEventListener('keydown', onKeyDown);
+      window.removeEventListener('keyup', onKeyUp);
+      window.removeEventListener('blur', onWindowBlur);
       metronome.dispose();
       preview.dispose();
       unsubscribe();

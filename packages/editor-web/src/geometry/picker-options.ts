@@ -13,7 +13,11 @@ export type RestDurationCandidate = (typeof REST_CANDIDATES)[number];
 // 픽커는 클릭 컨텍스트(빈 슬롯, 음표, 박자 등)에 따라 서로 다른 액션 옵션을 노출한다.
 // 옵션은 `kind`로 변별되는 discriminated union — 렌더 측은 공통 시각 필드(glyph/dotted)만 보고
 // 그리고, 커밋 측은 kind로 분기해 각각의 command를 dispatch한다.
-export type PickerOption = InsertNoteOption | InsertRestOption;
+export type PickerOption =
+  | InsertNoteOption
+  | InsertRestOption
+  | ReplaceNoteOption
+  | ReplaceWithRestOption;
 
 export interface InsertNoteOption {
   kind: 'insertNote';
@@ -31,6 +35,22 @@ export interface InsertRestOption {
   beats: number;
   glyph: GlyphName;
   /** 점쉼표 여부. 렌더 측이 augmentationDot을 옆에 곁들일지 판단. */
+  dotted: boolean;
+}
+
+export interface ReplaceNoteOption {
+  kind: 'replaceNote';
+  duration: DurationCandidate;
+  beats: number;
+  glyph: GlyphName;
+  dotted: boolean;
+}
+
+export interface ReplaceWithRestOption {
+  kind: 'replaceWithRest';
+  duration: RestDurationCandidate;
+  beats: number;
+  glyph: GlyphName;
   dotted: boolean;
 }
 
@@ -60,6 +80,58 @@ export function buildPickerOptions({ remainBeats, beatsPerBar }: BuildOptionsInp
     if (beats > remainBeats + 1e-9) continue;
     out.push({
       kind: 'insertRest',
+      duration: d,
+      beats,
+      glyph: restGlyphFor(d),
+      dotted: d.endsWith('.'),
+    });
+  }
+  return out;
+}
+
+export interface BuildReplaceOptionsInput {
+  /** 클릭된 음표/쉼표의 duration symbol (자기 자신 제외용). */
+  currentDuration: string;
+  /** 클릭된 대상이 쉼표인지 — kind와 함께 자기 자신 식별에 사용. */
+  currentIsRest: boolean;
+  /** 마디 총 박자. */
+  beatsPerBar: number;
+  /** 자기 자신을 제외한 마디 내 다른 음표들의 박자 합. (allowed = beatsPerBar - otherUsedBeats) */
+  otherUsedBeats: number;
+}
+
+// 음표 클릭 시 picker가 노출할 옵션들을 빌드한다. 자기 자신(같은 종류+같은 duration)은 빼고,
+// 그 자리에 들어갈 수 있는 박자(allowed) 안의 음표/쉼표 후보만 노출한다.
+export function buildReplaceOptions({
+  currentDuration,
+  currentIsRest,
+  beatsPerBar,
+  otherUsedBeats,
+}: BuildReplaceOptionsInput): PickerOption[] {
+  if (beatsPerBar <= 0) return [];
+  const allowed = beatsPerBar - otherUsedBeats;
+  if (allowed <= 0) return [];
+  const out: PickerOption[] = [];
+  for (const d of NOTE_CANDIDATES) {
+    if (!isDurationSymbol(d)) continue;
+    const beats = durationToBeats(d);
+    if (beats > allowed + 1e-9) continue;
+    if (!currentIsRest && d === currentDuration) continue;
+    out.push({
+      kind: 'replaceNote',
+      duration: d,
+      beats,
+      glyph: noteGlyphFor(d),
+      dotted: d.endsWith('.'),
+    });
+  }
+  for (const d of REST_CANDIDATES) {
+    if (!isDurationSymbol(d)) continue;
+    const beats = durationToBeats(d);
+    if (beats > allowed + 1e-9) continue;
+    if (currentIsRest && d === currentDuration) continue;
+    out.push({
+      kind: 'replaceWithRest',
       duration: d,
       beats,
       glyph: restGlyphFor(d),

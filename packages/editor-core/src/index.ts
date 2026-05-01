@@ -10,5 +10,7 @@ export type {
   ScoreCommand,
   InsertNoteCommand,
   InsertRestCommand,
+  ReplaceNoteCommand,
+  ReplaceWithRestCommand,
   SetTimeSignatureCommand,
 } from './commands.js';

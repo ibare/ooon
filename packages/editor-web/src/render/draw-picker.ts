@@ -130,8 +130,12 @@ export function drawPicker(
     // 글리프 baseline은 셀 하단 가까이 — stem이 위로 솟아 셀 안에 자리잡도록.
     const glyphX = row.x + row.width * 0.32;
     const baselineY = row.y + row.height * 0.78;
+    // SMUFL 맵에는 timeSigDigit 같은 함수 엔트리도 있어 인덱스 결과가 union(string | function)으로
+    // 좁혀지지 않는다. picker가 사용하는 글리프 키(noteX, restX, augmentationDot)는 모두 문자열
+    // 상수임이 GlyphName 정의에서 보장되므로 string으로 좁혀준다.
+    const glyphChar = SMUFL[row.option.glyph] as string;
     projector.drawText(
-      SMUFL[row.option.glyph],
+      glyphChar,
       { x: glyphX, y: baselineY },
       {
         font: `${BRAVURA_FONT_FAMILY}, system-ui`,
