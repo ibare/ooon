@@ -22,8 +22,6 @@ export interface SongLayoutOptions {
   gap?: number;
   /** 시스템 사이 수직 간격(시스템 간 줄바꿈 간격). */
   systemGap?: number;
-  /** 한 system이 담을 수 있는 최대 마디 수. 기본 4. */
-  maxBarsPerSystem?: number;
   /** keyboard 흰 건반 한 칸의 px 폭(미지정 시 width 기반 산정). */
   keyboardKeyWidth?: number;
   /** keyboard 흰 건반 높이. */
@@ -35,7 +33,6 @@ const DEFAULT_SYSTEM_GAP = 20;
 const DEFAULT_CHORD_HEIGHT = 56;
 const DEFAULT_DRUM_TRACK_HEIGHT = 16;
 const DEFAULT_KEYBOARD_HEIGHT = 96;
-const DEFAULT_MAX_BARS_PER_SYSTEM = 4;
 const MIN_KEYBOARD_KEY_WIDTH = 16;
 const MAX_KEYBOARD_KEY_WIDTH = 32;
 const TARGET_KEYBOARD_KEY_WIDTH = 24;
@@ -47,7 +44,6 @@ export function calculateSongLayout(node: SongNode, opts: SongLayoutOptions): So
   const chordHeight = opts.chordHeight ?? DEFAULT_CHORD_HEIGHT;
   const drumTrackHeight = opts.drumTrackHeight ?? DEFAULT_DRUM_TRACK_HEIGHT;
   const keyboardHeight = opts.keyboardHeight ?? DEFAULT_KEYBOARD_HEIGHT;
-  const maxBarsPerSystem = opts.maxBarsPerSystem ?? DEFAULT_MAX_BARS_PER_SYSTEM;
 
   const hasProgression = node.bars.length > 0;
   const hasDrum = !!node.beat && node.bars.some((b) => b.drum);
@@ -82,7 +78,7 @@ export function calculateSongLayout(node: SongNode, opts: SongLayoutOptions): So
     bars: node.bars.map((b) => ({ barNumber: b.barNumber, notes: [...b.melody] })),
     warnings: [],
   };
-  const scoreFull = calculateScoreLayout(scoreFullAdapter, { width, maxBarsPerSystem });
+  const scoreFull = calculateScoreLayout(scoreFullAdapter, { width });
   const systemBarGroups: number[][] = scoreFull.systems.map((sys) =>
     sys.bars.map((b) => b.barNumber),
   );

@@ -20,17 +20,18 @@ describe('calculateScoreLayout', () => {
     expect(layout.systems[0]!.bars[0]?.notes.length).toBe(4);
   });
 
-  it('splits bar width evenly across bars', () => {
+  it('단일 시스템: 모든 마디 폭 동일·연속, 컨테이너를 가득 채우지 않는다(자연 폭 좌측 정렬)', () => {
+    // width=800은 4/4 2마디가 단일 시스템에 들어갈 만한 폭. 자연 폭 좌측 정렬이라
+    // 우측에 여백이 남는다(컨테이너를 가득 채우지 않음).
     const node = parseScore('score 4/4\n  A4/w | A4/w |');
-    const layout = calculateScoreLayout(node, { width: 400 });
+    const layout = calculateScoreLayout(node, { width: 800 });
+    expect(layout.systems.length).toBe(1);
     expect(layout.systems[0]!.bars.length).toBe(2);
-    const b0 = layout.systems[0]!.bars[0];
-    const b1 = layout.systems[0]!.bars[1];
-    expect(b0).toBeDefined();
-    expect(b1).toBeDefined();
-    if (!b0 || !b1) return;
-    expect(b1.x).toBeCloseTo(b0.x + b0.width, 2);
+    const b0 = layout.systems[0]!.bars[0]!;
+    const b1 = layout.systems[0]!.bars[1]!;
     expect(b0.width).toBeCloseTo(b1.width, 2);
+    expect(b1.x).toBeCloseTo(b0.x + b0.width, 2);
+    expect(b1.barlineX).toBeLessThan(800);
   });
 
   it('places B4 on middle staff line (y = centerY)', () => {
@@ -97,24 +98,45 @@ describe('calculateScoreLayout', () => {
     expect(notes[3]?.accidental).toBeUndefined();
   });
 
-  it('caps bars per system at maxBarsPerSystem even when width is plenty', () => {
-    // 폭이 충분해 8마디가 한 줄에 들어갈 수 있어도 기본 5마디 상한으로 분할한다.
+  it('다중 시스템(uniform grid): 모든 줄 동일 N개 마디(마지막 줄만 남는 만큼), 모든 마디 폭 동일', () => {
+    // 좁은 컨테이너에서 12마디 → 줄바꿈 발생. uniform grid 정책으로 각 줄의 마디 수와
+    // 폭이 동일하고, 마지막 줄만 남는 개수만큼만 그려진다.
     const node = parseScore(
-      'score 4/4\n  A4/w | A4/w | A4/w | A4/w | A4/w | A4/w | A4/w | A4/w |',
+      'score 4/4\n  A4/w | A4/w | A4/w | A4/w | A4/w | A4/w | A4/w | A4/w | A4/w | A4/w | A4/w | A4/w |',
     );
-    const layout = calculateScoreLayout(node, { width: 4000 });
-    expect(layout.systems.length).toBe(2);
-    expect(layout.systems[0]!.bars.length).toBe(5);
-    expect(layout.systems[1]!.bars.length).toBe(3);
+    const layout = calculateScoreLayout(node, { width: 600 });
+    expect(layout.systems.length).toBeGreaterThanOrEqual(2);
+
+    const firstWidth = layout.systems[0]!.bars[0]!.width;
+    // 모든 시스템·마디의 폭이 동일.
+    for (const sys of layout.systems) {
+      for (const bar of sys.bars) {
+        expect(bar.width).toBeCloseTo(firstWidth, 2);
+      }
+    }
+
+    // 마지막 줄을 제외한 모든 줄의 마디 수가 같다.
+    const fullCount = layout.systems[0]!.bars.length;
+    for (let i = 0; i < layout.systems.length - 1; i += 1) {
+      expect(layout.systems[i]!.bars.length).toBe(fullCount);
+    }
+    expect(layout.systems[layout.systems.length - 1]!.bars.length).toBeLessThanOrEqual(fullCount);
   });
 
-  it('respects custom maxBarsPerSystem', () => {
+  it('uniform grid 정렬: 모든 줄의 i번째 마디 시작 x가 동일(수직 정렬)', () => {
     const node = parseScore(
-      'score 4/4\n  A4/w | A4/w | A4/w | A4/w | A4/w | A4/w |',
+      'score 4/4\n  A4/w | A4/w | A4/w | A4/w | A4/w | A4/w | A4/w | A4/w | A4/w |',
     );
-    const layout = calculateScoreLayout(node, { width: 4000, maxBarsPerSystem: 2 });
-    expect(layout.systems.length).toBe(3);
-    for (const sys of layout.systems) expect(sys.bars.length).toBe(2);
+    const layout = calculateScoreLayout(node, { width: 500 });
+    expect(layout.systems.length).toBeGreaterThanOrEqual(2);
+    const firstSystemBars = layout.systems[0]!.bars;
+    for (let s = 1; s < layout.systems.length; s += 1) {
+      const sys = layout.systems[s]!;
+      for (let b = 0; b < sys.bars.length; b += 1) {
+        expect(sys.bars[b]!.x).toBeCloseTo(firstSystemBars[b]!.x, 2);
+        expect(sys.bars[b]!.barlineX).toBeCloseTo(firstSystemBars[b]!.barlineX, 2);
+      }
+    }
   });
 
   it('박자 격자 정렬: 단일 4분음표는 박자 0 슬롯 시작에 위치하고, 4개는 등간격', () => {

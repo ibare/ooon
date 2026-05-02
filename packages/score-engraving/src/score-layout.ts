@@ -43,6 +43,7 @@ import {
   noteRequiredWidth,
 } from './passes/spacing.js';
 import { groupBeams, type BeamGroup } from './passes/beams.js';
+import { barWidthRange, chooseUniformLayout } from './passes/bar-width.js';
 
 export interface ScoreLayoutOptions {
   width: number;
@@ -52,21 +53,14 @@ export interface ScoreLayoutOptions {
   timeSigWidth?: number;
   barPadding?: number;
   /**
-   * 'auto'면 가용폭 초과 시 새 system으로 자동 분할(매 system 시작에 clef/keySig/timeSig 반복).
-   * 'none'이면 모든 마디를 단일 system에 욱여넣는다(=기존 동작).
+   * 'auto'면 박자별 마디 폭 범위로 wrap을 결정한다(uniform grid). 'none'이면 모든 마디를
+   * 단일 system에 자연 폭으로 욱여넣는다(composition 등 외부에서 system별 재계산용).
    * 기본값 'auto'.
    */
   wrap?: 'auto' | 'none';
   /** system 간 수직 간격(px). */
   systemGap?: number;
-  /**
-   * wrap='auto'일 때 한 system에 들어갈 마디 수 상한.
-   * 폭이 충분해도 이 값을 넘으면 새 system으로 분할한다. 기본값 5.
-   */
-  maxBarsPerSystem?: number;
 }
-
-const DEFAULT_MAX_BARS_PER_SYSTEM = 5;
 
 const sp = (n: number): Sp => n as Sp;
 
@@ -187,40 +181,12 @@ function accidentalGlyph(kind: AccidentalKind): string | null {
   }
 }
 
-// 마디의 최소 폭(px) 추정. 박자 격자(distributeNotesByBeat)와 정렬된 추정이라야
-// 시스템 분할 단계에서 "한 박자 슬롯에 음표가 들어가지 못해 옆 박자를 침범"하는 마디를
-// 미리 감지해 다음 시스템으로 넘길 수 있다.
-//   minBarWidth = max(박자별 음표 requiredWidth 합) × beatsPerBar + 2*barPadding
-// 가장 빡빡한 박자 슬롯이 들어갈 만큼 모든 박자 슬롯 폭을 보장한다.
-function estimateMinBarWidthPx(
-  bar: ScoreBar,
-  keySig: KeySignatureMap,
-  pxPerSp: number,
-  barPaddingPx: number,
-  timeSignature: TimeSignature,
-): number {
-  const accDecisions = resolveAccidentals(bar.notes, keySig);
-  const beatsPerBar = Math.max(1, timeSignature.beats);
-  const perBeat = new Array<number>(beatsPerBar).fill(0);
-  let acc = 0;
-  for (let i = 0; i < bar.notes.length; i += 1) {
-    const note = bar.notes[i]!;
-    const kind = accDecisions[i]?.kind ?? null;
-    const w = noteRequiredWidth(note, kind) * pxPerSp;
-    const slotIdx = Math.min(beatsPerBar - 1, Math.max(0, Math.floor(acc + 1e-9)));
-    perBeat[slotIdx]! += w;
-    acc += note.beats;
-  }
-  let maxPerBeat = 0;
-  for (const w of perBeat) if (w > maxPerBeat) maxPerBeat = w;
-  return maxPerBeat * beatsPerBar + barPaddingPx * 2;
-}
-
 interface SystemBuildArgs {
   systemIndex: number;
   staffCenterY: number;
   bars: readonly ScoreBar[];
-  systemWidth: number;
+  /** 모든 마디에 적용되는 동일 폭(px). 호출자가 chooseUniformLayout으로 결정해 전달. */
+  barWidth: number;
   pxPerSp: number;
   clefWidthPx: number;
   keySigWidthPx: number;
@@ -235,7 +201,7 @@ function buildSystem(args: SystemBuildArgs): ScoreSystemLayout {
     systemIndex,
     staffCenterY,
     bars,
-    systemWidth,
+    barWidth,
     pxPerSp,
     clefWidthPx,
     keySigWidthPx,
@@ -281,10 +247,6 @@ function buildSystem(args: SystemBuildArgs): ScoreSystemLayout {
   };
 
   const contentStart = timeSigX + timeSigWidthPx;
-  const available = systemWidth - contentStart - RIGHT_MARGIN_SP * pxPerSp;
-  const barCount = Math.max(bars.length, 1);
-  const barWidth = available / barCount;
-
   const stemCtx = { pxPerSp, stemLengthSp: STEM_LENGTH_SP };
 
   const layoutBars: ScoreBarLayout[] = bars.map((bar, barIdx) => {
@@ -361,7 +323,6 @@ export function calculateScoreLayout(node: ScoreNode, opts: ScoreLayoutOptions):
   const pxPerSp = opts.lineGap ?? 10;
   const wrap = opts.wrap ?? 'auto';
   const systemGap = opts.systemGap ?? pxPerSp * 2;
-  const maxBarsPerSystem = Math.max(1, opts.maxBarsPerSystem ?? DEFAULT_MAX_BARS_PER_SYSTEM);
 
   const keySig = parseKeySignature(node.key);
   const clefWidthPx = opts.clefWidth ?? defaultClefWidthSp() * pxPerSp;
@@ -374,35 +335,30 @@ export function calculateScoreLayout(node: ScoreNode, opts: ScoreLayoutOptions):
   const rightMarginPx = RIGHT_MARGIN_SP * pxPerSp;
   const availableContent = Math.max(inputWidth - preambleWidth - rightMarginPx, pxPerSp * 4);
 
-  // 마디별 minBarWidth 사전 산출 (분할 결정에 사용)
-  const minBarWidthsPx = node.bars.map((bar) =>
-    estimateMinBarWidthPx(bar, keySig, pxPerSp, barPaddingPx, node.timeSignature),
-  );
+  // uniform grid 결정 — 박자별 마디 폭 범위로 N과 단일 마디 폭을 도출.
+  // wrap='none'은 외부(예: composition)에서 시스템 그룹을 별도로 결정한 뒤 단일 시스템으로
+  // 다시 계산하는 용도. 이 경우 N 의미가 없으므로 자연 폭(natural)을 사용한다.
+  const widthRange = barWidthRange(node.timeSignature, pxPerSp, barPaddingPx);
+  const plan =
+    wrap === 'none'
+      ? { barsPerSystem: Math.max(1, node.bars.length), systemCount: 1, barWidth: widthRange.natural, mode: 'natural' as const }
+      : chooseUniformLayout({
+          barCount: node.bars.length,
+          range: widthRange,
+          availableContent,
+        });
 
-  // 시스템 분할
+  // 시스템 그룹화 — 모든 줄이 동일 N개 마디(마지막 줄만 1~N개).
   const groups: number[][] = [];
-  if (wrap === 'none' || node.bars.length === 0) {
-    groups.push(node.bars.map((_, i) => i));
+  if (node.bars.length === 0) {
+    groups.push([]);
   } else {
-    let cur: number[] = [];
-    let curWidth = 0;
-    for (let i = 0; i < node.bars.length; i += 1) {
-      const w = minBarWidthsPx[i] ?? 0;
-      const fitsWidth = curWidth + w <= availableContent;
-      const underCap = cur.length < maxBarsPerSystem;
-      if (cur.length === 0 || (fitsWidth && underCap)) {
-        cur.push(i);
-        curWidth += w;
-      } else {
-        groups.push(cur);
-        cur = [i];
-        curWidth = w;
-      }
+    for (let i = 0; i < node.bars.length; i += plan.barsPerSystem) {
+      const len = Math.min(plan.barsPerSystem, node.bars.length - i);
+      groups.push(Array.from({ length: len }, (_, k) => i + k));
     }
-    if (cur.length > 0) groups.push(cur);
   }
 
-  // 빈 입력 보호: 시스템 0개면 빈 시스템 하나라도 두지 않고 빈 배열 반환
   const systems: ScoreSystemLayout[] = [];
   const initialStaffCenterY = opts.staffY ?? 40;
   let nextSystemTop = initialStaffCenterY - STAFF_HALF_HEIGHT_SP * pxPerSp - TOP_PADDING_SP * pxPerSp;
@@ -410,14 +366,13 @@ export function calculateScoreLayout(node: ScoreNode, opts: ScoreLayoutOptions):
   for (let si = 0; si < groups.length; si += 1) {
     const indices = groups[si]!;
     const barsForSystem = indices.map((i) => node.bars[i]!);
-    // staff center y = system top + TOP_PADDING + STAFF_HALF
     const staffCenterY = nextSystemTop + TOP_PADDING_SP * pxPerSp + STAFF_HALF_HEIGHT_SP * pxPerSp;
 
     const system = buildSystem({
       systemIndex: si,
       staffCenterY,
       bars: barsForSystem,
-      systemWidth: inputWidth,
+      barWidth: plan.barWidth,
       pxPerSp,
       clefWidthPx,
       keySigWidthPx,
