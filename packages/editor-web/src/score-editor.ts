@@ -9,6 +9,7 @@ import { EditableScore, type ScoreCommand } from '@oon/editor-core';
 import {
   calculateBeatSlots,
   findSlotAt,
+  firstEmptySlotPerBar,
   type BeatSlotRect,
 } from './geometry/beat-overlay.js';
 import {
@@ -156,6 +157,10 @@ export function mountScoreEditor(host: HTMLElement, opts: MountScoreEditorOption
   let containerWidth: number | null = null;
   let layout: ScoreLayout | null = null;
   let beatSlots: readonly BeatSlotRect[] = [];
+  // 인터랙션(hover/click)은 마디별 첫 빈 슬롯에만 반응. 모델은 항상 마디 끝에 append하므로
+  // 다른 빈 슬롯을 클릭해도 결과 위치가 동일 — 사용자에게 misleading 한 클릭을 차단.
+  // 그리기는 여전히 beatSlots 전체를 사용.
+  let actionableSlots: readonly BeatSlotRect[] = [];
   let pluckZones: readonly PluckZoneRect[] = [];
   let noteHits: readonly NoteHitRect[] = [];
   let timeSigHits: readonly TimeSigHitRect[] = [];
@@ -201,6 +206,7 @@ export function mountScoreEditor(host: HTMLElement, opts: MountScoreEditorOption
     if (budget === null || budget <= 0 || containerWidth === null) return;
     layout = calculateScoreLayout(editable.getNode(), { width: budget });
     beatSlots = calculateBeatSlots(layout, editable.getNode());
+    actionableSlots = firstEmptySlotPerBar(beatSlots);
     pluckZones = calculatePluckZones(layout);
     noteHits = calculateNoteHits(layout);
     timeSigHits = calculateTimeSigHits(layout);
@@ -353,7 +359,7 @@ export function mountScoreEditor(host: HTMLElement, opts: MountScoreEditorOption
       }
       return;
     }
-    const slot = findSlotAt(beatSlots, p.x, p.y);
+    const slot = findSlotAt(actionableSlots, p.x, p.y);
     const zone = findZoneAt(pluckZones, p.x, p.y);
     const addBar = findAddBarHitAt(addBarHit, p.x, p.y);
     let snapped: number | null = null;
@@ -427,7 +433,7 @@ export function mountScoreEditor(host: HTMLElement, opts: MountScoreEditorOption
       openReplacePicker(noteHit);
       return;
     }
-    const slot = findSlotAt(beatSlots, p.x, p.y);
+    const slot = findSlotAt(actionableSlots, p.x, p.y);
     if (slot) {
       openPicker(slot, p.y);
       return;

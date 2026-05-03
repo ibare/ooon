@@ -1,7 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import type { ScoreLayout } from '@oon/score-engraving';
 import type { ScoreNode } from '@oon/core';
-import { calculateBeatSlots, groupBeatSlots } from './beat-overlay.js';
+import {
+  calculateBeatSlots,
+  firstEmptySlotPerBar,
+  groupBeatSlots,
+  type BeatSlotRect,
+} from './beat-overlay.js';
 
 // 슬롯 생성 로직 자체만 검증하는 단위 테스트.
 // staff/clef/keySig/timeSig는 calculateBeatSlots가 staff.{top,bottom,lineGap}만 참조하므로
@@ -239,5 +244,55 @@ describe('groupBeatSlots — 메인박 단위 union rect', () => {
       slots[2]!.x + slots[2]!.width - slots[0]!.x,
       5,
     );
+  });
+});
+
+describe('firstEmptySlotPerBar — 마디별 첫 빈 슬롯만 추림', () => {
+  it('빈 4/4 단일 마디는 4개 중 첫 슬롯(beatIndex=0) 1개만 반환', () => {
+    const slots = calculateBeatSlots(makeLayout(), makeNodeEmpty());
+    const first = firstEmptySlotPerBar(slots);
+    expect(first).toHaveLength(1);
+    expect(first[0]?.beatIndex).toBe(0);
+  });
+
+  it('q+e(1.5박) 사용 후엔 부분 슬롯(beatIndex=1.5)만 통과', () => {
+    const slots = calculateBeatSlots(makeLayout(), makeNode([1, 0.5]));
+    const first = firstEmptySlotPerBar(slots);
+    expect(first).toHaveLength(1);
+    expect(first[0]?.beatIndex).toBe(1.5);
+  });
+
+  it('빈 입력은 빈 배열', () => {
+    expect(firstEmptySlotPerBar([])).toEqual([]);
+  });
+
+  it('여러 마디 슬롯이 섞여 있어도 각 barIndex의 첫 등장만 통과(입력 순서 보존)', () => {
+    const mk = (barIndex: number, beatIndex: number): BeatSlotRect => ({
+      systemIndex: 0,
+      barIndex,
+      beatIndex,
+      x: 0,
+      y: 0,
+      width: 1,
+      height: 1,
+      groupIndex: 0,
+      beatInGroup: beatIndex,
+      isGroupStart: beatIndex === 0,
+    });
+    const slots: BeatSlotRect[] = [
+      mk(0, 1),
+      mk(0, 2),
+      mk(0, 3),
+      mk(2, 0),
+      mk(2, 1),
+      mk(5, 1.5),
+      mk(5, 2),
+    ];
+    const first = firstEmptySlotPerBar(slots);
+    expect(first.map((s) => [s.barIndex, s.beatIndex])).toEqual([
+      [0, 1],
+      [2, 0],
+      [5, 1.5],
+    ]);
   });
 });

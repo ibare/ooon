@@ -132,6 +132,24 @@ export function findSlotAt(
   return null;
 }
 
+// 모델은 `insertNote`가 항상 마디 끝(=첫 빈 슬롯)에 append한다. 빈 슬롯이 여러 개여도
+// 어느 슬롯을 클릭하든 결과 위치는 동일하므로, 인터랙션은 마디별 "첫 빈 슬롯"만 활성화한다.
+// 시각(오버레이)은 모든 빈 슬롯을 동일하게 그리되 hover/click이 무반응일 뿐 — 사용자가
+// 클릭한 위치와 실제 추가 위치가 어긋나는 misleading UX를 차단.
+//
+// `calculateBeatSlots`는 마디 내부에서 row-major 순서로 슬롯을 산출하므로 같은 barIndex의
+// 첫 등장만 보존하면 곧 첫 빈 슬롯이다(한 마디는 한 시스템에 속하므로 systemIndex는 불필요).
+export function firstEmptySlotPerBar(slots: readonly BeatSlotRect[]): BeatSlotRect[] {
+  const out: BeatSlotRect[] = [];
+  const seen = new Set<number>();
+  for (const s of slots) {
+    if (seen.has(s.barIndex)) continue;
+    seen.add(s.barIndex);
+    out.push(s);
+  }
+  return out;
+}
+
 // 메인박(그룹) 단위로 슬롯들을 묶은 union rect. 시각 표현용이며, hit/hover/blink는 여전히
 // 슬롯(작은박) 단위라 멤버 슬롯 배열을 함께 보존한다.
 export interface GroupedSlotRect {
