@@ -8,4 +8,24 @@ export default defineConfig({
     outDir: 'dist',
     emptyOutDir: true,
   },
+  // workspace 패키지(@oon/*)는 prebundle 캐시에 잡히면 dist 변경이 dev에 반영되지 않는다.
+  // exclude로 vite가 매번 워크스페이스 dist를 그대로 따라가도록 한다.
+  optimizeDeps: {
+    exclude: [
+      '@oon/composition',
+      '@oon/core',
+      '@oon/editor-core',
+      '@oon/editor-web',
+      '@oon/instrument-layouts',
+      '@oon/player-web',
+      '@oon/projector-web',
+      '@oon/score-engraving',
+      '@oon/shared',
+      '@oon/smufl-asset',
+    ],
+  },
+  // 모노레포 외부(상위 디렉터리) 파일을 dev 서버가 읽을 수 있게 허용 — workspace dist 접근.
+  server: {
+    fs: { allow: ['..'] },
+  },
 });

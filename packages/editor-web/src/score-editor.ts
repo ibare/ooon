@@ -41,7 +41,18 @@ import {
 import { drawBeatOverlay } from './render/draw-overlay.js';
 import { drawPluckZones } from './render/draw-pluck.js';
 import { drawVibrationLine, isVibrationFinished } from './render/draw-vibration.js';
-import { drawPicker, layoutPicker } from './render/draw-picker.js';
+import {
+  buildAndPlacePicker,
+  PICKER_TOKEN_CELL_PREFIX,
+  PICKER_TOKEN_TOGGLE_PREFIX,
+} from './render/picker-widget.js';
+import {
+  defaultActiveFor,
+  filterByCategories,
+  PICKER_CATEGORY_SPECS,
+  type PickerContext,
+} from './geometry/picker-categories.js';
+import { applyToggle, parseToggleToken } from './ui/index.js';
 import { drawDebugNoteHits } from './render/draw-debug-hits.js';
 import { drawPreviewOccupancy } from './render/draw-preview-occupancy.js';
 import { drawAddBarButton } from './render/draw-add-bar-button.js';
@@ -236,13 +247,40 @@ export function mountScoreEditor(host: HTMLElement, opts: MountScoreEditorOption
     }
   };
 
+  // picker open 시점에 캐시한 옵션을 active로 필터해서 위젯 트리를 빌드 + 절대 좌표로 배치.
+  // paint/hitTest 모두 같은 입력으로 호출 — 결정적 결과.
+  const placePicker = (
+    picker: NonNullable<EditorState['picker']>,
+  ): {
+    widget: ReturnType<typeof buildAndPlacePicker>['widget'];
+    rect: ReturnType<typeof buildAndPlacePicker>['rect'];
+    filteredOptions: ReturnType<typeof filterByCategories>;
+  } => {
+    const filteredOptions = filterByCategories(picker.options, picker.active);
+    const placed = buildAndPlacePicker({
+      context: picker.kind,
+      filteredOptions,
+      active: picker.active,
+      hoveredToken: picker.hoveredToken,
+      anchorX: picker.anchorX,
+      anchorY: picker.anchorY,
+      contentWidth: picker.contentWidth,
+      contentHeight: picker.contentHeight,
+      contentMinY: picker.contentMinY,
+    });
+    return { widget: placed.widget, rect: placed.rect, filteredOptions };
+  };
+
   // picker가 열린 상태에서 옵션 hover 중일 때 그 옵션이 점유할 박자 영역을 핑크 반투명으로
   // 미리 보여 준다. hover에서 빠지거나 picker가 닫히면 paint가 매 프레임 clear되므로 자동 소멸.
   const drawHoverOccupancyPreview = (): void => {
     const picker = state.picker;
-    if (!picker || picker.hoveredIndex === null) return;
+    if (!picker || picker.hoveredToken === null) return;
     if (picker.kind === 'timeSig') return;
-    const option = picker.layout.rows.find((r) => r.index === picker.hoveredIndex)?.option;
+    const cellIdx = parseCellIndex(picker.hoveredToken);
+    if (cellIdx === null) return;
+    const filtered = filterByCategories(picker.options, picker.active);
+    const option = filtered[cellIdx];
     if (!option || option.kind === 'setTimeSignature') return;
     if (!layout) return;
     const startBeat = picker.kind === 'insert' ? picker.beatIndex : picker.startBeat;
@@ -261,7 +299,8 @@ export function mountScoreEditor(host: HTMLElement, opts: MountScoreEditorOption
     if (!state.picker) return;
     uiProjector.save();
     uiProjector.translate(0, UI_CANVAS_PAD_TOP);
-    drawPicker(uiProjector, state.picker.layout, { hoveredIndex: state.picker.hoveredIndex });
+    const { widget } = placePicker(state.picker);
+    widget.paint(uiProjector);
     uiProjector.restore();
   };
 
@@ -306,16 +345,12 @@ export function mountScoreEditor(host: HTMLElement, opts: MountScoreEditorOption
   const onPointerMove = (ev: PointerEvent): void => {
     const p = editProjector.clientToContentPoint(ev.clientX, ev.clientY);
     if (state.picker) {
-      const rows = state.picker.layout.rows;
-      let hoveredIndex: number | null = null;
-      for (const r of rows) {
-        if (p.x >= r.x && p.x <= r.x + r.width && p.y >= r.y && p.y <= r.y + r.height) {
-          hoveredIndex = r.index;
-          break;
-        }
+      const { widget } = placePicker(state.picker);
+      const hoveredToken = widget.hitTest(p);
+      if (hoveredToken !== state.picker.hoveredToken) {
+        state = { ...state, picker: { ...state.picker, hoveredToken } };
+        paint();
       }
-      state = { ...state, picker: { ...state.picker, hoveredIndex } };
-      paint();
       return;
     }
     const slot = findSlotAt(beatSlots, p.x, p.y);
@@ -347,13 +382,29 @@ export function mountScoreEditor(host: HTMLElement, opts: MountScoreEditorOption
   const onPointerDown = (ev: PointerEvent): void => {
     const p = editProjector.clientToContentPoint(ev.clientX, ev.clientY);
     if (state.picker) {
-      const row = state.picker.layout.rows.find(
-        (r) => p.x >= r.x && p.x <= r.x + r.width && p.y >= r.y && p.y <= r.y + r.height,
-      );
-      if (row) {
-        commitPickerChoice(row.option);
-      } else {
+      const { widget, filteredOptions } = placePicker(state.picker);
+      const token = widget.hitTest(p);
+      if (token === null) {
         closePicker();
+        return;
+      }
+      const cellIdx = parseCellIndex(token);
+      if (cellIdx !== null) {
+        const option = filteredOptions[cellIdx];
+        if (option) commitPickerChoice(option);
+        return;
+      }
+      const toggleId = parseToggleToken(token, PICKER_TOKEN_TOGGLE_PREFIX);
+      if (toggleId !== null) {
+        const ctx = state.picker.kind;
+        const mode = PICKER_CATEGORY_SPECS[ctx].mode;
+        const nextActive = applyToggle(state.picker.active, toggleId, mode);
+        // 토글로 그리드가 재구성되므로 hoveredToken은 무효화. 다음 hover/move에서 다시 결정.
+        state = {
+          ...state,
+          picker: { ...state.picker, active: nextActive, hoveredToken: null },
+        };
+        paint();
       }
       return;
     }
@@ -403,26 +454,22 @@ export function mountScoreEditor(host: HTMLElement, opts: MountScoreEditorOption
     const staff = system?.staff;
     if (!staff) return;
     const pickResult = pitchAt({ y, staff });
-    // ui 캔버스가 score 영역 위·아래 패드만큼 더 크므로 픽커는 위로(음수 y)도, 아래로도 펼쳐질
-    // 수 있다. score 좌표계 기준 [-PAD_TOP, layout.height + PAD_BOTTOM] 범위로 클램프한다.
-    const pickerLayout = layoutPicker({
-      anchorX: slot.x,
-      anchorY: staff.bottom + PICKER_BELOW_STAFF_GAP,
-      options,
-      contentWidth: layout.width,
-      contentMinY: -UI_CANVAS_PAD_TOP,
-      contentHeight: layout.height + UI_CANVAS_PAD_BOTTOM,
-    });
     state = {
       ...state,
       mode: 'picker',
       picker: {
         kind: 'insert',
-        layout: pickerLayout,
+        anchorX: slot.x,
+        anchorY: staff.bottom + PICKER_BELOW_STAFF_GAP,
+        contentWidth: layout.width,
+        contentMinY: -UI_CANVAS_PAD_TOP,
+        contentHeight: layout.height + UI_CANVAS_PAD_BOTTOM,
+        active: defaultActiveFor('insert'),
+        hoveredToken: null,
+        options,
         barIndex: slot.barIndex,
         beatIndex: slot.beatIndex,
         pitch: pickResult.pitch,
-        hoveredIndex: null,
       },
     };
     uiCanvas.style.pointerEvents = 'auto';
@@ -455,24 +502,22 @@ export function mountScoreEditor(host: HTMLElement, opts: MountScoreEditorOption
     if (options.length === 0) return;
     const replaceStaff = layout.systems.find((s) => s.index === hit.systemIndex)?.staff;
     if (!replaceStaff) return;
-    const pickerLayout = layoutPicker({
-      anchorX: hit.x,
-      anchorY: replaceStaff.bottom + PICKER_BELOW_STAFF_GAP,
-      options,
-      contentWidth: layout.width,
-      contentMinY: -UI_CANVAS_PAD_TOP,
-      contentHeight: layout.height + UI_CANVAS_PAD_BOTTOM,
-    });
     state = {
       ...state,
       mode: 'picker',
       picker: {
         kind: 'replace',
-        layout: pickerLayout,
+        anchorX: hit.x,
+        anchorY: replaceStaff.bottom + PICKER_BELOW_STAFF_GAP,
+        contentWidth: layout.width,
+        contentMinY: -UI_CANVAS_PAD_TOP,
+        contentHeight: layout.height + UI_CANVAS_PAD_BOTTOM,
+        active: defaultActiveFor('replace'),
+        hoveredToken: null,
+        options,
         barIndex: hit.barIndex,
         noteIndex: hit.noteIndex,
         startBeat,
-        hoveredIndex: null,
       },
     };
     uiCanvas.style.pointerEvents = 'auto';
@@ -486,18 +531,20 @@ export function mountScoreEditor(host: HTMLElement, opts: MountScoreEditorOption
     if (options.length === 0) return;
     const tsStaff = layout.systems.find((s) => s.index === hit.systemIndex)?.staff;
     if (!tsStaff) return;
-    const pickerLayout = layoutPicker({
-      anchorX: hit.x,
-      anchorY: tsStaff.bottom + PICKER_BELOW_STAFF_GAP,
-      options,
-      contentWidth: layout.width,
-      contentMinY: -UI_CANVAS_PAD_TOP,
-      contentHeight: layout.height + UI_CANVAS_PAD_BOTTOM,
-    });
     state = {
       ...state,
       mode: 'picker',
-      picker: { kind: 'timeSig', layout: pickerLayout, hoveredIndex: null },
+      picker: {
+        kind: 'timeSig',
+        anchorX: hit.x,
+        anchorY: tsStaff.bottom + PICKER_BELOW_STAFF_GAP,
+        contentWidth: layout.width,
+        contentMinY: -UI_CANVAS_PAD_TOP,
+        contentHeight: layout.height + UI_CANVAS_PAD_BOTTOM,
+        active: defaultActiveFor('timeSig'),
+        hoveredToken: null,
+        options,
+      },
     };
     uiCanvas.style.pointerEvents = 'auto';
     paint();
@@ -654,6 +701,13 @@ export function mountScoreEditor(host: HTMLElement, opts: MountScoreEditorOption
     rebuild();
     ensureRaf();
     paint();
+  };
+
+  const parseCellIndex = (token: string): number | null => {
+    const prefix = `${PICKER_TOKEN_CELL_PREFIX}:`;
+    if (!token.startsWith(prefix)) return null;
+    const n = Number(token.slice(prefix.length));
+    return Number.isFinite(n) ? n : null;
   };
 
   const pickFitDuration = (remain: number): 'q' | 'h' | 'w' | 'e' | 's' | null => {

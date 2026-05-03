@@ -43,3 +43,14 @@ export const SUPPORTED_TIME_SIGNATURES: readonly TimeSignature[] = CATALOG.map((
   beats: e.beats,
   beatValue: e.beatValue,
 }));
+
+// 복합 박자(compound meter): 분모가 8 이상이고 작은박이 3개 단위로 그룹핑되는 박자.
+// 6/8, 9/8, 12/8이 대표. 7/8(2-2-3) 같은 비대칭은 단순도 복합도 아니므로 false.
+// 분류 기준: 그룹이 모두 3이고 길이 ≥ 1이며 분모가 8 이상.
+// CATALOG의 groups를 단일 진실 원천으로 사용 — 박자 추가 시 자동 반영.
+export function isCompoundMeter(ts: TimeSignature): boolean {
+  const hit = CATALOG.find((e) => e.beats === ts.beats && e.beatValue === ts.beatValue);
+  if (!hit) return false;
+  if (ts.beatValue < 8) return false;
+  return hit.groups.length >= 1 && hit.groups.every((g) => g === 3);
+}

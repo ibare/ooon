@@ -25,4 +25,4 @@ export type { ScaleType, ParsedScale } from './scales.js';
 export { RomanParseError, resolveRoman, romanFunction } from './roman.js';
 export type { Mode, ResolvedRoman, RomanFunction } from './roman.js';
 
-export { getBeatGroups, SUPPORTED_TIME_SIGNATURES } from './time-signatures.js';
+export { getBeatGroups, isCompoundMeter, SUPPORTED_TIME_SIGNATURES } from './time-signatures.js';

@@ -57,6 +57,27 @@ export const PICKER_EMPTY_BG = 'rgba(255, 255, 255, 0.04)';
 // 그 시스템의 staff.bottom 아래 GAP 만큼 떨어진 위치로 둔다. anchorX(가로)는 그대로 유지.
 export const PICKER_BELOW_STAFF_GAP = 8;
 
+// 픽커 상단 카테고리 토글 바 — 세그먼티드 컨트롤(iOS/macOS 스타일).
+// 외곽 트랙(둥근 캡슐) 안에 셀들이 gap 없이 붙어 있고, 활성 셀만 안쪽으로 inset된 밝은
+// 배경 + 작은 borderRadius로 강조된다. 비활성 셀은 트랙 색이 그대로 비치고, hover 시에만
+// 옅게 강조. 토글 동작은 외부 reducer가 담당하며, 위젯은 시각만 반영.
+export const PICKER_TOGGLE_HEIGHT = 22;
+// 토글 셀 폭 — 한국어 라벨("점쉼표" 3글자, 10px 폰트) 기준 좌우 여유 ≈10px.
+// 짧은 라벨도 시각적 균일을 위해 동일 폭.
+export const PICKER_TOGGLE_WIDTH = 40;
+// 토글 라벨 폰트 크기. 시스템 폰트(한국어 sans).
+export const PICKER_TOGGLE_LABEL_SIZE = 10;
+// 트랙 외곽 — 패널보다 살짝 어두운 톤 + 옅은 테두리로 깊이감을 준다.
+export const PICKER_TOGGLE_TRACK_BG = 'rgba(0, 0, 0, 0.30)';
+export const PICKER_TOGGLE_TRACK_BORDER = 'rgba(255, 255, 255, 0.08)';
+// 트랙 안쪽 padding — 활성 셀의 inset 두께(상하/좌우 동일).
+export const PICKER_TOGGLE_TRACK_PAD = 2;
+// 트랙 외곽 radius. 셀 inset radius는 그보다 작게(=track radius - track pad) 두면 동심.
+export const PICKER_TOGGLE_TRACK_RADIUS = 8;
+export const PICKER_TOGGLE_ACTIVE_RADIUS = 5;
+export const PICKER_TOGGLE_HOVER_BG = 'rgba(255, 255, 255, 0.06)';
+export const PICKER_TOGGLE_ACTIVE_BG = 'rgba(124, 196, 255, 0.35)';
+
 // 픽커 옵션 hover 시 그 옵션이 차지할 박자 영역을 미리 보여주는 핑크 반투명. 박자 슬롯과
 // 같은 영역(staff top~bottom, 시작 박자~끝 박자)에 fill로 깔린다.
 export const PREVIEW_OCCUPANCY_FILL = 'rgba(236, 72, 153, 0.30)';

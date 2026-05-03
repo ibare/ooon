@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { getBeatGroups, SUPPORTED_TIME_SIGNATURES } from './time-signatures.js';
+import { getBeatGroups, isCompoundMeter, SUPPORTED_TIME_SIGNATURES } from './time-signatures.js';
 
 describe('getBeatGroups', () => {
   it('단순 박자(분모 4)는 단일 그룹', () => {
@@ -85,5 +85,32 @@ describe('SUPPORTED_TIME_SIGNATURES', () => {
       const sum = groups.reduce((a, b) => a + b, 0);
       expect(sum).toBe(ts.beats);
     }
+  });
+});
+
+describe('isCompoundMeter', () => {
+  it('6/8, 9/8, 12/8은 복합', () => {
+    expect(isCompoundMeter({ beats: 6, beatValue: 8 })).toBe(true);
+    expect(isCompoundMeter({ beats: 9, beatValue: 8 })).toBe(true);
+    expect(isCompoundMeter({ beats: 12, beatValue: 8 })).toBe(true);
+  });
+
+  it('3/8은 단일 그룹 [3]이라 그룹 모두 3 → 복합으로 분류', () => {
+    // 정의: 분모 ≥ 8이고 모든 그룹이 3박이면 복합. 3/8은 [3] 한 그룹.
+    expect(isCompoundMeter({ beats: 3, beatValue: 8 })).toBe(true);
+  });
+
+  it('단순 박자(분모 4 이하)는 모두 false', () => {
+    expect(isCompoundMeter({ beats: 4, beatValue: 4 })).toBe(false);
+    expect(isCompoundMeter({ beats: 3, beatValue: 4 })).toBe(false);
+    expect(isCompoundMeter({ beats: 2, beatValue: 2 })).toBe(false);
+  });
+
+  it('비대칭 분모 8(7/8 = [2,2,3])은 복합 아님', () => {
+    expect(isCompoundMeter({ beats: 7, beatValue: 8 })).toBe(false);
+  });
+
+  it('카탈로그 미정의 박자는 false(분류 불가)', () => {
+    expect(isCompoundMeter({ beats: 11, beatValue: 8 })).toBe(false);
   });
 });
