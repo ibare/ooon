@@ -199,6 +199,9 @@ importers:
       '@oon/core':
         specifier: workspace:*
         version: link:../core
+      '@oon/editor-web':
+        specifier: workspace:*
+        version: link:../editor-web
       '@oon/instrument-layouts':
         specifier: workspace:*
         version: link:../instrument-layouts

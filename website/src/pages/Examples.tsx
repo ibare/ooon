@@ -63,7 +63,9 @@ export default function Examples() {
                   >
                     {t.examplesPage.render_label}
                   </div>
-                  <BlockPlayer source={item.source} width={480} />
+                  <div style={{ maxWidth: 480 }}>
+                    <BlockPlayer source={item.source} />
+                  </div>
                 </div>
               </div>
             </article>

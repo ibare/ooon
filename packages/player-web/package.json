@@ -24,6 +24,7 @@
     "@oon/audio-engine-web": "workspace:*",
     "@oon/composition": "workspace:*",
     "@oon/core": "workspace:*",
+    "@oon/editor-web": "workspace:*",
     "@oon/instrument-layouts": "workspace:*",
     "@oon/projector-web": "workspace:*",
     "@oon/score-engraving": "workspace:*",

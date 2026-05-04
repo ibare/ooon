@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { mount, type BlockPlayerHandle, type PlayerLabels } from '@oon/player-web';
+import { mountPlayer, type PlayerHandle, type PlayerLabels } from '@oon/player-web';
 import { useLang } from '../i18n/context';
 
 const KO_LABELS: PlayerLabels = {
@@ -13,30 +13,24 @@ const KO_LABELS: PlayerLabels = {
 
 export interface BlockPlayerProps {
   source: string;
-  width?: number;
   showNoteNames?: boolean;
   hideControls?: boolean;
 }
 
 const BASE = import.meta.env.BASE_URL;
 
-export default function BlockPlayer({
-  source,
-  width,
-  showNoteNames,
-  hideControls,
-}: BlockPlayerProps) {
+// 호스트 책임은 source 공급 + 영역 확보뿐 — 폭/정렬/여백/박스는 facade가 결정한다.
+// 영역 폭 제한이 필요하면 부모 컨테이너의 CSS(maxWidth 등)로 표현한다.
+export default function BlockPlayer({ source, showNoteNames, hideControls }: BlockPlayerProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const handleRef = useRef<BlockPlayerHandle | null>(null);
+  const handleRef = useRef<PlayerHandle | null>(null);
   const { lang } = useLang();
 
-  // mount 시점 옵션은 한 번만 결정 — width/labels 등이 바뀌면 컴포넌트가 재마운트되어 재생성된다.
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
-    const handle = mount(el, {
+    const handle = mountPlayer(el, {
       source,
-      ...(width !== undefined ? { width } : {}),
       ...(showNoteNames !== undefined ? { showNoteNames } : {}),
       ...(hideControls !== undefined ? { hideControls } : {}),
       ...(lang === 'ko' ? { labels: KO_LABELS } : {}),
@@ -49,7 +43,7 @@ export default function BlockPlayer({
       handleRef.current = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [width, showNoteNames, hideControls, lang]);
+  }, [showNoteNames, hideControls, lang]);
 
   useEffect(() => {
     handleRef.current?.setSource(source);

@@ -55,24 +55,13 @@ export function mountBlockPlayer(host: HTMLElement, opts: BlockPlayerOptions): B
   }
   const labels = opts.labels ?? DEFAULT_LABELS_EN;
 
+  // 호스트는 영역만 확보. 부품(컨트롤바/시각화)은 자체 형태 컨벤션으로 정렬·여백을 책임진다.
+  // 컨트롤바를 root에 먼저 부착(상단)한 뒤 body를 부착(하단)하는 순서가 컨벤션이다.
   const root = document.createElement('div');
   root.className = 'oon-player';
-  const header = document.createElement('div');
-  header.className = 'oon-player__header';
-  header.style.display = 'flex';
-  header.style.justifyContent = 'flex-end';
-  header.style.marginBottom = '0.5em';
   const body = document.createElement('div');
   body.className = 'oon-player__body';
-  root.appendChild(header);
-  root.appendChild(body);
   host.appendChild(root);
-
-  const blockView: BlockViewHandle = mountBlockView(body, {
-    ...(opts.width !== undefined ? { width: opts.width } : {}),
-    ...(opts.showNoteNames !== undefined ? { showNoteNames: opts.showNoteNames } : {}),
-    ...(opts.bravuraUrl !== undefined ? { bravuraUrl: opts.bravuraUrl } : {}),
-  });
 
   let state: State = 'idle';
   let mute: TrackMute = { ...(opts.mute ?? {}) };
@@ -148,12 +137,20 @@ export function mountBlockPlayer(host: HTMLElement, opts: BlockPlayerOptions): B
 
   const controls: ControlsBarHandle | null = opts.hideControls
     ? null
-    : createControlsBar(header, {
+    : createControlsBar(root, {
         labels,
         onPlayToggle: handlePlayToggle,
         onMuteToggle,
       });
   controls?.setMute(mute);
+
+  // 컨트롤바를 root에 부착한 뒤 body를 부착해 시각 순서(상단 컨트롤 → 하단 시각화)를 만든다.
+  root.appendChild(body);
+  const blockView: BlockViewHandle = mountBlockView(body, {
+    ...(opts.width !== undefined ? { width: opts.width } : {}),
+    ...(opts.showNoteNames !== undefined ? { showNoteNames: opts.showNoteNames } : {}),
+    ...(opts.bravuraUrl !== undefined ? { bravuraUrl: opts.bravuraUrl } : {}),
+  });
 
   const updateChipVisibility = (): void => {
     if (!controls) return;
@@ -232,3 +229,11 @@ export function mountBlockPlayer(host: HTMLElement, opts: BlockPlayerOptions): B
 
 /** 호환 별칭 — 기존 사용처가 `mount`로 import한 경우를 위해 유지. */
 export const mount = mountBlockPlayer;
+
+/**
+ * 일반화된 이름 별칭 — "단일 블록 재생기"가 아니라 "재생 사용 사례" 단위 facade임을 드러낸다.
+ * 어떤 블록(score/drum/progression/fretboard/song)이든 source 기반 자동 조립.
+ */
+export const mountPlayer = mountBlockPlayer;
+export type PlayerOptions = BlockPlayerOptions;
+export type PlayerHandle = BlockPlayerHandle;

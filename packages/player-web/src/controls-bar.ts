@@ -61,10 +61,14 @@ export function createControlsBar(
   const labels = opts.labels ?? DEFAULT_LABELS_EN;
   const bar = document.createElement('div');
   bar.className = 'oon-controls';
+  // 시각 컨벤션은 부품이 캡슐화한다 — 호스트가 어떻게 부착하든 동일 형태(상단/우측 정렬+아래 여백) 보장.
   bar.style.display = 'flex';
   bar.style.alignItems = 'center';
+  bar.style.justifyContent = 'flex-end';
   bar.style.gap = '0.5em';
   bar.style.flexWrap = 'wrap';
+  bar.style.width = '100%';
+  bar.style.marginBottom = '0.5em';
 
   const chipWrap = document.createElement('div');
   chipWrap.style.display = 'flex';

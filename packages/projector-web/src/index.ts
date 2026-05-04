@@ -14,6 +14,13 @@ export type {
   ParsedBlockLayout,
 } from './block-view.js';
 
+export { mountKeyboardView } from './keyboard-view.js';
+export type {
+  KeyboardViewOptions,
+  KeyboardViewHandle,
+  KeyboardRange,
+} from './keyboard-view.js';
+
 export { THEME, FONT, METRICS } from './theme.js';
 export type { ThemeKey, FontKey } from './theme.js';
 

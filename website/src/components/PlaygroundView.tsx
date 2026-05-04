@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { mountControls, type PlayerControlsHandle, type PlayerLabels } from '@oon/player-web';
+import { mountPlayground, type PlaygroundHandle, type PlayerLabels } from '@oon/player-web';
 import { useLang } from '../i18n/context';
 
 const KO_LABELS: PlayerLabels = {
@@ -11,24 +11,30 @@ const KO_LABELS: PlayerLabels = {
   drum: '비트',
 };
 
-export interface PlayerControlsProps {
+export interface PlaygroundViewProps {
   source: string;
+  onChange?(dsl: string): void;
 }
 
 const BASE = import.meta.env.BASE_URL;
 
-export default function PlayerControls({ source }: PlayerControlsProps) {
+// 호스트 책임은 source 공급 + 영역 확보뿐. 컨트롤바 → 키보드 → 편집기 조립 순서와 형태는 facade가 강제한다.
+export default function PlaygroundView({ source, onChange }: PlaygroundViewProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const handleRef = useRef<PlayerControlsHandle | null>(null);
+  const handleRef = useRef<PlaygroundHandle | null>(null);
+  const onChangeRef = useRef(onChange);
+  onChangeRef.current = onChange;
   const { lang } = useLang();
 
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
-    const handle = mountControls(el, {
+    const handle = mountPlayground(el, {
       source,
       ...(lang === 'ko' ? { labels: KO_LABELS } : {}),
       samplesBaseUrl: `${BASE}samples`,
+      bravuraUrl: `${BASE}fonts/Bravura.woff2`,
+      onChange: (dsl) => onChangeRef.current?.(dsl),
     });
     handleRef.current = handle;
     return () => {
@@ -37,10 +43,6 @@ export default function PlayerControls({ source }: PlayerControlsProps) {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lang]);
-
-  useEffect(() => {
-    handleRef.current?.setSource(source);
-  }, [source]);
 
   return <div ref={containerRef} />;
 }

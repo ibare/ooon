@@ -68,7 +68,9 @@ export default function Showcase() {
               >
                 {t.showcasePage.render_label}
               </div>
-              <BlockPlayer source={active.source} width={880} />
+              <div style={{ maxWidth: 880 }}>
+                <BlockPlayer source={active.source} />
+              </div>
             </div>
           </article>
         )}

@@ -1,8 +1,8 @@
 export { calculateScoreLayout } from './score-layout.js';
 export type { ScoreLayoutOptions } from './score-layout.js';
 
-export { getScorePlayhead } from './playhead.js';
-export type { ScorePlayheadPosition } from './playhead.js';
+export { getScorePlayhead, getScoreActiveNotes } from './playhead.js';
+export type { ScorePlayheadPosition, ScoreActiveNotes } from './playhead.js';
 
 export type {
   ScoreStaff,

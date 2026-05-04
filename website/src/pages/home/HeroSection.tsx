@@ -40,7 +40,7 @@ export default function HeroSection() {
           </a>
         </div>
         <div style={{ marginTop: '3em', maxWidth: 640, marginLeft: 'auto', marginRight: 'auto' }}>
-          <BlockPlayer source={DEMO_SOURCE} width={640} />
+          <BlockPlayer source={DEMO_SOURCE} />
         </div>
       </div>
     </section>
