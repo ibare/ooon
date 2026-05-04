@@ -31,11 +31,11 @@ function parseNoteToken(token: string, beatValue: number): NoteEvent {
   }
   const beats = durationToBeats(dur, beatValue);
   const isRest = letter.toLowerCase() === 'r';
-  if (isRest) return { pitch: '', duration: dur, beats, isRest: true };
+  if (isRest) return { pitches: [], duration: dur, beats, isRest: true };
   const octStr = oct !== undefined ? oct : '4';
   const pitch = letter.toUpperCase() + acc + octStr;
   parsePitch(pitch);
-  return { pitch, duration: dur, beats, isRest: false };
+  return { pitches: [pitch], duration: dur, beats, isRest: false };
 }
 
 export function parseSongBlock(t: BlockTokenized): SongNode {
@@ -89,7 +89,7 @@ export function parseSongBlock(t: BlockTokenized): SongNode {
     const melodyTotal = melody.reduce((sum, n) => sum + n.beats, 0);
     const expected = timeSignature.beats;
     if (melodyTotal < expected) {
-      melody.push({ pitch: '', duration: 'q', beats: expected - melodyTotal, isRest: true });
+      melody.push({ pitches: [], duration: 'q', beats: expected - melodyTotal, isRest: true });
       warnings.push(`song bar ${i + 1}: melody padded with rest`);
     } else if (melodyTotal > expected) {
       warnings.push(`song bar ${i + 1}: melody overflow`);

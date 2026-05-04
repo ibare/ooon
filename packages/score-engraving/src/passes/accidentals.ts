@@ -13,7 +13,9 @@ export type AccidentalKind =
 export interface AccidentalDecision {
   // bar 안 음표 인덱스(rest 포함) — bar.notes와 정합.
   noteIndex: number;
-  kind: AccidentalKind;
+  // 화음 1급 표현: NoteEvent.pitches와 동일 길이의 배열. 단음=[kind 1개], 화음=[k1, k2, ...], 쉼표=[].
+  // letter+octave 슬롯 carry-over는 화음 안에서도 left→right 순서로 갱신된다.
+  kinds: AccidentalKind[];
 }
 
 function kindFromAlteration(alt: number, current: number): AccidentalKind {
@@ -49,15 +51,19 @@ export function resolveAccidentals(
   for (let i = 0; i < notes.length; i += 1) {
     const note = notes[i];
     if (!note || note.isRest) {
-      out.push({ noteIndex: i, kind: null });
+      out.push({ noteIndex: i, kinds: [] });
       continue;
     }
-    const parsed = parsePitch(note.pitch);
-    const slot = `${parsed.letter}${parsed.octave}`;
-    const current = state.get(slot) ?? keySig[parsed.letter as NoteLetter] ?? 0;
-    const kind = kindFromAlteration(parsed.accidental, current);
-    if (parsed.accidental !== current) state.set(slot, parsed.accidental);
-    out.push({ noteIndex: i, kind });
+    const kinds: AccidentalKind[] = [];
+    for (const pitch of note.pitches) {
+      const parsed = parsePitch(pitch);
+      const slot = `${parsed.letter}${parsed.octave}`;
+      const current = state.get(slot) ?? keySig[parsed.letter as NoteLetter] ?? 0;
+      const kind = kindFromAlteration(parsed.accidental, current);
+      if (parsed.accidental !== current) state.set(slot, parsed.accidental);
+      kinds.push(kind);
+    }
+    out.push({ noteIndex: i, kinds });
   }
   return out;
 }

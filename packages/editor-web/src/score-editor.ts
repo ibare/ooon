@@ -724,9 +724,10 @@ export function mountScoreEditor(host: HTMLElement, opts: MountScoreEditorOption
           else console.warn('[oon/editor-web] replaceNote failed', err);
           break;
         }
-        // 교체 결과음을 미리듣기. pitch는 source(음표)에서 그대로 유지된다.
-        if (before && !before.isRest) {
-          void preview.previewNote(before.pitch, option.duration);
+        // 교체 결과음을 미리듣기. pitches는 source(음표)에서 그대로 유지된다.
+        // 화음일 경우 첫 pitch만 미리듣기 — 화음 동시 재생은 후속 작업.
+        if (before && !before.isRest && before.pitches.length > 0) {
+          void preview.previewNote(before.pitches[0]!, option.duration);
         }
         break;
       }

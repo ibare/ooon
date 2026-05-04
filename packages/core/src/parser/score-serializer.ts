@@ -25,6 +25,8 @@ function serializeBar(bar: ScoreBar): string {
 }
 
 function serializeNote(note: NoteEvent): string {
-  const head = note.isRest ? 'r' : note.pitch;
-  return `${head}/${note.duration}`;
+  if (note.isRest) return `r/${note.duration}`;
+  // 단음은 단순 형태 유지(왕복 호환). 화음(>=2)만 [] 표기로 직렬화한다.
+  if (note.pitches.length === 1) return `${note.pitches[0]}/${note.duration}`;
+  return `[${note.pitches.join(' ')}]/${note.duration}`;
 }

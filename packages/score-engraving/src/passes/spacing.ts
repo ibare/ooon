@@ -46,22 +46,70 @@ function accidentalGlyphName(kind: AccidentalKind):
   }
 }
 
-// 음표가 차지해야 할 최소 폭(sp). 임시표/점/노트헤드/우측 패딩 합산.
-export function noteRequiredWidth(note: NoteEvent, accidentalKind: AccidentalKind): number {
-  const headW = note.isRest ? restAdvanceSp(note.duration) : noteheadAdvanceSp(note.duration);
-
-  let leftExtra = 0;
-  if (!note.isRest) {
-    const accName = accidentalGlyphName(accidentalKind);
-    if (accName) {
-      leftExtra += GLYPHS[accName].advanceWidth + ACCIDENTAL_GAP_SP;
-    }
+// 음표가 차지해야 할 최소 폭(sp). 임시표 column / 점 / 노트헤드 / 우측 패딩 / 화음 shift 합산.
+//   - chord: accidentalKinds는 NoteEvent.pitches와 같은 길이의 배열. 화음의 accidental column 수만큼
+//     좌측 폭이 늘어나고, head shift가 발생하면(인접 2도) 노트헤드 폭이 한 칸 더 든다.
+//   - 단음: 기존 동작 보존(배열 길이 1).
+export function noteRequiredWidth(
+  note: NoteEvent,
+  accidentalKinds: readonly AccidentalKind[],
+): number {
+  if (note.isRest) {
+    return restAdvanceSp(note.duration) + MIN_GAP_SP + (isDotted(note.duration) ? DOT_AREA_SP : 0);
   }
+  const headAdvance = noteheadAdvanceSp(note.duration);
+
+  // accidental column 폭 — 모든 head의 accidental 글리프 폭 중 최댓값을 column 수만큼 쌓는다.
+  // (실제 column 배치는 chord-heads.placeChord가 결정하지만 spacing은 보수적 상한으로 충분.)
+  let maxAccWidth = 0;
+  let accColCount = 0;
+  for (const kind of accidentalKinds) {
+    const accName = accidentalGlyphName(kind);
+    if (!accName) continue;
+    const w = GLYPHS[accName].advanceWidth;
+    if (w > maxAccWidth) maxAccWidth = w;
+    accColCount += 1;
+  }
+  // 보수적: 모든 accidental이 서로 충돌해 각자 column이 필요한 최악 케이스를 가정.
+  const accidentalLeft = accColCount > 0 ? accColCount * maxAccWidth + ACCIDENTAL_GAP_SP : 0;
+
+  // 화음 head shift 여부 — 인접 2도(step diff === 1)가 한 쌍이라도 있으면 head 폭이 한 번 더 필요.
+  // 본 함수는 chord-heads에 의존하지 않고 step만으로 판정한다(빌드 의존 단순화).
+  const hasShift = note.pitches.length >= 2 && hasAdjacentSecond(note.pitches);
+  const chordHeadExtra = hasShift ? headAdvance : 0;
 
   let rightExtra = MIN_GAP_SP;
   if (isDotted(note.duration)) rightExtra += DOT_AREA_SP;
 
-  return leftExtra + headW + rightExtra;
+  return accidentalLeft + headAdvance + chordHeadExtra + rightExtra;
+}
+
+const PITCH_LETTER_STEP: Record<string, number> = { C: 0, D: 1, E: 2, F: 3, G: 4, A: 5, B: 6 };
+
+function letterStepFromPitch(pitch: string): number | null {
+  // 단순 파싱: 첫 글자=letter, 마지막 숫자(들)=octave, 중간은 accidental(무시).
+  const letter = pitch[0]?.toUpperCase() ?? '';
+  const idx = PITCH_LETTER_STEP[letter];
+  if (idx === undefined) return null;
+  const m = /(-?\d+)$/.exec(pitch);
+  if (!m) return null;
+  const oct = Number.parseInt(m[1]!, 10);
+  if (Number.isNaN(oct)) return null;
+  return oct * 7 + idx;
+}
+
+function hasAdjacentSecond(pitches: readonly string[]): boolean {
+  const steps: number[] = [];
+  for (const p of pitches) {
+    const s = letterStepFromPitch(p);
+    if (s === null) return false;
+    steps.push(s);
+  }
+  steps.sort((a, b) => a - b);
+  for (let i = 1; i < steps.length; i += 1) {
+    if (steps[i]! - steps[i - 1]! === 1) return true;
+  }
+  return false;
 }
 
 export interface DistributeOptions {

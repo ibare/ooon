@@ -88,10 +88,16 @@ function playScore(engine: AudioEngine, node: ScoreNode): PlaybackHandle {
   let t = 0;
   for (const bar of node.bars) {
     for (const ev of bar.notes) {
-      if (!ev.isRest) {
-        const pitch = ev.pitch;
+      if (!ev.isRest && ev.pitches.length > 0) {
         const dur = ev.duration;
-        scheduler.schedule(t, () => engine.playNote(pitch, dur));
+        if (ev.pitches.length === 1) {
+          const pitch = ev.pitches[0]!;
+          scheduler.schedule(t, () => engine.playNote(pitch, dur));
+        } else {
+          const pitches = [...ev.pitches];
+          // 화음 동시 발음 — 각 pitch를 같은 시점에 trigger.
+          scheduler.schedule(t, () => engine.playChord(pitches, dur));
+        }
       }
       t += ev.beats * secPerBeat;
     }
@@ -162,13 +168,21 @@ function playSong(
 
     let mt = t;
     for (const ev of bar.melody) {
-      if (!ev.isRest) {
-        const pitch = ev.pitch;
+      if (!ev.isRest && ev.pitches.length > 0) {
         const dur = ev.duration;
-        scheduler.schedule(mt, () => {
-          if (mute.melody) return;
-          engine.playNote(pitch, dur);
-        });
+        if (ev.pitches.length === 1) {
+          const pitch = ev.pitches[0]!;
+          scheduler.schedule(mt, () => {
+            if (mute.melody) return;
+            engine.playNote(pitch, dur);
+          });
+        } else {
+          const pitches = [...ev.pitches];
+          scheduler.schedule(mt, () => {
+            if (mute.melody) return;
+            engine.playChord(pitches, dur);
+          });
+        }
       }
       mt += ev.beats * secPerBeat;
     }

@@ -56,9 +56,10 @@ export function calculateNoteHits(layout: ScoreLayout): NoteHitRect[] {
       for (let i = 0; i < bar.notes.length; i++) {
         const note = bar.notes[i]!;
         const bounds = horizBounds(bar, i);
+        const fallbackY = anchorYFallback(note, system.staff.y);
         const rect = ctx
-          ? unionRectFromMeasure(ctx, note, padX, padY, bounds)
-          : glyphRectFallback(note.x, note.y, lineGap, bounds);
+          ? unionRectFromMeasure(ctx, note, padX, padY, bounds, fallbackY)
+          : glyphRectFallback(note.x, fallbackY, lineGap, bounds);
         out.push({
           systemIndex: system.index,
           barIndex,
@@ -102,15 +103,44 @@ function unionRectFromMeasure(
   padX: number,
   padY: number,
   bounds: HorizBounds,
+  fallbackY: number,
 ): RectXYWH {
-  // 헤드부터 시작해 stem/flag/dot의 박스를 차례로 합친다.
-  const headBox = measureGlyphBox(ctx, note.headGlyph, note.x, note.y);
-  if (!headBox) return glyphRectFallback(note.x, note.y, padX * 4, bounds);
+  // 화음 1급: heads가 0(쉼표)/1(단음)/≥2(화음). hit rect는 noteIndex 단위 union.
+  // 쉼표는 restGlyph, 음표는 모든 head + stem/flag/dot/accidental/ledger를 합친다.
+  let minX = Infinity;
+  let maxX = -Infinity;
+  let minY = Infinity;
+  let maxY = -Infinity;
+  const expand = (b: GlyphBox | null): void => {
+    if (!b) return;
+    if (b.minX < minX) minX = b.minX;
+    if (b.maxX > maxX) maxX = b.maxX;
+    if (b.minY < minY) minY = b.minY;
+    if (b.maxY > maxY) maxY = b.maxY;
+  };
 
-  let minX = headBox.minX;
-  let maxX = headBox.maxX;
-  let minY = headBox.minY;
-  let maxY = headBox.maxY;
+  if (note.isRest) {
+    if (note.restGlyph !== undefined && note.restY !== undefined) {
+      expand(measureGlyphBox(ctx, note.restGlyph, note.x, note.restY));
+    }
+  } else {
+    for (const head of note.heads) {
+      expand(measureGlyphBox(ctx, head.headGlyph, note.x + head.xOffset, head.y));
+      if (head.accidental) {
+        expand(
+          measureGlyphBox(ctx, head.accidental.glyph, head.accidental.x, head.accidental.y),
+        );
+      }
+      for (const ll of head.ledgerLines) {
+        if (ll.x1 < minX) minX = ll.x1;
+        if (ll.x2 > maxX) maxX = ll.x2;
+        if (ll.y < minY) minY = ll.y;
+        if (ll.y > maxY) maxY = ll.y;
+      }
+    }
+  }
+
+  if (!Number.isFinite(minX)) return glyphRectFallback(note.x, fallbackY, padX * 4, bounds);
 
   if (note.stem) {
     // stem은 직선 — boundingBox는 자명. 두께는 무시(2px 미만).
@@ -171,6 +201,13 @@ function measureGlyphBox(
     minY: anchorY - ascent,
     maxY: anchorY + descent,
   };
+}
+
+// 측정 ctx가 없을 때(SSR/폰트 미로딩) 사용하는 anchor Y. heads가 비어있는 쉼표는
+// restY, 음표는 첫 head의 y, 그것조차 없으면 staff 중앙 y.
+function anchorYFallback(note: ScoreNoteLayout, staffY: number): number {
+  if (note.isRest) return note.restY ?? staffY;
+  return note.heads[0]?.y ?? staffY;
 }
 
 function glyphRectFallback(

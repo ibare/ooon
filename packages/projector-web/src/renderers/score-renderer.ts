@@ -134,23 +134,41 @@ function renderBarline(projector: Projector, bar: ScoreBarLayout, staff: ScoreSt
 }
 
 function renderNote(projector: Projector, note: ScoreNoteLayout, ctx: NoteRenderCtx): void {
-  renderLedgerLines(projector, note);
-  renderAccidental(projector, note, ctx.glyphSize);
-  renderNotehead(projector, note, ctx.glyphSize);
+  if (note.isRest) {
+    renderRest(projector, note, ctx.glyphSize);
+    renderDots(projector, note, ctx.glyphSize);
+    return;
+  }
+  // 화음 1급: ledger lines / accidental / notehead는 head별, stem/flag/dots는 화음 전체.
+  for (const head of note.heads) {
+    renderHeadLedgerLines(projector, head);
+  }
+  for (const head of note.heads) {
+    renderHeadAccidental(projector, head, ctx.glyphSize);
+  }
+  for (const head of note.heads) {
+    renderHeadNotehead(projector, note, head, ctx.glyphSize);
+  }
   renderStem(projector, note);
   renderFlag(projector, note, ctx.glyphSize);
   renderDots(projector, note, ctx.glyphSize);
 
-  if (!note.isRest) {
-    registerNoteHitArea(projector, note);
-    if (ctx.showNoteNames) {
-      renderNoteName(projector, note, ctx.staffBottom);
-    }
+  registerNoteHitArea(projector, note);
+  if (ctx.showNoteNames) {
+    renderNoteName(projector, note, ctx.staffBottom);
   }
 }
 
-function renderLedgerLines(projector: Projector, note: ScoreNoteLayout): void {
-  for (const ll of note.ledgerLines) {
+function renderRest(projector: Projector, note: ScoreNoteLayout, glyphSize: number): void {
+  if (note.restGlyph === undefined || note.restY === undefined) return;
+  projector.drawText(note.restGlyph, { x: note.x, y: note.restY }, bravuraStyle(glyphSize));
+}
+
+function renderHeadLedgerLines(
+  projector: Projector,
+  head: ScoreNoteLayout['heads'][number],
+): void {
+  for (const ll of head.ledgerLines) {
     projector.drawLine(
       { x: ll.x1, y: ll.y },
       { x: ll.x2, y: ll.y },
@@ -160,17 +178,30 @@ function renderLedgerLines(projector: Projector, note: ScoreNoteLayout): void {
   }
 }
 
-function renderAccidental(projector: Projector, note: ScoreNoteLayout, glyphSize: number): void {
-  if (!note.accidental) return;
+function renderHeadAccidental(
+  projector: Projector,
+  head: ScoreNoteLayout['heads'][number],
+  glyphSize: number,
+): void {
+  if (!head.accidental) return;
   projector.drawText(
-    note.accidental.glyph,
-    { x: note.accidental.x, y: note.accidental.y },
+    head.accidental.glyph,
+    { x: head.accidental.x, y: head.accidental.y },
     bravuraStyle(glyphSize),
   );
 }
 
-function renderNotehead(projector: Projector, note: ScoreNoteLayout, glyphSize: number): void {
-  projector.drawText(note.headGlyph, { x: note.x, y: note.y }, bravuraStyle(glyphSize));
+function renderHeadNotehead(
+  projector: Projector,
+  note: ScoreNoteLayout,
+  head: ScoreNoteLayout['heads'][number],
+  glyphSize: number,
+): void {
+  projector.drawText(
+    head.headGlyph,
+    { x: note.x + head.xOffset, y: head.y },
+    bravuraStyle(glyphSize),
+  );
 }
 
 function renderStem(projector: Projector, note: ScoreNoteLayout): void {
@@ -201,21 +232,38 @@ function renderDots(projector: Projector, note: ScoreNoteLayout, glyphSize: numb
 }
 
 function registerNoteHitArea(projector: Projector, note: ScoreNoteLayout): void {
+  // hit area는 noteIndex 단위 union — 화음 head 전체를 덮는 하나의 영역.
+  // head별 hit는 후속 PR에서 추가한다(현 단계는 클릭/replace 흐름이 noteIndex 기준).
+  if (note.heads.length === 0) return;
+  let minY = Infinity;
+  let maxY = -Infinity;
+  let minX = Infinity;
+  let maxX = -Infinity;
+  for (const head of note.heads) {
+    if (head.y < minY) minY = head.y;
+    if (head.y > maxY) maxY = head.y;
+    const headX = note.x + head.xOffset;
+    if (headX < minX) minX = headX;
+    if (headX > maxX) maxX = headX;
+  }
   projector.registerHitArea(
     `score:${note.barNumber}:${note.noteIndex}`,
     {
-      x: note.x - HIT_OFFSET_X,
-      y: note.y - HIT_OFFSET_Y,
-      width: HIT_WIDTH,
-      height: HIT_HEIGHT,
+      x: minX - HIT_OFFSET_X,
+      y: minY - HIT_OFFSET_Y,
+      width: maxX - minX + HIT_WIDTH,
+      height: maxY - minY + HIT_HEIGHT,
     },
     'pointer',
   );
 }
 
 function renderNoteName(projector: Projector, note: ScoreNoteLayout, staffBottom: number): void {
+  // 화음은 첫 head의 pitch만 표시(상세 편집은 후속 UX). 단음은 그대로 동작.
+  const first = note.heads[0];
+  if (!first) return;
   projector.drawText(
-    note.pitch,
+    first.pitch,
     { x: note.x, y: staffBottom + NOTE_NAME_OFFSET_Y },
     {
       font: FONT.ui,

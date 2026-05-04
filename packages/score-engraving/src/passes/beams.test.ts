@@ -6,7 +6,7 @@ const TS_4_4: TimeSignature = { beats: 4, beatValue: 4 };
 
 function note(beats: number, opts: { rest?: boolean } = {}): NoteEvent {
   return {
-    pitch: opts.rest ? '' : 'C4',
+    pitches: opts.rest ? [] : ['C4'],
     duration: 'q',
     beats,
     isRest: opts.rest ?? false,

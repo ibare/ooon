@@ -85,7 +85,7 @@ function applyInsertNote(node: ScoreNode, cmd: InsertNoteCommand): ScoreNode {
   }
 
   const note: NoteEvent = {
-    pitch: cmd.pitch,
+    pitches: [cmd.pitch],
     duration: cmd.duration,
     beats,
     isRest: false,
@@ -109,7 +109,7 @@ function applyInsertRest(node: ScoreNode, cmd: InsertRestCommand): ScoreNode {
   }
 
   const rest: NoteEvent = {
-    pitch: '',
+    pitches: [],
     duration: cmd.duration,
     beats,
     isRest: true,
@@ -119,7 +119,7 @@ function applyInsertRest(node: ScoreNode, cmd: InsertRestCommand): ScoreNode {
   return { ...node, bars: newBars, warnings: [] };
 }
 
-// 마디 내 특정 인덱스 음표를 새 duration으로 교체. pitch는 유지(음정 변경은 별도 UI).
+// 마디 내 특정 인덱스 음표를 새 duration으로 교체. pitches는 유지(음정 변경은 별도 UI).
 // source가 쉼표인 경우 pitch가 없으므로 거부 — replaceWithRest를 쓰거나 별도 명령 필요.
 function applyReplaceNote(node: ScoreNode, cmd: ReplaceNoteCommand): ScoreNode {
   const bar = node.bars[cmd.barIndex];
@@ -146,7 +146,7 @@ function applyReplaceNote(node: ScoreNode, cmd: ReplaceNoteCommand): ScoreNode {
   }
 
   const newNote: NoteEvent = {
-    pitch: current.pitch,
+    pitches: current.pitches,
     duration: cmd.duration,
     beats: newBeats,
     isRest: false,
@@ -178,7 +178,7 @@ function applyReplaceWithRest(node: ScoreNode, cmd: ReplaceWithRestCommand): Sco
   }
 
   const newRest: NoteEvent = {
-    pitch: '',
+    pitches: [],
     duration: cmd.duration,
     beats: newBeats,
     isRest: true,

@@ -21,10 +21,11 @@ export const syntax: SyntaxSection[] = [
   {
     id: 'score',
     body:
-      '`score`는 악보를 그린다. 박자 표시는 필수이고, `key`와 `bpm`을 파라미터로 쓸 수 있다. 내용 줄은 마디(`|`)로 구분하고, 각 음표는 `<pitch>/<duration>` 형태다. 쉼표는 `r/<duration>`. duration 기호는 `w`(온음표), `h`(2분), `q`(4분), `e`(8분), `s`(16분), 그리고 점(`.`).',
+      '`score`는 악보를 그린다. 박자 표시는 필수이고, `key`와 `bpm`을 파라미터로 쓸 수 있다. 내용 줄은 마디(`|`)로 구분하고, 각 음표는 `<pitch>/<duration>` 형태다. 화음은 대괄호 안에 음정을 공백으로 나열한 뒤 길이를 붙인다(`[C4 E4 G4]/q`). 쉼표는 `r/<duration>`. duration 기호는 `w`(온음표), `h`(2분), `q`(4분), `e`(8분), `s`(16분), 그리고 점(`.`).',
     examples: [
       { label: '2마디 악보', code: 'score 4/4 key:Am bpm:100\n  A3/q C4/q D4/q E4/q | G4/q A4/q G4/q E4/q |' },
       { label: '쉼표', code: 'score 4/4\n  r/q A4/q r/h |' },
+      { label: '화음', code: 'score 4/4 key:C\n  [C4 E4 G4]/q [C4 F4 A4]/q [B3 D4 G4]/q [C4 E4 G4]/q |' },
     ],
   },
   {

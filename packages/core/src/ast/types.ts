@@ -5,8 +5,13 @@ export interface TimeSignature {
 
 export type DurationSymbol = 'w' | 'h' | 'q' | 'e' | 's' | 'w.' | 'h.' | 'q.' | 'e.' | 's.';
 
+// 한 박자 슬롯에 들어가는 음 사건. 화음을 1급으로 표현하기 위해 pitches 배열로 단일화한다.
+//   - 쉼표: pitches.length === 0, isRest === true
+//   - 단음: pitches.length === 1, isRest === false
+//   - 화음: pitches.length >= 2, isRest === false (모든 pitch가 같은 길이/박자에 동시 발음)
+// pitches는 사용자 입력 순서를 보존한다(정렬은 score-engraving 패스에서 수행).
 export interface NoteEvent {
-  pitch: string;
+  pitches: readonly string[];
   duration: DurationSymbol;
   beats: number;
   isRest: boolean;

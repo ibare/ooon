@@ -207,11 +207,13 @@ function collectSongMidis(node: SongNode): number[] {
   const midis = new Set<number>();
   for (const bar of node.bars) {
     for (const note of bar.melody) {
-      if (note.isRest || !note.pitch) continue;
-      try {
-        midis.add(pitchToMidi(note.pitch));
-      } catch {
-        // ignore unparsable
+      if (note.isRest || note.pitches.length === 0) continue;
+      for (const p of note.pitches) {
+        try {
+          midis.add(pitchToMidi(p));
+        } catch {
+          // ignore unparsable
+        }
       }
     }
     for (const m of chooseChordVoicingMidis(bar.chord)) {

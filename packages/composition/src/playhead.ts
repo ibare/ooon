@@ -134,9 +134,15 @@ export function getSongActiveNotes(
   for (const ev of bar.melody) {
     const next = cursor + ev.beats;
     if (beatInBar >= cursor && beatInBar < next) {
-      if (!ev.isRest && ev.pitch) {
+      if (!ev.isRest && ev.pitches.length > 0) {
+        // 화음일 경우 최상성(top voice)을 melodyMidi로 본다 — 멜로디 하이라이트용 단일값.
         try {
-          melodyMidi = pitchToMidi(ev.pitch);
+          let topMidi: number | null = null;
+          for (const p of ev.pitches) {
+            const m = pitchToMidi(p);
+            if (topMidi === null || m > topMidi) topMidi = m;
+          }
+          melodyMidi = topMidi;
         } catch {
           melodyMidi = null;
         }

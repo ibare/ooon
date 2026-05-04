@@ -21,6 +21,7 @@ import type {
   ScoreBeam,
   ScoreBeamLine,
   ScoreGlyph,
+  ScoreHeadLayout,
   ScoreLayout,
   ScoreNoteLayout,
   ScoreStaff,
@@ -35,7 +36,8 @@ import {
 } from './passes/key-signature.js';
 import { resolveAccidentals, type AccidentalKind } from './passes/accidentals.js';
 import { ledgerLines, noteY as verticalNoteY } from './passes/vertical.js';
-import { placeStem, stemDirection } from './passes/stem.js';
+import { placeStem } from './passes/stem.js';
+import { placeChord } from './passes/chord-heads.js';
 import {
   defaultClefWidthSp,
   defaultTimeSigWidthSp,
@@ -266,7 +268,7 @@ function buildSystem(args: SystemBuildArgs): ScoreSystemLayout {
     const accidentalDecisions = resolveAccidentals(bar.notes, keySig);
     const beatsList = bar.notes.map((n) => n.beats);
     const requiredWidthsPx = bar.notes.map(
-      (n, i) => noteRequiredWidth(n, accidentalDecisions[i]?.kind ?? null) * pxPerSp,
+      (n, i) => noteRequiredWidth(n, accidentalDecisions[i]?.kinds ?? []) * pxPerSp,
     );
     const slots = distributeNotesByBeat(
       beatsList,
@@ -279,7 +281,7 @@ function buildSystem(args: SystemBuildArgs): ScoreSystemLayout {
     const forcedDirByIdx = new Map<number, 'up' | 'down'>();
     const inGroupIndices = new Set<number>();
     for (const g of beamGroups) {
-      const dir = groupDirection(bar.notes, g);
+      const dir = groupDirection(bar.notes, g, B4_STEP);
       for (const idx of g.noteIndices) {
         forcedDirByIdx.set(idx, dir);
         inGroupIndices.add(idx);
@@ -298,7 +300,7 @@ function buildSystem(args: SystemBuildArgs): ScoreSystemLayout {
         noteIdx,
         verticalCtx,
         stemCtx,
-        accidentalKind: decision?.kind ?? null,
+        accidentalKinds: decision?.kinds ?? [],
         pxPerSp,
         forcedStemDirection: forcedDirByIdx.get(noteIdx) ?? null,
         suppressFlag: inGroupIndices.has(noteIdx),
@@ -417,14 +419,14 @@ interface BuildNoteArgs {
   noteIdx: number;
   verticalCtx: KeySigVerticalCtx;
   stemCtx: { pxPerSp: number; stemLengthSp: number };
-  accidentalKind: AccidentalKind;
+  accidentalKinds: readonly AccidentalKind[];
   pxPerSp: number;
   forcedStemDirection: 'up' | 'down' | null;
   suppressFlag: boolean;
 }
 
 function buildNoteLayout(args: BuildNoteArgs): ScoreNoteLayout {
-  const { note, x, halfStepPx, bar, noteIdx, verticalCtx, stemCtx, accidentalKind, pxPerSp } =
+  const { note, x, halfStepPx, bar, noteIdx, verticalCtx, stemCtx, accidentalKinds, pxPerSp } =
     args;
 
   if (note.isRest) {
@@ -434,52 +436,112 @@ function buildNoteLayout(args: BuildNoteArgs): ScoreNoteLayout {
       barNumber: bar,
       noteIndex: noteIdx,
       x,
-      y: verticalCtx.centerY,
-      headGlyph: glyph,
       beats: note.beats,
       isRest: true,
-      pitch: '',
-      midi: -1,
+      heads: [],
+      restGlyph: glyph,
+      restY: verticalCtx.centerY,
       dots: makeDots(
         note,
         x + (restAdvance + DOT_GAP_SP) * pxPerSp,
         verticalCtx.centerY - halfStepPx,
       ),
-      ledgerLines: [],
     };
   }
-
-  const parsed = parsePitch(note.pitch);
-  const midi = pitchToMidi(note.pitch);
-  const step = letterStep(parsed.letter, parsed.octave);
-  const y = verticalNoteY(step, verticalCtx);
 
   const headName = noteheadGlyphName(note.duration);
   const headGlyph = SMUFL[headName];
   const headAdvanceSp = GLYPHS[headName].advanceWidth;
-  const effectiveDir =
-    args.forcedStemDirection ?? stemDirection(step, verticalCtx.b4Step);
+
+  // 화음 정보 구축. 단음(pitches.length === 1)도 동일 경로로 처리해 분기를 줄인다.
+  const pitchInfos = note.pitches.map((p, i) => {
+    const parsed = parsePitch(p);
+    return {
+      index: i,
+      step: letterStep(parsed.letter, parsed.octave),
+      accidental: accidentalKinds[i] ?? null,
+    };
+  });
+  const placement = placeChord(pitchInfos, verticalCtx.b4Step);
+  const effectiveDir = args.forcedStemDirection ?? placement.direction;
+
+  // outermost head — stem이 붙는 head. stem-up이면 가장 낮은(맨 아래) head, stem-down이면 가장 높은 head.
+  const sortedHeads = placement.heads;
+  const stemAnchorHead = effectiveDir === 'up' ? sortedHeads[0]! : sortedHeads[sortedHeads.length - 1]!;
+
+  // accidental column 좌측 끝 — 가장 좌측 column의 x.
+  const accColUnitPx = ACCIDENTAL_X_OFFSET_SP * pxPerSp;
+  const accColCount = placement.accidentalColumnCount;
+  // shifted head가 left side(stem-down)면 head pile의 가장 좌측이 x - headAdvance.
+  // accidental은 그 좌측에 column 단위로 쌓인다. 단, shifted head가 right side(stem-up)이면 headPileLeftX는 x.
+  const headPileLeftX = effectiveDir === 'down' && placement.hasShiftedHead
+    ? x - headAdvanceSp * pxPerSp
+    : x;
+
+  // heads 배치
+  const heads: ScoreHeadLayout[] = sortedHeads.map((h) => {
+    const y = verticalNoteY(h.step, verticalCtx);
+    let xOffset = 0;
+    if (h.side === 'shifted') {
+      xOffset = effectiveDir === 'up' ? +headAdvanceSp * pxPerSp : -headAdvanceSp * pxPerSp;
+    }
+    const headX = x + xOffset;
+    const ll = ledgerLines(y, headX, verticalCtx, headAdvanceSp);
+    const head: ScoreHeadLayout = {
+      pitch: note.pitches[h.index]!,
+      midi: pitchToMidi(note.pitches[h.index]!),
+      y,
+      xOffset,
+      headGlyph,
+      ledgerLines: ll,
+    };
+    if (h.accidental && h.accidentalColumn >= 0) {
+      const accGlyph = accidentalGlyph(h.accidental);
+      if (accGlyph) {
+        // column 0이 화음에 가장 가깝다(rightmost). 좌측으로 갈수록 column 인덱스 증가.
+        const colFromRight = h.accidentalColumn;
+        const ax = headPileLeftX - (colFromRight + 1) * accColUnitPx;
+        head.accidental = { x: ax, y, glyph: accGlyph };
+      }
+    }
+    return head;
+  });
+
+  // stem — outermost head의 y에서 시작.
+  const stemAnchorY = verticalNoteY(stemAnchorHead.step, verticalCtx);
+  const stemAnchorXOffset = stemAnchorHead.side === 'shifted'
+    ? (effectiveDir === 'up' ? +headAdvanceSp * pxPerSp : -headAdvanceSp * pxPerSp)
+    : 0;
+  const stemAnchorX = x + stemAnchorXOffset;
   const stem: ScoreNoteLayout['stem'] = !noteHasStem(note.duration)
     ? undefined
     : (() => {
-        const placement = placeStem(headName, x, y, effectiveDir, stemCtx);
-        return { x: placement.x, y1: placement.y1, y2: placement.y2 };
+        const placementStem = placeStem(headName, stemAnchorX, stemAnchorY, effectiveDir, stemCtx);
+        // 화음 stem 길이 — Behind Bars 표준: outermost head로 결정한 anchor에서 시작해
+        // **반대편 head 기준으로 정상 stem 길이(=단음 stem 길이)만큼** 추가 연장한다.
+        // 즉 stem 끝점은 oppositeY ± stemLenPx. 단음(heads.length===1)에서는 oppositeY===anchorY이므로
+        // 결과는 placementStem.y2와 동일(분기 불필요).
+        const oppositeHead = effectiveDir === 'up' ? sortedHeads[sortedHeads.length - 1]! : sortedHeads[0]!;
+        const oppositeY = verticalNoteY(oppositeHead.step, verticalCtx);
+        const stemLenPx = Math.abs(placementStem.y1 - placementStem.y2);
+        const y2 = effectiveDir === 'up' ? oppositeY - stemLenPx : oppositeY + stemLenPx;
+        return { x: placementStem.x, y1: placementStem.y1, y2 };
       })();
 
   let flag: ScoreGlyph | undefined;
   if (!args.suppressFlag) {
     const fk = flagKind(note.duration);
     if (fk === '8th') {
-      const fx = stem ? stem.x : x;
-      const fy = stem?.y2 ?? y;
+      const fx = stem ? stem.x : stemAnchorX;
+      const fy = stem?.y2 ?? stemAnchorY;
       flag = {
         x: fx,
         y: fy,
         glyph: effectiveDir === 'down' ? SMUFL.flag8thDown : SMUFL.flag8thUp,
       };
     } else if (fk === '16th') {
-      const fx = stem ? stem.x : x;
-      const fy = stem?.y2 ?? y;
+      const fx = stem ? stem.x : stemAnchorX;
+      const fy = stem?.y2 ?? stemAnchorY;
       flag = {
         x: fx,
         y: fy,
@@ -488,48 +550,49 @@ function buildNoteLayout(args: BuildNoteArgs): ScoreNoteLayout {
     }
   }
 
-  const accGlyph = accidentalGlyph(accidentalKind);
-  const accidental: ScoreGlyph | undefined = accGlyph
-    ? { x: x - ACCIDENTAL_X_OFFSET_SP * pxPerSp, y, glyph: accGlyph }
-    : undefined;
-
-  const ll = ledgerLines(y, x, verticalCtx, headAdvanceSp);
+  // dots — 화음 전체에 한 묶음. 각 head의 y에 점을 찍지 않고, anchor 노트헤드 y 기준으로 단순화.
+  // (음악 조판에서는 각 head 옆에 점을 두지만, 본 패스에서는 stemAnchorHead 기준으로 충분.)
+  const dotsX = x + (headAdvanceSp + DOT_GAP_SP) * pxPerSp + (placement.hasShiftedHead && effectiveDir === 'up' ? headAdvanceSp * pxPerSp : 0);
+  const dotsY = isLineNoteStep(stemAnchorHead.step, verticalCtx.b4Step) ? stemAnchorY - halfStepPx : stemAnchorY;
 
   const out: ScoreNoteLayout = {
     barNumber: bar,
     noteIndex: noteIdx,
     x,
-    y,
-    headGlyph,
     beats: note.beats,
     isRest: false,
-    pitch: note.pitch,
-    midi,
-    dots: makeDots(
-      note,
-      x + (headAdvanceSp + DOT_GAP_SP) * pxPerSp,
-      isLineNoteStep(step, verticalCtx.b4Step) ? y - halfStepPx : y,
-    ),
-    ledgerLines: ll,
+    heads,
+    dots: makeDots(note, dotsX, dotsY),
   };
   if (stem) out.stem = stem;
   if (flag) out.flag = flag;
-  if (accidental) out.accidental = accidental;
   return out;
 }
 
-function groupDirection(notes: readonly NoteEvent[], g: BeamGroup): 'up' | 'down' {
+function groupDirection(notes: readonly NoteEvent[], g: BeamGroup, b4Step: number): 'up' | 'down' {
+  // 화음을 포함한 그룹의 방향 결정 — 각 음표의 outermost head step을 평균낸다.
+  // outermost = b4_step에서 가장 먼 step. 화음이 없으면 단음 step.
   let stepSum = 0;
   let count = 0;
   for (const idx of g.noteIndices) {
     const n = notes[idx];
-    if (!n || n.isRest || !n.pitch) continue;
-    const parsed = parsePitch(n.pitch);
-    stepSum += letterStep(parsed.letter, parsed.octave);
+    if (!n || n.isRest || n.pitches.length === 0) continue;
+    let outerStep = 0;
+    let outerDist = -1;
+    for (const p of n.pitches) {
+      const parsed = parsePitch(p);
+      const s = letterStep(parsed.letter, parsed.octave);
+      const d = Math.abs(s - b4Step);
+      if (d > outerDist) {
+        outerDist = d;
+        outerStep = s;
+      }
+    }
+    stepSum += outerStep;
     count += 1;
   }
   if (count === 0) return 'up';
-  return stepSum / count >= B4_STEP ? 'down' : 'up';
+  return stepSum / count >= b4Step ? 'down' : 'up';
 }
 
 function layoutBeams(

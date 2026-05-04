@@ -52,7 +52,7 @@ function makeNodeTs(
     bars: [
       {
         barNumber: 1,
-        notes: beats.map((b) => ({ pitch: 'C4', duration: 'q', beats: b, isRest: false })),
+        notes: beats.map((b) => ({ pitches: ['C4'], duration: 'q', beats: b, isRest: false })),
       },
     ],
     warnings: [],

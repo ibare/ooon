@@ -28,6 +28,12 @@ export const examples: ExampleCategory[] = [
         title: 'Dotted rhythm',
         source: 'score 4/4\n  A4/q. A4/e A4/h | A4/w |',
       },
+      {
+        id: 'chords',
+        title: 'Triad chord progression',
+        source:
+          'score 4/4 key:C\n  [C4 E4 G4]/q [C4 F4 A4]/q [B3 D4 G4]/q [C4 E4 G4]/q | [C4 E4 G4]/h [G3 D4 G4]/h |',
+      },
     ],
   },
   {

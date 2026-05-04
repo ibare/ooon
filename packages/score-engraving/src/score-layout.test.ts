@@ -38,24 +38,25 @@ describe('calculateScoreLayout', () => {
     const node = parseScore('score 4/4\n  B4/w |');
     const layout = calculateScoreLayout(node, { width: 400, staffY: 40, lineGap: 10 });
     const note = layout.systems[0]!.bars[0]?.notes[0];
-    expect(note?.y).toBeCloseTo(layout.systems[0]!.staff.y, 2);
+    expect(note?.heads[0]?.y).toBeCloseTo(layout.systems[0]!.staff.y, 2);
   });
 
   it('places notes above/below staff with ledger lines', () => {
     const node = parseScore('score 4/4\n  C4/w |');
     const layout = calculateScoreLayout(node, { width: 400, staffY: 40, lineGap: 10 });
-    const note = layout.systems[0]!.bars[0]?.notes[0];
-    expect(note?.y).toBeGreaterThan(layout.systems[0]!.staff.bottom);
-    expect(note?.ledgerLines.length).toBeGreaterThanOrEqual(1);
+    const head = layout.systems[0]!.bars[0]?.notes[0]?.heads[0];
+    expect(head?.y).toBeGreaterThan(layout.systems[0]!.staff.bottom);
+    expect(head?.ledgerLines.length).toBeGreaterThanOrEqual(1);
   });
 
-  it('rests have isRest true and no pitch', () => {
+  it('rests have isRest true and empty heads', () => {
     const node = parseScore('score 4/4\n  r/q A4/q r/h |');
     const layout = calculateScoreLayout(node, { width: 400 });
     const n0 = layout.systems[0]!.bars[0]?.notes[0];
     const n2 = layout.systems[0]!.bars[0]?.notes[2];
     expect(n0?.isRest).toBe(true);
-    expect(n0?.pitch).toBe('');
+    expect(n0?.heads).toEqual([]);
+    expect(n0?.restGlyph).toBeTruthy();
     expect(n2?.isRest).toBe(true);
   });
 
@@ -92,10 +93,62 @@ describe('calculateScoreLayout', () => {
     const node = parseScore('score 4/4\n  A#4/q Bb4/q A4/q A4/q |');
     const layout = calculateScoreLayout(node, { width: 400 });
     const notes = layout.systems[0]!.bars[0]?.notes ?? [];
-    expect(notes[0]?.accidental).toBeDefined();
-    expect(notes[1]?.accidental).toBeDefined();
-    expect(notes[2]?.accidental).toBeDefined(); // natural
-    expect(notes[3]?.accidental).toBeUndefined();
+    expect(notes[0]?.heads[0]?.accidental).toBeDefined();
+    expect(notes[1]?.heads[0]?.accidental).toBeDefined();
+    expect(notes[2]?.heads[0]?.accidental).toBeDefined(); // natural
+    expect(notes[3]?.heads[0]?.accidental).toBeUndefined();
+  });
+
+  it('chord [C4 E4 G4]: heads 3개, stem은 outermost head로 결정 (모두 b4 미만이라 up)', () => {
+    const node = parseScore('score 4/4\n  [C4 E4 G4]/q A4/q B4/q C5/q |');
+    const layout = calculateScoreLayout(node, { width: 400 });
+    const chord = layout.systems[0]!.bars[0]?.notes[0];
+    expect(chord?.isRest).toBe(false);
+    expect(chord?.heads.length).toBe(3);
+    expect(chord?.heads.map((h) => h.pitch)).toEqual(['C4', 'E4', 'G4']);
+    expect(chord?.stem).toBeDefined();
+    if (chord?.stem) {
+      // up: y2 < y1
+      expect(chord.stem.y2).toBeLessThan(chord.stem.y1);
+    }
+  });
+
+  it('chord with adjacent 2nd [C4 D4]: D4가 shifted (xOffset !== 0)', () => {
+    const node = parseScore('score 4/4\n  [C4 D4]/q r/q r/h |');
+    const layout = calculateScoreLayout(node, { width: 400 });
+    const chord = layout.systems[0]!.bars[0]?.notes[0];
+    const cHead = chord?.heads.find((h) => h.pitch === 'C4');
+    const dHead = chord?.heads.find((h) => h.pitch === 'D4');
+    expect(cHead?.xOffset).toBe(0);
+    // stem-up이라 D4(상단)가 우측으로 shift
+    expect(dHead?.xOffset).toBeGreaterThan(0);
+  });
+
+  it('chord stem 길이: outermost head + 단음 stem 길이만큼 반대편으로 추가 연장 (Behind Bars 표준)', () => {
+    // 단음 stem 길이를 기준값으로 잡고, 같은 outermost를 가진 화음의 stem 길이가
+    // (단음 stem) + (head pile span) 이상인지 확인.
+    const single = parseScore('score 4/4\n  B5/q r/q r/h |');
+    const singleLayout = calculateScoreLayout(single, { width: 400 });
+    const singleStem = singleLayout.systems[0]!.bars[0]!.notes[0]!.stem!;
+    const singleLen = Math.abs(singleStem.y2 - singleStem.y1);
+
+    // B5(stem-down) 화음 — outermost head(가장 위)에서 단음 stem 길이만큼 + 가장 아래 head까지 연장.
+    const node = parseScore('score 4/4\n  [E5 G5 B5]/q r/q r/h |');
+    const layout = calculateScoreLayout(node, { width: 400 });
+    const chord = layout.systems[0]!.bars[0]?.notes[0];
+    expect(chord?.stem).toBeDefined();
+    if (chord?.stem) {
+      // stem-down: y2 > y1
+      expect(chord.stem.y2).toBeGreaterThan(chord.stem.y1);
+      const lowestHeadY = Math.max(...chord.heads.map((h) => h.y));
+      const highestHeadY = Math.min(...chord.heads.map((h) => h.y));
+      const headPileSpan = lowestHeadY - highestHeadY;
+      const chordLen = chord.stem.y2 - chord.stem.y1;
+      // chord stem 길이 ≈ 단음 stem 길이 + head pile span (1px 오차 허용).
+      expect(chordLen).toBeGreaterThanOrEqual(singleLen + headPileSpan - 1);
+      // stem이 가장 아래 head 아래까지 닿아야 함(추가 연장 효과).
+      expect(chord.stem.y2).toBeGreaterThan(lowestHeadY);
+    }
   });
 
   it('다중 시스템(uniform grid): 모든 줄 동일 N개 마디(마지막 줄만 남는 만큼), 모든 마디 폭 동일', () => {

@@ -57,4 +57,59 @@ describe('parseScoreBlock', () => {
     expect(n.bars[0]?.notes.length).toBe(0);
     expect(n.warnings).toEqual([]);
   });
+
+  it('single-note tokens populate pitches with one entry', () => {
+    const n = parseBlock('score 4/4\n  A4/w |');
+    if (n.type !== 'score') throw new Error('type');
+    expect(n.bars[0]?.notes[0]?.pitches).toEqual(['A4']);
+    expect(n.bars[0]?.notes[0]?.isRest).toBe(false);
+  });
+
+  it('rests have empty pitches array', () => {
+    const n = parseBlock('score 4/4\n  r/w |');
+    if (n.type !== 'score') throw new Error('type');
+    expect(n.bars[0]?.notes[0]?.pitches).toEqual([]);
+    expect(n.bars[0]?.notes[0]?.isRest).toBe(true);
+  });
+
+  it('parses chord token [C4 E4 G4]/q', () => {
+    const n = parseBlock('score 4/4\n  [C4 E4 G4]/q A4/q B4/q C5/q |');
+    if (n.type !== 'score') throw new Error('type');
+    const chord = n.bars[0]?.notes[0];
+    expect(chord?.pitches).toEqual(['C4', 'E4', 'G4']);
+    expect(chord?.isRest).toBe(false);
+    expect(chord?.beats).toBe(1);
+    expect(n.warnings).toEqual([]);
+  });
+
+  it('chord tokens preserve user input order', () => {
+    const n = parseBlock('score 4/4\n  [G4 C4 E4]/w |');
+    if (n.type !== 'score') throw new Error('type');
+    expect(n.bars[0]?.notes[0]?.pitches).toEqual(['G4', 'C4', 'E4']);
+  });
+
+  it('chord ignores whitespace inside brackets', () => {
+    const n = parseBlock('score 4/4\n  [  C4   E4  G4 ]/h r/h |');
+    if (n.type !== 'score') throw new Error('type');
+    expect(n.bars[0]?.notes[0]?.pitches).toEqual(['C4', 'E4', 'G4']);
+  });
+
+  it('rejects rest inside chord', () => {
+    expect(() => parseBlock('score 4/4\n  [C4 r G4]/q |')).toThrow(/Rest 'r' not allowed/);
+  });
+
+  it('rejects single-pitch chord', () => {
+    expect(() => parseBlock('score 4/4\n  [C4]/q |')).toThrow(/at least 2 pitches/);
+  });
+
+  it('rejects unclosed chord bracket', () => {
+    expect(() => parseBlock('score 4/4\n  [C4 E4 G4/q |')).toThrow(/Unclosed chord/);
+  });
+
+  it('mixes chord and single-note tokens within a bar', () => {
+    const n = parseBlock('score 4/4\n  C4/q [E4 G4]/q r/q [A4 C5 E5]/q |');
+    if (n.type !== 'score') throw new Error('type');
+    const notes = n.bars[0]?.notes ?? [];
+    expect(notes.map((x) => x.pitches)).toEqual([['C4'], ['E4', 'G4'], [], ['A4', 'C5', 'E5']]);
+  });
 });

@@ -26,34 +26,63 @@ function beatsToDuration(b: number): DurationSymbol {
   return map[String(b)] ?? 'q';
 }
 
-function note(beats: number, opts: { rest?: boolean; duration?: DurationSymbol } = {}): NoteEvent {
+function note(
+  beats: number,
+  opts: { rest?: boolean; duration?: DurationSymbol; pitches?: string[] } = {},
+): NoteEvent {
+  if (opts.rest) {
+    return {
+      pitches: [],
+      duration: opts.duration ?? beatsToDuration(beats),
+      beats,
+      isRest: true,
+    };
+  }
   return {
-    pitch: opts.rest ? '' : 'C4',
+    pitches: opts.pitches ?? ['C4'],
     duration: opts.duration ?? beatsToDuration(beats),
     beats,
-    isRest: opts.rest ?? false,
+    isRest: false,
   };
 }
 
 describe('noteRequiredWidth', () => {
   it('quarter note > 0', () => {
-    expect(noteRequiredWidth(note(1), null)).toBeGreaterThan(0);
+    expect(noteRequiredWidth(note(1), [null])).toBeGreaterThan(0);
   });
 
   it('임시표가 붙으면 폭이 더 커진다', () => {
-    const w0 = noteRequiredWidth(note(1), null);
-    const w1 = noteRequiredWidth(note(1), 'sharp');
+    const w0 = noteRequiredWidth(note(1), [null]);
+    const w1 = noteRequiredWidth(note(1), ['sharp']);
     expect(w1).toBeGreaterThan(w0);
   });
 
   it('점음표는 점이 없는 같은 길이 음표보다 폭이 크다', () => {
-    const w0 = noteRequiredWidth(note(1), null);
-    const w1 = noteRequiredWidth(note(1.5), null);
+    const w0 = noteRequiredWidth(note(1), [null]);
+    const w1 = noteRequiredWidth(note(1.5), [null]);
     expect(w1).toBeGreaterThan(w0);
   });
 
   it('rest도 길이별 폭 산정', () => {
-    expect(noteRequiredWidth(note(1, { rest: true }), null)).toBeGreaterThan(0);
+    expect(noteRequiredWidth(note(1, { rest: true }), [])).toBeGreaterThan(0);
+  });
+
+  it('chord without adjacent 2nd: 단음과 동일 폭', () => {
+    const single = noteRequiredWidth(note(1, { pitches: ['C4'] }), [null]);
+    const chord = noteRequiredWidth(note(1, { pitches: ['C4', 'E4', 'G4'] }), [null, null, null]);
+    expect(chord).toBeCloseTo(single, 4);
+  });
+
+  it('chord with adjacent 2nd: head shift만큼 폭이 늘어난다', () => {
+    const single = noteRequiredWidth(note(1, { pitches: ['C4'] }), [null]);
+    const chord = noteRequiredWidth(note(1, { pitches: ['C4', 'D4'] }), [null, null]);
+    expect(chord).toBeGreaterThan(single);
+  });
+
+  it('chord with multiple accidentals: column 수만큼 좌측 폭 증가', () => {
+    const oneAcc = noteRequiredWidth(note(1, { pitches: ['F4'] }), ['sharp']);
+    const twoAcc = noteRequiredWidth(note(1, { pitches: ['F4', 'C5'] }), ['sharp', 'sharp']);
+    expect(twoAcc).toBeGreaterThan(oneAcc);
   });
 });
 

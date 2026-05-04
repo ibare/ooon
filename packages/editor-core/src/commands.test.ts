@@ -20,7 +20,7 @@ describe('applyScoreCommand', () => {
     });
     expect(next.bars[0]?.notes.length).toBe(1);
     expect(next.bars[0]?.notes[0]).toEqual({
-      pitch: 'C4',
+      pitches: ['C4'],
       duration: 'q',
       beats: 1,
       isRest: false,
@@ -64,7 +64,7 @@ describe('applyScoreCommand', () => {
     ).toThrow(CommandError);
   });
 
-  it('insertRest appends a rest note (pitch empty, isRest true) to bar', () => {
+  it('insertRest appends a rest note (pitches empty, isRest true) to bar', () => {
     const node = score('score 4/4');
     const next = applyScoreCommand(node, {
       type: 'insertRest',
@@ -73,7 +73,7 @@ describe('applyScoreCommand', () => {
     });
     expect(next.bars[0]?.notes.length).toBe(1);
     expect(next.bars[0]?.notes[0]).toEqual({
-      pitch: '',
+      pitches: [],
       duration: 'q',
       beats: 1,
       isRest: true,
@@ -103,7 +103,7 @@ describe('applyScoreCommand', () => {
     ).toThrow(CommandError);
   });
 
-  it('replaceNote: h를 q로 교체 시 pitch 유지, 박자 갱신', () => {
+  it('replaceNote: h를 q로 교체 시 pitches 유지, 박자 갱신', () => {
     // 정확히 4박을 채운 fixture여야 padding rest가 안 끼어 의도한 박자 분배가 보존된다.
     const node = score('score 4/4\n  C4/h D4/h |');
     const next = applyScoreCommand(node, {
@@ -113,13 +113,13 @@ describe('applyScoreCommand', () => {
       duration: 'q',
     });
     expect(next.bars[0]?.notes[0]).toEqual({
-      pitch: 'C4',
+      pitches: ['C4'],
       duration: 'q',
       beats: 1,
       isRest: false,
     });
     expect(next.bars[0]?.notes[1]).toEqual(
-      expect.objectContaining({ pitch: 'D4', duration: 'h' }),
+      expect.objectContaining({ pitches: ['D4'], duration: 'h' }),
     );
     // 입력 노드는 변경되지 않는다.
     expect(node.bars[0]?.notes[0]?.duration).toBe('h');
@@ -161,7 +161,7 @@ describe('applyScoreCommand', () => {
     ).toThrow(CommandError);
   });
 
-  it('replaceWithRest: 음표를 쉼표로 교체 (pitch 비움, isRest:true)', () => {
+  it('replaceWithRest: 음표를 쉼표로 교체 (pitches 비움, isRest:true)', () => {
     const node = score('score 4/4\n  C4/q D4/q |');
     const next = applyScoreCommand(node, {
       type: 'replaceWithRest',
@@ -170,7 +170,7 @@ describe('applyScoreCommand', () => {
       duration: 'q',
     });
     expect(next.bars[0]?.notes[0]).toEqual({
-      pitch: '',
+      pitches: [],
       duration: 'q',
       beats: 1,
       isRest: true,
