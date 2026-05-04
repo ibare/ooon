@@ -8,7 +8,6 @@
 // inner를 그려 회피한다(누적 없이 inner 알파만 보임 → inner > outer 밝기 위계 유지).
 export const BEAT_OVERLAY_OUTER_FILL = 'rgba(56, 132, 255, 0.45)';
 export const BEAT_OVERLAY_INNER_FILL = 'rgba(56, 132, 255, 0.20)';
-export const BEAT_OVERLAY_HOVER_FILL = 'rgba(56, 132, 255, 0.65)';
 export const BEAT_OVERLAY_BLINK_FILL = 'rgba(56, 132, 255, 0.85)';
 export const BEAT_OVERLAY_BLINK_MS = 220;
 
@@ -19,6 +18,20 @@ export const BEAT_GROUP_GAP = 12;
 export const BEAT_SLOT_INSET_Y = 3;
 export const BEAT_SLOT_INSET_MID = 4;
 export const BEAT_SLOT_INSET_EDGE = 10;
+
+// 슬롯 hit 영역은 시각(staff 안쪽)보다 위·아래로 ledger N개 분량 확장한다. ghost note preview가
+// 오선 위/아래 음(ledger 영역)도 자유롭게 가리키도록 하기 위함. 시각(BEAT_OVERLAY) 그리기는
+// 그대로 staff 안쪽만 사용 — 확장은 인터랙션 전용.
+export const SLOT_HIT_LEDGER_LINES = 4;
+
+// Ghost note preview — 슬롯 hover 또는 픽커 hover 중 마우스 Y에 해당하는 음표 모양을 회색
+// 반투명으로 미리 그려 "여기에 추가됩니다"를 시각화. 실제 음표보다 옅게 표시해 구분.
+export const GHOST_NOTE_FILL = 'rgba(120, 120, 120, 0.55)';
+export const GHOST_LEDGER_STROKE = 'rgba(120, 120, 120, 0.45)';
+export const GHOST_LEDGER_THICKNESS = 1.2;
+// 점음표 점은 노트헤드 우측 ~1.5sp. ghost 시각 큐 용도라 정확한 SMUFL anchorAugmentationDot
+// 계산은 생략하고 상수 offset 사용.
+export const GHOST_DOT_OFFSET_SP = 1.5;
 
 // 메트로놈 클릭(WebAudio)
 export const METRONOME_CLICK_FREQ_HZ = 1500;

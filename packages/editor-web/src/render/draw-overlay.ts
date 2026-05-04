@@ -3,7 +3,6 @@ import { CanvasProjector } from '@oon/projector-web';
 import {
   BEAT_GROUP_GAP,
   BEAT_OVERLAY_BLINK_FILL,
-  BEAT_OVERLAY_HOVER_FILL,
   BEAT_OVERLAY_INNER_FILL,
   BEAT_OVERLAY_OUTER_FILL,
   BEAT_SLOT_INSET_EDGE,
@@ -13,7 +12,6 @@ import {
 import { groupBeatSlots, type BeatSlotRect } from '../geometry/beat-overlay.js';
 
 export interface DrawOverlayOptions {
-  hovered?: BeatSlotRect | null;
   /** "박자 느끼기" 트리거 시 강조할 슬롯의 글로벌 인덱스. */
   blinkSlot?: BeatSlotRect | null;
   /**
@@ -148,10 +146,9 @@ function pathRoundedRect(
   ctx.closePath();
 }
 
-// blink가 hover보다 우선. 강조 없는 슬롯은 기본 inner fill.
+// blink 강조가 있으면 우선, 없으면 기본 inner fill. hover 강조는 ghost notehead가 대체.
 function pickInnerFill(slot: BeatSlotRect, opts: DrawOverlayOptions): string {
   if (sameSlot(opts.blinkSlot ?? null, slot)) return BEAT_OVERLAY_BLINK_FILL;
-  if (sameSlot(opts.hovered ?? null, slot)) return BEAT_OVERLAY_HOVER_FILL;
   return BEAT_OVERLAY_INNER_FILL;
 }
 

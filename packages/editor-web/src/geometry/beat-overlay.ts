@@ -1,5 +1,6 @@
 import type { ScoreLayout, ScoreBarLayout, ScoreSystemLayout } from '@oon/score-engraving';
 import { getBeatGroups, type ScoreNode } from '@oon/core';
+import { SLOT_HIT_LEDGER_LINES } from '../constants.js';
 
 export interface BeatSlotRect {
   systemIndex: number;
@@ -9,6 +10,11 @@ export interface BeatSlotRect {
   y: number;
   width: number;
   height: number;
+  /** hit 전용 상단 y. 시각(y/height)보다 위로 SLOT_HIT_LEDGER_LINES * lineGap 만큼 확장 —
+   *  마우스가 오선 위 ledger 영역에 있어도 슬롯 hit이 잡혀 ghost preview가 동작. */
+  hitTop: number;
+  /** hit 전용 하단 y. 시각(y+height)보다 아래로 SLOT_HIT_LEDGER_LINES * lineGap 만큼 확장. */
+  hitBottom: number;
   /** 슬롯이 속한 음악적 메인박 그룹 인덱스(0-based). 6/8([3,3])이면 0 또는 1. */
   groupIndex: number;
   /** 그룹 시작점으로부터의 작은박 오프셋(분수 가능, 부분 슬롯이면 비정수). */
@@ -82,6 +88,9 @@ function slotsForBar(
   const beatPx = usable / beats;
   const y = system.staff.top;
   const height = system.staff.bottom - system.staff.top;
+  const hitExtension = system.staff.lineGap * SLOT_HIT_LEDGER_LINES;
+  const hitTop = system.staff.top - hitExtension;
+  const hitBottom = system.staff.bottom + hitExtension;
   const slots: BeatSlotRect[] = [];
 
   let cursor = usedBeats;
@@ -100,6 +109,8 @@ function slotsForBar(
       y,
       width: slotBeats * beatPx,
       height,
+      hitTop,
+      hitBottom,
       ...meta,
     });
     cursor = nextInt;
@@ -114,6 +125,8 @@ function slotsForBar(
       y,
       width: beatPx,
       height,
+      hitTop,
+      hitBottom,
       ...meta,
     });
     cursor += 1;
@@ -121,13 +134,16 @@ function slotsForBar(
   return slots;
 }
 
+// hit-test는 시각 영역(staff 안쪽)이 아닌 hitTop/hitBottom 확장 영역을 기준으로 한다.
+// 마우스가 ledger 영역(staff 위/아래)에 있어도 슬롯이 잡혀 ghost preview의 pitch를 자유롭게
+// 결정할 수 있다.
 export function findSlotAt(
   slots: readonly BeatSlotRect[],
   x: number,
   y: number,
 ): BeatSlotRect | null {
   for (const s of slots) {
-    if (x >= s.x && x <= s.x + s.width && y >= s.y && y <= s.y + s.height) return s;
+    if (x >= s.x && x <= s.x + s.width && y >= s.hitTop && y <= s.hitBottom) return s;
   }
   return null;
 }

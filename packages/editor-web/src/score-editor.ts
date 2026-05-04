@@ -57,12 +57,14 @@ import { applyToggle, parseToggleToken } from './ui/index.js';
 import { drawDebugNoteHits } from './render/draw-debug-hits.js';
 import { drawPreviewOccupancy } from './render/draw-preview-occupancy.js';
 import { drawAddBarButton } from './render/draw-add-bar-button.js';
+import { drawGhostNote } from './render/draw-ghost-note.js';
 import { previewOccupancyRect } from './geometry/preview-occupancy.js';
 import { Metronome } from './audio/metronome.js';
 import { PreviewEngine } from './audio/preview-engine.js';
 import {
   initialState,
   type EditorState,
+  type GhostPreview,
   type MetronomeBlinkState,
   type VibrationState,
 } from './interactions/state.js';
@@ -227,7 +229,6 @@ export function mountScoreEditor(host: HTMLElement, opts: MountScoreEditorOption
     if (!layout) return;
     editProjector.clear();
     drawBeatOverlay(editProjector, beatSlots, {
-      hovered: state.hoveredSlot,
       blinkSlot: currentBlinkSlot(),
       useNesting: getBeatGroups(editable.getNode().timeSignature).length > 1,
     });
@@ -248,9 +249,28 @@ export function mountScoreEditor(host: HTMLElement, opts: MountScoreEditorOption
       drawDebugNoteHits(editProjector, noteHits);
     }
     drawHoverOccupancyPreview();
+    drawGhostPreview();
     if (addBarHit) {
       drawAddBarButton(editProjector, addBarHit, { hovered: state.hoveredAddBar });
     }
+  };
+
+  // ghost는 박자 점유 핑크 미리보기 위에, + 버튼 아래에 그린다 — 슬롯 오버레이/점유 미리보기는
+  // 영역 강조라 ghost가 가려지면 안 되고, + 버튼은 마디 우측 외곽이라 충돌 없음.
+  const drawGhostPreview = (): void => {
+    const ghost = state.ghostPreview;
+    if (!ghost || !layout) return;
+    const system = layout.systems.find((s) => s.index === ghost.systemIndex);
+    if (!system) return;
+    drawGhostNote(editProjector, {
+      glyph: ghost.glyph,
+      x: ghost.x,
+      snappedY: ghost.snappedY,
+      lineGap: system.staff.lineGap,
+      staffTop: system.staff.top,
+      staffBottom: system.staff.bottom,
+      dotted: ghost.dotted,
+    });
   };
 
   // picker open 시점에 캐시한 옵션을 active로 필터해서 위젯 트리를 빌드 + 절대 좌표로 배치.
@@ -351,10 +371,17 @@ export function mountScoreEditor(host: HTMLElement, opts: MountScoreEditorOption
   const onPointerMove = (ev: PointerEvent): void => {
     const p = editProjector.clientToContentPoint(ev.clientX, ev.clientY);
     if (state.picker) {
-      const { widget } = placePicker(state.picker);
+      const { widget, filteredOptions } = placePicker(state.picker);
       const hoveredToken = widget.hitTest(p);
-      if (hoveredToken !== state.picker.hoveredToken) {
-        state = { ...state, picker: { ...state.picker, hoveredToken } };
+      const nextGhost = ghostForPickerHover(state.picker, hoveredToken, filteredOptions);
+      const tokenChanged = hoveredToken !== state.picker.hoveredToken;
+      const ghostChanged = !ghostEquals(nextGhost, state.ghostPreview);
+      if (tokenChanged || ghostChanged) {
+        state = {
+          ...state,
+          picker: { ...state.picker, hoveredToken },
+          ghostPreview: nextGhost,
+        };
         paint();
       }
       return;
@@ -373,16 +400,80 @@ export function mountScoreEditor(host: HTMLElement, opts: MountScoreEditorOption
       snapped = r.snappedY;
       pitch = r.pitch;
     }
+    // Slot hover ghost — 마우스 Y에 해당하는 pitch에 회색 4분음표 머리 미리보기.
+    // 슬롯 바깥(또는 PluckZone hover 등)이면 ghost 숨김.
+    //
+    // 단계별 X 정렬:
+    //   - 슬롯 hover만 한 단계(여기): 옵션 미정 → 음표 길이/점유 폭이 결정되지 않음.
+    //     시각 신호 목적이라 슬롯 중앙(slot.x + slot.width/2)에 두어 균형 잡힌 미리보기.
+    //   - 픽커 옵션 hover 단계(openPicker/ghostForPickerHover): 점유 폭이 결정되며
+    //     렌더링 규약(노트 헤드 X = 박자 슬롯 좌측 onset, distributeNotesByBeat)과 핑크
+    //     점유 영역 좌측에 정합하도록 onset(slot.x)으로 점프.
+    let ghost: GhostPreview | null = null;
+    if (slot && layout) {
+      const system = layout.systems.find((s) => s.index === slot.systemIndex);
+      if (system) {
+        const r = pitchAt({ y: p.y, staff: system.staff });
+        ghost = {
+          x: slot.x + slot.width / 2,
+          snappedY: r.snappedY,
+          glyph: 'noteheadBlack',
+          dotted: false,
+          systemIndex: slot.systemIndex,
+        };
+      }
+    }
     state = {
       ...state,
-      hoveredSlot: slot,
       hoveredZone: zone,
       pluckSnappedY: snapped,
       pluckPitch: pitch,
       hoveredAddBar: addBar !== null,
+      ghostPreview: ghost,
     };
     editCanvas.style.cursor = slot || zone || addBar ? 'pointer' : 'default';
     paint();
+  };
+
+  // 픽커 hover 옵션에 따른 ghost 갱신 규칙(a안 확정):
+  //   - insertNote/insertRest 옵션 hover → ghost를 그 옵션 글리프 + dotted로 교체. 음표·쉼표
+  //     모두 onset 위치에 회색 미리보기로 표시되어 동일 룰을 따른다.
+  //   - 옵션 미hover(셀 밖) → ghost는 anchored 위치의 기본 noteheadBlack 유지.
+  //   - 그 외 kind(replaceXxx/setTimeSignature) → base 유지(미관용 fallback).
+  //     실제로는 insert 컨텍스트에 노출되지 않아 도달 불가 분기.
+  // replace/timeSig 픽커 컨텍스트는 picker.kind!=='insert'로 ghost 자체를 표시하지 않는다.
+  const ghostForPickerHover = (
+    picker: NonNullable<EditorState['picker']>,
+    hoveredToken: string | null,
+    filteredOptions: readonly PickerOption[],
+  ): GhostPreview | null => {
+    if (picker.kind !== 'insert') return null;
+    const base: GhostPreview = {
+      x: picker.ghostX,
+      snappedY: picker.ghostSnappedY,
+      glyph: 'noteheadBlack',
+      dotted: false,
+      systemIndex: picker.systemIndex,
+    };
+    if (hoveredToken === null) return base;
+    const cellIdx = parseCellIndex(hoveredToken);
+    if (cellIdx === null) return base;
+    const option = filteredOptions[cellIdx];
+    if (!option) return base;
+    if (option.kind !== 'insertNote' && option.kind !== 'insertRest') return base;
+    return { ...base, glyph: option.glyph, dotted: option.dotted };
+  };
+
+  const ghostEquals = (a: GhostPreview | null, b: GhostPreview | null): boolean => {
+    if (a === b) return true;
+    if (!a || !b) return false;
+    return (
+      a.x === b.x &&
+      a.snappedY === b.snappedY &&
+      a.glyph === b.glyph &&
+      a.dotted === b.dotted &&
+      a.systemIndex === b.systemIndex
+    );
   };
 
   const onPointerDown = (ev: PointerEvent): void => {
@@ -460,6 +551,9 @@ export function mountScoreEditor(host: HTMLElement, opts: MountScoreEditorOption
     const staff = system?.staff;
     if (!staff) return;
     const pickResult = pitchAt({ y, staff });
+    // ghost X는 슬롯 좌측 = 점유 예상 영역(핑크) 시작점에 align. 음표 머리가 그 음표가 시작하는
+    // 박자 위치에 align되어 점유 영역과 시각적으로 일치.
+    const ghostX = slot.x;
     state = {
       ...state,
       mode: 'picker',
@@ -476,6 +570,18 @@ export function mountScoreEditor(host: HTMLElement, opts: MountScoreEditorOption
         barIndex: slot.barIndex,
         beatIndex: slot.beatIndex,
         pitch: pickResult.pitch,
+        ghostX,
+        ghostSnappedY: pickResult.snappedY,
+        systemIndex: slot.systemIndex,
+      },
+      // 픽커가 열린 직후 ghost는 클릭 시점 anchored 위치에 4분음표 머리만. 옵션을 hover하면
+      // 그 옵션 모양으로 교체된다(onPointerMove에서 갱신).
+      ghostPreview: {
+        x: ghostX,
+        snappedY: pickResult.snappedY,
+        glyph: 'noteheadBlack',
+        dotted: false,
+        systemIndex: slot.systemIndex,
       },
     };
     uiCanvas.style.pointerEvents = 'auto';
@@ -525,6 +631,8 @@ export function mountScoreEditor(host: HTMLElement, opts: MountScoreEditorOption
         noteIndex: hit.noteIndex,
         startBeat,
       },
+      // replace 컨텍스트는 ghost preview를 쓰지 않는다(이미 본 음표가 자리에 있음).
+      ghostPreview: null,
     };
     uiCanvas.style.pointerEvents = 'auto';
     paint();
@@ -551,13 +659,15 @@ export function mountScoreEditor(host: HTMLElement, opts: MountScoreEditorOption
         hoveredToken: null,
         options,
       },
+      // 박자표 컨텍스트는 ghost preview를 쓰지 않는다.
+      ghostPreview: null,
     };
     uiCanvas.style.pointerEvents = 'auto';
     paint();
   };
 
   const closePicker = (): void => {
-    state = { ...state, picker: null, mode: 'idle' };
+    state = { ...state, picker: null, mode: 'idle', ghostPreview: null };
     uiCanvas.style.pointerEvents = 'none';
     paint();
   };
@@ -652,7 +762,7 @@ export function mountScoreEditor(host: HTMLElement, opts: MountScoreEditorOption
         void _exhaustive;
       }
     }
-    state = { ...state, picker: null, mode: 'idle' };
+    state = { ...state, picker: null, mode: 'idle', ghostPreview: null };
     uiCanvas.style.pointerEvents = 'none';
     rebuild();
     paint();
@@ -668,7 +778,7 @@ export function mountScoreEditor(host: HTMLElement, opts: MountScoreEditorOption
       else console.warn('[oon/editor-web] appendBar failed', err);
       return;
     }
-    state = { ...state, hoveredAddBar: false };
+    state = { ...state, hoveredAddBar: false, ghostPreview: null };
     editCanvas.style.cursor = 'default';
     rebuild();
     paint();
@@ -696,7 +806,7 @@ export function mountScoreEditor(host: HTMLElement, opts: MountScoreEditorOption
       x1: lastBar.x,
       x2: zone.x + zone.width,
     };
-    state = { ...state, mode: 'plucking', vibration };
+    state = { ...state, mode: 'plucking', vibration, ghostPreview: null };
     try {
       editable.dispatch({ type: 'insertNote', barIndex: zone.lastBarIndex, pitch: pickResult.pitch, duration });
     } catch (err) {

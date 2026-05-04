@@ -1,4 +1,4 @@
-import type { BeatSlotRect } from '../geometry/beat-overlay.js';
+import type { GlyphName } from '@oon/core';
 import type { PluckZoneRect } from '../geometry/pluck-zone.js';
 import type { PickerOption } from '../geometry/picker-options.js';
 
@@ -43,7 +43,12 @@ export interface InsertPickerState extends PickerCommon {
   kind: 'insert';
   barIndex: number;
   beatIndex: number;
-  pitch: string; // 자동: 보표 중앙 라인의 step 기준(B4)
+  pitch: string; // 슬롯 클릭 시점 마우스 Y → pitchAt으로 결정.
+  /** 슬롯 클릭 시점에 동결된 ghost 좌표 — 픽커 열려 있는 동안 ghost는 이 위치에 anchored. */
+  ghostX: number;
+  ghostSnappedY: number;
+  /** ghost ledger line 그릴 때 staff 정보 lookup용. */
+  systemIndex: number;
 }
 
 // 기존 음표/쉼표를 클릭해 열린 픽커 — 같은 자리의 duration/종류 교체 컨텍스트.
@@ -63,13 +68,30 @@ export interface TimeSigPickerState extends PickerCommon {
 
 export type PickerState = InsertPickerState | ReplacePickerState | TimeSigPickerState;
 
+// "여기에 추가됩니다" 시각 미리보기. 슬롯 hover 시 마우스 Y에 따라 노트헤드 ghost를 띄우고,
+// 픽커가 열린 후에는 anchored 좌표에 고정되어 픽커 hover 옵션 모양으로 글리프만 교체된다.
+// 픽커 hover가 쉼표/박자표면 ghost는 null로 숨김(이미 박자 점유 핑크 미리보기가 있음).
+export interface GhostPreview {
+  /** 노트헤드 좌측 anchor x (slot.x + slot.width/2 등 슬롯 기준 가운데 정렬). */
+  x: number;
+  /** 노트헤드 중심 y (pitchAt의 snappedY 결과). */
+  snappedY: number;
+  /** 표시할 글리프. 슬롯 hover만 한 상태면 'noteheadBlack', 픽커 hover면 옵션의 결합 글리프. */
+  glyph: GlyphName;
+  /** 점음표 미리보기면 노트헤드 우측 augmentationDot도 표시. */
+  dotted: boolean;
+  /** ledger line 계산을 위해 staff(lineGap/top/bottom) lookup에 사용. */
+  systemIndex: number;
+}
+
 export interface EditorState {
   mode: EditorMode;
-  hoveredSlot: BeatSlotRect | null;
   hoveredZone: PluckZoneRect | null;
   pluckSnappedY: number | null;
   pluckPitch: string | null;
   picker: PickerState | null;
+  /** 슬롯/픽커 hover 시 표시할 ghost note. null이면 표시 안 함. */
+  ghostPreview: GhostPreview | null;
   vibration: VibrationState | null;
   blink: MetronomeBlinkState | null;
   /** 마지막 마디 우측 + 버튼 hover 여부 — 그리기 색상/cursor 토글에 사용. */
@@ -81,11 +103,11 @@ export interface EditorState {
 export function initialState(): EditorState {
   return {
     mode: 'idle',
-    hoveredSlot: null,
     hoveredZone: null,
     pluckSnappedY: null,
     pluckPitch: null,
     picker: null,
+    ghostPreview: null,
     vibration: null,
     blink: null,
     hoveredAddBar: false,

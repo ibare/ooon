@@ -3,10 +3,12 @@ import type { ScoreLayout } from '@oon/score-engraving';
 import type { ScoreNode } from '@oon/core';
 import {
   calculateBeatSlots,
+  findSlotAt,
   firstEmptySlotPerBar,
   groupBeatSlots,
   type BeatSlotRect,
 } from './beat-overlay.js';
+import { SLOT_HIT_LEDGER_LINES } from '../constants.js';
 
 // 슬롯 생성 로직 자체만 검증하는 단위 테스트.
 // staff/clef/keySig/timeSig는 calculateBeatSlots가 staff.{top,bottom,lineGap}만 참조하므로
@@ -247,6 +249,40 @@ describe('groupBeatSlots — 메인박 단위 union rect', () => {
   });
 });
 
+describe('hit 영역 — staff 위/아래로 ledger SLOT_HIT_LEDGER_LINES만큼 확장', () => {
+  // 테스트용 layout: staff.top=10, staff.bottom=50, lineGap=10. 확장량 = 4*10 = 40.
+  // → hitTop=-30, hitBottom=90.
+  it('각 슬롯의 hitTop/hitBottom이 staff.top/bottom ± lineGap*N으로 설정됨', () => {
+    const slots = calculateBeatSlots(makeLayout(), makeNodeEmpty());
+    const expectedHitTop = 10 - 10 * SLOT_HIT_LEDGER_LINES;
+    const expectedHitBottom = 50 + 10 * SLOT_HIT_LEDGER_LINES;
+    for (const s of slots) {
+      expect(s.hitTop).toBe(expectedHitTop);
+      expect(s.hitBottom).toBe(expectedHitBottom);
+    }
+  });
+
+  it('staff 위쪽(ledger 영역)에서도 findSlotAt이 hit', () => {
+    const slots = calculateBeatSlots(makeLayout(), makeNodeEmpty());
+    const slot0 = slots[0]!;
+    const xMid = slot0.x + slot0.width / 2;
+    // staff 위(y=0)는 시각 영역 밖이지만 hit zone(-30 ~ 90) 안 → hit 성공.
+    expect(findSlotAt(slots, xMid, 0)).toBe(slot0);
+    // staff 아래(y=80)도 hit 영역.
+    expect(findSlotAt(slots, xMid, 80)).toBe(slot0);
+  });
+
+  it('확장 영역 밖은 hit 실패', () => {
+    const slots = calculateBeatSlots(makeLayout(), makeNodeEmpty());
+    const slot0 = slots[0]!;
+    const xMid = slot0.x + slot0.width / 2;
+    // hitTop(-30) 위는 miss.
+    expect(findSlotAt(slots, xMid, -100)).toBeNull();
+    // hitBottom(90) 아래도 miss.
+    expect(findSlotAt(slots, xMid, 200)).toBeNull();
+  });
+});
+
 describe('firstEmptySlotPerBar — 마디별 첫 빈 슬롯만 추림', () => {
   it('빈 4/4 단일 마디는 4개 중 첫 슬롯(beatIndex=0) 1개만 반환', () => {
     const slots = calculateBeatSlots(makeLayout(), makeNodeEmpty());
@@ -275,6 +311,8 @@ describe('firstEmptySlotPerBar — 마디별 첫 빈 슬롯만 추림', () => {
       y: 0,
       width: 1,
       height: 1,
+      hitTop: 0,
+      hitBottom: 1,
       groupIndex: 0,
       beatInGroup: beatIndex,
       isGroupStart: beatIndex === 0,
