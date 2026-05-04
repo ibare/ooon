@@ -206,7 +206,7 @@ export function mountScoreEditor(host: HTMLElement, opts: MountScoreEditorOption
   const rebuild = (): void => {
     const budget = layoutBudget();
     if (budget === null || budget <= 0 || containerWidth === null) return;
-    layout = calculateScoreLayout(editable.getNode(), { width: budget });
+    layout = calculateScoreLayout(editable.getNode(), { width: budget, density: 'edit' });
     beatSlots = calculateBeatSlots(layout, editable.getNode());
     actionableSlots = firstEmptySlotPerBar(beatSlots);
     pluckZones = calculatePluckZones(layout);

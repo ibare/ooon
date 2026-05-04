@@ -43,7 +43,9 @@ import {
   noteRequiredWidth,
 } from './passes/spacing.js';
 import { groupBeams, type BeamGroup } from './passes/beams.js';
-import { barWidthRange, chooseUniformLayout } from './passes/bar-width.js';
+import { barWidthRange, fitBarWidth } from './passes/bar-width.js';
+import { chooseEditLayout } from './passes/edit-layout.js';
+import { chooseRenderLayout } from './passes/render-layout.js';
 
 export interface ScoreLayoutOptions {
   width: number;
@@ -58,6 +60,12 @@ export interface ScoreLayoutOptions {
    * 기본값 'auto'.
    */
   wrap?: 'auto' | 'none';
+  /**
+   * 레이아웃 정책. 'edit'는 슬롯 클릭 임계 우선(편집 모드), 'render'는 컨테이너 정합 +
+   * 자연 폭 상한(렌더 모드). 기본값 'render' — score-editor만 'edit'를 명시한다.
+   * wrap='none'일 때는 자연 폭 단일 시스템 강제이므로 density는 무시된다.
+   */
+  density?: 'edit' | 'render';
   /** system 간 수직 간격(px). */
   systemGap?: number;
 }
@@ -185,7 +193,7 @@ interface SystemBuildArgs {
   systemIndex: number;
   staffCenterY: number;
   bars: readonly ScoreBar[];
-  /** 모든 마디에 적용되는 동일 폭(px). 호출자가 chooseUniformLayout으로 결정해 전달. */
+  /** 모든 마디에 적용되는 동일 폭(px). 호출자가 chooseEditLayout/chooseRenderLayout으로 결정해 전달. */
   barWidth: number;
   pxPerSp: number;
   clefWidthPx: number;
@@ -322,6 +330,7 @@ export function calculateScoreLayout(node: ScoreNode, opts: ScoreLayoutOptions):
   const inputWidth = opts.width;
   const pxPerSp = opts.lineGap ?? 10;
   const wrap = opts.wrap ?? 'auto';
+  const density = opts.density ?? 'render';
   const systemGap = opts.systemGap ?? pxPerSp * 2;
 
   const keySig = parseKeySignature(node.key);
@@ -335,14 +344,21 @@ export function calculateScoreLayout(node: ScoreNode, opts: ScoreLayoutOptions):
   const rightMarginPx = RIGHT_MARGIN_SP * pxPerSp;
   const availableContent = Math.max(inputWidth - preambleWidth - rightMarginPx, pxPerSp * 4);
 
-  // uniform grid 결정 — 박자별 마디 폭 범위로 N과 단일 마디 폭을 도출.
+  // wrap N과 마디 폭 결정 — 박자별 마디 폭 범위 + density 정책.
   // wrap='none'은 외부(예: composition)에서 시스템 그룹을 별도로 결정한 뒤 단일 시스템으로
-  // 다시 계산하는 용도. 이 경우 N 의미가 없으므로 자연 폭(natural)을 사용한다.
+  // 다시 계산하는 용도. systemCount=1, barsPerSystem=barCount는 호출자 의도(한 줄에 다 넣기)에
+  // 따라 강제하되, barWidth는 fitBarWidth로 자연 폭 상한 + 컨테이너 균등 축소를 적용한다.
+  // density는 wrap='none'에선 의미가 없어 무시된다(편집 모드도 시스템 그룹은 외부 결정).
   const widthRange = barWidthRange(node.timeSignature, pxPerSp, barPaddingPx);
+  const choosePolicy = density === 'edit' ? chooseEditLayout : chooseRenderLayout;
   const plan =
     wrap === 'none'
-      ? { barsPerSystem: Math.max(1, node.bars.length), systemCount: 1, barWidth: widthRange.natural, mode: 'natural' as const }
-      : chooseUniformLayout({
+      ? {
+          barsPerSystem: Math.max(1, node.bars.length),
+          systemCount: 1,
+          barWidth: fitBarWidth(widthRange, availableContent, node.bars.length),
+        }
+      : choosePolicy({
           barCount: node.bars.length,
           range: widthRange,
           availableContent,
