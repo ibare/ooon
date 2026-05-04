@@ -58,6 +58,18 @@ export interface ReplacePickerState extends PickerCommon {
   noteIndex: number;
   /** 클릭한 음표의 마디 내 시작 박자 위치(이전 음표들 beats 누적). 점유 미리보기에 사용. */
   startBeat: number;
+  /**
+   * 클릭한 음표의 현재 pitches 스냅샷. 쉼표면 빈 배열.
+   * 두 가지 용도:
+   *  1) ▲▼ transpose 컬럼 노출 여부 판정(length>0일 때만 노출)
+   *  2) ▲▼ 클릭으로 음표가 이동했을 때 picker.options(특히 RemoveChordHead/AddChordPitch)를
+   *     동일 위치 음표 스냅샷으로 재계산.
+   */
+  currentPitches: readonly string[];
+  /** 클릭한 음표의 duration symbol — ▲▼ 후 옵션 재계산 시 같은 시그니처 유지에 사용. */
+  currentDuration: string;
+  /** 클릭한 음표가 쉼표인지 — 옵션 재계산 시 동일 컨텍스트 유지에 사용. */
+  currentIsRest: boolean;
 }
 
 // 박자표 클릭으로 열린 픽커 — 박자 교체. 변경 시 마디 초기화 부작용이 있어

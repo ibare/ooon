@@ -91,6 +91,32 @@ export const PICKER_TOGGLE_ACTIVE_RADIUS = 5;
 export const PICKER_TOGGLE_HOVER_BG = 'rgba(255, 255, 255, 0.06)';
 export const PICKER_TOGGLE_ACTIVE_BG = 'rgba(124, 196, 255, 0.35)';
 
+// 픽커의 음정(pitch) 카테고리 — replace 컨텍스트에서 노출된다.
+//   - ▲ / ▼ 셀: 단음/화음 음표를 반음 단위로 위/아래 이동 (transposeNote 커맨드).
+//   - + 배지가 붙은 same-duration 음표 셀: 화음 head 추가 (addChordPitch 커맨드).
+//   - ✕ 배지가 붙은 mini 노트헤드+pitch 라벨 셀: 화음에서 특정 head 제거 (removeChordHead).
+// 모든 셀은 PICKER_TILE_SIZE 정사각, 캔버스 drawText로만 그리며 HTML overlay 없음.
+//
+// 음정 글리프 — Bravura가 지원하지 않는 화살표/배지는 시스템 폰트 유니코드 문자로 그린다.
+export const PICKER_TRANSPOSE_UP_GLYPH = '▲'; // ▲ BLACK UP-POINTING TRIANGLE
+export const PICKER_TRANSPOSE_DOWN_GLYPH = '▼'; // ▼ BLACK DOWN-POINTING TRIANGLE
+export const PICKER_BADGE_ADD_GLYPH = '+';
+export const PICKER_BADGE_REMOVE_GLYPH = '✕'; // ✕ MULTIPLICATION X
+// ▲▼ 버튼은 picker 좌측 독립 컬럼이라 그리드 셀(PICKER_TILE_SIZE)보다 작게 — 보조 컨트롤
+// 위계감을 시각적으로 분리. 정사각, 50% 축소.
+export const PICKER_TRANSPOSE_TILE_SIZE = 20;
+// ▲/▼ 글리프 폰트 크기. 위 타일 축소에 맞춰 함께 절반.
+export const PICKER_TRANSPOSE_GLYPH_SIZE = 11;
+// + / ✕ 배지 폰트 크기 — 셀 우상단 코너에 작게 부착.
+export const PICKER_BADGE_FONT_SIZE = 12;
+// 배지를 셀 우상단에서 안쪽으로 얼마나 padding할지(좌·상 동일 단위).
+export const PICKER_BADGE_INSET = 5;
+// removeChordHead 셀에 표시할 pitch 라벨(예: "C4") 폰트 크기. 셀 하단 가운데 정렬.
+export const PICKER_HEAD_LABEL_FONT_SIZE = 10;
+// 화음 head 한 개 추가 시 기본 추가 pitch는 "현재 최고음 + N semitone".
+// 4 = 장3도(major third) — 가장 흔한 chord 인터벌. 사용자는 이후 ▲▼/제거로 수정.
+export const PICKER_DEFAULT_CHORD_INTERVAL_SEMITONES = 4;
+
 // 픽커 옵션 hover 시 그 옵션이 차지할 박자 영역을 미리 보여주는 핑크 반투명. 박자 슬롯과
 // 같은 영역(staff top~bottom, 시작 박자~끝 박자)에 fill로 깔린다.
 export const PREVIEW_OCCUPANCY_FILL = 'rgba(236, 72, 153, 0.30)';

@@ -59,6 +59,19 @@ describe('categoryOf', () => {
   it('비대칭 박자(7/8)는 simple로 분류 — 복합이 아니므로', () => {
     expect(categoryOf(ts(7, 8))).toBe('simple');
   });
+  it('addChordPitch/removeChordHead는 모두 pitch (transpose ▲▼는 picker 좌측 독립 컬럼이라 옵션 아님)', () => {
+    expect(
+      categoryOf({
+        kind: 'addChordPitch',
+        duration: 'q',
+        beats: 1,
+        glyph: 'noteQuarterUp',
+        dotted: false,
+        pitch: 'E4',
+      }),
+    ).toBe('pitch');
+    expect(categoryOf({ kind: 'removeChordHead', pitchIndex: 1, pitch: 'E4' })).toBe('pitch');
+  });
 });
 
 describe('filterByCategories', () => {
@@ -83,9 +96,12 @@ describe('filterByCategories', () => {
 });
 
 describe('defaultActiveFor', () => {
-  it('insert/replace 기본은 note만', () => {
+  it('insert 기본은 note만', () => {
     expect([...defaultActiveFor('insert')]).toEqual(['note']);
-    expect([...defaultActiveFor('replace')]).toEqual(['note']);
+  });
+
+  it('replace 기본은 note + pitch — 음표 클릭 직후 음정/화음 조작 즉시 노출', () => {
+    expect([...defaultActiveFor('replace')]).toEqual(['note', 'pitch']);
   });
 
   it('timeSig 기본은 simple만', () => {
@@ -100,17 +116,27 @@ describe('defaultActiveFor', () => {
 });
 
 describe('PICKER_CATEGORY_SPECS', () => {
-  it('insert/replace는 multi 모드, 카테고리 4종(note/dotted/rest/dotted-rest)', () => {
-    for (const ctx of ['insert', 'replace'] as const) {
-      const spec = PICKER_CATEGORY_SPECS[ctx];
-      expect(spec.mode).toBe('multi');
-      expect(spec.categories.map((c) => c.id)).toEqual([
-        'note',
-        'dotted',
-        'rest',
-        'dotted-rest',
-      ]);
-    }
+  it('insert는 multi 모드, 카테고리 4종(note/dotted/rest/dotted-rest)', () => {
+    const spec = PICKER_CATEGORY_SPECS.insert;
+    expect(spec.mode).toBe('multi');
+    expect(spec.categories.map((c) => c.id)).toEqual([
+      'note',
+      'dotted',
+      'rest',
+      'dotted-rest',
+    ]);
+  });
+
+  it('replace는 multi 모드, 카테고리 5종(note/dotted/rest/dotted-rest/pitch)', () => {
+    const spec = PICKER_CATEGORY_SPECS.replace;
+    expect(spec.mode).toBe('multi');
+    expect(spec.categories.map((c) => c.id)).toEqual([
+      'note',
+      'dotted',
+      'rest',
+      'dotted-rest',
+      'pitch',
+    ]);
   });
 
   it('timeSig는 single 모드, 카테고리 2종(simple/compound)', () => {
@@ -122,6 +148,8 @@ describe('PICKER_CATEGORY_SPECS', () => {
   it('카테고리 라벨은 한국어(교육용 — 음악 기호 모르는 사용자가 텍스트로 인지)', () => {
     const insertLabels = PICKER_CATEGORY_SPECS.insert.categories.map((c) => c.label);
     expect(insertLabels).toEqual(['음표', '점음표', '쉼표', '점쉼표']);
+    const replaceLabels = PICKER_CATEGORY_SPECS.replace.categories.map((c) => c.label);
+    expect(replaceLabels).toEqual(['음표', '점음표', '쉼표', '점쉼표', '음정']);
     const timeSigLabels = PICKER_CATEGORY_SPECS.timeSig.categories.map((c) => c.label);
     expect(timeSigLabels).toEqual(['기본', '복합']);
   });

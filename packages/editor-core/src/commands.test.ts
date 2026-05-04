@@ -177,6 +177,79 @@ describe('applyScoreCommand', () => {
     });
   });
 
+  it('transposeNote: 단음 ↑/↓ 한 단계(반음, ↑은 ♯/↓은 ♭)', () => {
+    const node = score('score 4/4\n  C4/q |');
+    const up = applyScoreCommand(node, { type: 'transposeNote', barIndex: 0, noteIndex: 0, direction: 'up' });
+    expect(up.bars[0]?.notes[0]?.pitches).toEqual(['C#4']);
+    const down = applyScoreCommand(node, { type: 'transposeNote', barIndex: 0, noteIndex: 0, direction: 'down' });
+    expect(down.bars[0]?.notes[0]?.pitches).toEqual(['B3']);
+  });
+
+  it('transposeNote: 화음은 head별 독립 +1/-1 (head별 enharmonic 정책 자동 적용)', () => {
+    const node = score('score 4/4\n  [C4 E4 G4]/q |');
+    const up = applyScoreCommand(node, { type: 'transposeNote', barIndex: 0, noteIndex: 0, direction: 'up' });
+    expect(up.bars[0]?.notes[0]?.pitches).toEqual(['C#4', 'F4', 'G#4']);
+  });
+
+  it('transposeNote: 쉼표는 거부', () => {
+    const node = score('score 4/4\n  r/q |');
+    expect(() =>
+      applyScoreCommand(node, { type: 'transposeNote', barIndex: 0, noteIndex: 0, direction: 'up' }),
+    ).toThrow(CommandError);
+  });
+
+  it('addChordPitch: 단음에 pitch 추가 → 화음', () => {
+    const node = score('score 4/4\n  C4/q |');
+    const next = applyScoreCommand(node, { type: 'addChordPitch', barIndex: 0, noteIndex: 0, pitch: 'E4' });
+    expect(next.bars[0]?.notes[0]?.pitches).toEqual(['C4', 'E4']);
+  });
+
+  it('addChordPitch: 화음에 head 추가', () => {
+    const node = score('score 4/4\n  [C4 E4]/q |');
+    const next = applyScoreCommand(node, { type: 'addChordPitch', barIndex: 0, noteIndex: 0, pitch: 'G4' });
+    expect(next.bars[0]?.notes[0]?.pitches).toEqual(['C4', 'E4', 'G4']);
+  });
+
+  it('addChordPitch: 중복 pitch 거부', () => {
+    const node = score('score 4/4\n  [C4 E4]/q |');
+    expect(() =>
+      applyScoreCommand(node, { type: 'addChordPitch', barIndex: 0, noteIndex: 0, pitch: 'C4' }),
+    ).toThrow(CommandError);
+  });
+
+  it('addChordPitch: 쉼표 거부', () => {
+    const node = score('score 4/4\n  r/q |');
+    expect(() =>
+      applyScoreCommand(node, { type: 'addChordPitch', barIndex: 0, noteIndex: 0, pitch: 'C4' }),
+    ).toThrow(CommandError);
+  });
+
+  it('removeChordHead: 특정 head 제거', () => {
+    const node = score('score 4/4\n  [C4 E4 G4]/q |');
+    const next = applyScoreCommand(node, { type: 'removeChordHead', barIndex: 0, noteIndex: 0, pitchIndex: 1 });
+    expect(next.bars[0]?.notes[0]?.pitches).toEqual(['C4', 'G4']);
+  });
+
+  it('removeChordHead: 화음에서 head 제거 후 1개 남으면 자동 단음 강등', () => {
+    const node = score('score 4/4\n  [C4 E4]/q |');
+    const next = applyScoreCommand(node, { type: 'removeChordHead', barIndex: 0, noteIndex: 0, pitchIndex: 1 });
+    expect(next.bars[0]?.notes[0]?.pitches).toEqual(['C4']);
+  });
+
+  it('removeChordHead: 마지막 head 보존(거부)', () => {
+    const node = score('score 4/4\n  C4/q |');
+    expect(() =>
+      applyScoreCommand(node, { type: 'removeChordHead', barIndex: 0, noteIndex: 0, pitchIndex: 0 }),
+    ).toThrow(CommandError);
+  });
+
+  it('removeChordHead: pitchIndex 범위 밖 거부', () => {
+    const node = score('score 4/4\n  [C4 E4]/q |');
+    expect(() =>
+      applyScoreCommand(node, { type: 'removeChordHead', barIndex: 0, noteIndex: 0, pitchIndex: 5 }),
+    ).toThrow(CommandError);
+  });
+
   it('setTimeSignature resets bars to a single empty bar', () => {
     const node = score('score 4/4\n  C4/q D4/q E4/q F4/q |');
     const next = applyScoreCommand(node, {

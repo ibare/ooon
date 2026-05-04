@@ -8,6 +8,7 @@ import {
   pitchToFrequency,
   pitchToMidi,
   NoteParseError,
+  stepPitch,
   transposePitch,
 } from './notes.js';
 
@@ -111,5 +112,59 @@ describe('transposePitch', () => {
 
   it('uses flats when requested', () => {
     expect(transposePitch('C4', 1, true)).toBe('Db4');
+  });
+});
+
+describe('stepPitch — ↑은 ♯ 우선, ↓은 ♭ 우선 (Oon UI 정책)', () => {
+  it('자연음 ↑ 반복: C → C♯ → D → D♯ → E → F → F♯ → G → G♯ → A → A♯ → B → C5', () => {
+    const seq = ['C4'];
+    for (let i = 0; i < 12; i += 1) {
+      seq.push(stepPitch(seq[seq.length - 1]!, 'up'));
+    }
+    expect(seq).toEqual([
+      'C4', 'C#4', 'D4', 'D#4', 'E4', 'F4', 'F#4', 'G4', 'G#4', 'A4', 'A#4', 'B4', 'C5',
+    ]);
+  });
+
+  it('자연음 ↓ 반복: C5 → B → B♭ → A → A♭ → G → G♭ → F → E → E♭ → D → D♭ → C4', () => {
+    const seq = ['C5'];
+    for (let i = 0; i < 12; i += 1) {
+      seq.push(stepPitch(seq[seq.length - 1]!, 'down'));
+    }
+    expect(seq).toEqual([
+      'C5', 'B4', 'Bb4', 'A4', 'Ab4', 'G4', 'Gb4', 'F4', 'E4', 'Eb4', 'D4', 'Db4', 'C4',
+    ]);
+  });
+
+  it('E↔F, B↔C 자연 반음은 임시표 없이 위치만 이동(E♯/B♯/F♭/C♭ 금지)', () => {
+    expect(stepPitch('E4', 'up')).toBe('F4');
+    expect(stepPitch('B4', 'up')).toBe('C5');
+    expect(stepPitch('F4', 'down')).toBe('E4');
+    expect(stepPitch('C4', 'down')).toBe('B3');
+  });
+
+  it('시작이 ♯이고 ↓: 임시표 풀림 (D♯ + ↓ = D)', () => {
+    expect(stepPitch('D#4', 'down')).toBe('D4');
+    expect(stepPitch('G#4', 'down')).toBe('G4');
+  });
+
+  it('시작이 ♭이고 ↑: 임시표 풀림 (D♭ + ↑ = D)', () => {
+    expect(stepPitch('Db4', 'up')).toBe('D4');
+    expect(stepPitch('Ab4', 'up')).toBe('A4');
+  });
+
+  it('시작이 ♯이고 ↑: 한 단계 위 자연음 (D♯ + ↑ = E)', () => {
+    expect(stepPitch('D#4', 'up')).toBe('E4');
+    expect(stepPitch('A#4', 'up')).toBe('B4');
+  });
+
+  it('시작이 ♭이고 ↓: 한 단계 아래로 새 ♭ (D♭ + ↓ = C, A♭ + ↓ = G)', () => {
+    expect(stepPitch('Db4', 'down')).toBe('C4');
+    expect(stepPitch('Ab4', 'down')).toBe('G4');
+  });
+
+  it('octave wrap: B4 + ↑ = C5, C4 + ↓ = B3', () => {
+    expect(stepPitch('B4', 'up')).toBe('C5');
+    expect(stepPitch('C4', 'down')).toBe('B3');
   });
 });

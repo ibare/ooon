@@ -46,6 +46,7 @@ import {
   buildAndPlacePicker,
   PICKER_TOKEN_CELL_PREFIX,
   PICKER_TOKEN_TOGGLE_PREFIX,
+  PICKER_TOKEN_TRANSPOSE_PREFIX,
 } from './render/picker-widget.js';
 import {
   defaultActiveFor,
@@ -283,11 +284,15 @@ export function mountScoreEditor(host: HTMLElement, opts: MountScoreEditorOption
     filteredOptions: ReturnType<typeof filterByCategories>;
   } => {
     const filteredOptions = filterByCategories(picker.options, picker.active);
+    // ▲▼ 좌측 컬럼은 replace 컨텍스트의 음표(=화음 head 1개 이상) source일 때만 노출.
+    // 쉼표 source(currentPitches가 빈 배열)에서는 음정 이동 의미가 없어 컬럼 자체를 띄우지 않는다.
+    const showTranspose = picker.kind === 'replace' && picker.currentPitches.length > 0;
     const placed = buildAndPlacePicker({
       context: picker.kind,
       filteredOptions,
       active: picker.active,
       hoveredToken: picker.hoveredToken,
+      showTranspose,
       anchorX: picker.anchorX,
       anchorY: picker.anchorY,
       contentWidth: picker.contentWidth,
@@ -307,7 +312,13 @@ export function mountScoreEditor(host: HTMLElement, opts: MountScoreEditorOption
     if (cellIdx === null) return;
     const filtered = filterByCategories(picker.options, picker.active);
     const option = filtered[cellIdx];
-    if (!option || option.kind === 'setTimeSignature') return;
+    if (!option) return;
+    // 박자 점유에 변화 없는 옵션(setTimeSignature는 마디 자체 초기화, removeChordHead는
+    // 동일 자리 head 조작)은 핑크 미리보기를 띄우지 않는다. addChordPitch는 동일 duration이므로
+    // 점유 영역(=원래 자리)이 그대로지만, "여기에 head 추가" 시각 신호를 위해 동일 영역에 표시한다.
+    if (option.kind === 'setTimeSignature' || option.kind === 'removeChordHead') {
+      return;
+    }
     if (!layout) return;
     const startBeat = picker.kind === 'insert' ? picker.beatIndex : picker.startBeat;
     const rect = previewOccupancyRect(
@@ -491,6 +502,13 @@ export function mountScoreEditor(host: HTMLElement, opts: MountScoreEditorOption
         if (option) commitPickerChoice(option);
         return;
       }
+      // ▲▼ transpose 클릭: picker는 닫지 않고 현재 음표를 한 반음 올리/내린 뒤 옵션을 재계산.
+      // 사용자가 같은 버튼을 연속으로 누르면 계속 이동되도록 state.picker가 유지된다.
+      const transposeDir = parseTransposeToken(token);
+      if (transposeDir !== null) {
+        applyTranspose(transposeDir);
+        return;
+      }
       const toggleId = parseToggleToken(token, PICKER_TOKEN_TOGGLE_PREFIX);
       if (toggleId !== null) {
         const ctx = state.picker.kind;
@@ -607,6 +625,7 @@ export function mountScoreEditor(host: HTMLElement, opts: MountScoreEditorOption
     const options = buildReplaceOptions({
       currentDuration: current.duration,
       currentIsRest: current.isRest,
+      currentPitches: current.pitches,
       beatsPerBar,
       otherUsedBeats,
       beatValue: node.timeSignature.beatValue,
@@ -630,6 +649,11 @@ export function mountScoreEditor(host: HTMLElement, opts: MountScoreEditorOption
         barIndex: hit.barIndex,
         noteIndex: hit.noteIndex,
         startBeat,
+        // ▲▼ 컬럼 노출 여부 + 옵션 재계산용 컨텍스트.
+        // currentPitches는 ▲▼/addChord/removeHead 클릭으로 음표가 변할 때마다 latest 스냅샷으로 갱신된다.
+        currentPitches: current.pitches,
+        currentDuration: current.duration,
+        currentIsRest: current.isRest,
       },
       // replace 컨텍스트는 ghost preview를 쓰지 않는다(이미 본 음표가 자리에 있음).
       ghostPreview: null,
@@ -746,6 +770,40 @@ export function mountScoreEditor(host: HTMLElement, opts: MountScoreEditorOption
         }
         break;
       }
+      case 'addChordPitch': {
+        if (picker.kind !== 'replace') break;
+        const before = editable.getNode().bars[picker.barIndex]?.notes[picker.noteIndex];
+        try {
+          editable.dispatch({
+            type: 'addChordPitch',
+            barIndex: picker.barIndex,
+            noteIndex: picker.noteIndex,
+            pitch: option.pitch,
+          });
+        } catch (err) {
+          if (opts.onError) opts.onError(err);
+          else console.warn('[oon/editor-web] addChordPitch failed', err);
+          break;
+        }
+        if (before) void preview.previewNote(option.pitch, before.duration);
+        break;
+      }
+      case 'removeChordHead': {
+        if (picker.kind !== 'replace') break;
+        try {
+          editable.dispatch({
+            type: 'removeChordHead',
+            barIndex: picker.barIndex,
+            noteIndex: picker.noteIndex,
+            pitchIndex: option.pitchIndex,
+          });
+        } catch (err) {
+          if (opts.onError) opts.onError(err);
+          else console.warn('[oon/editor-web] removeChordHead failed', err);
+        }
+        // 제거는 무음 — preview 없음.
+        break;
+      }
       case 'setTimeSignature': {
         if (picker.kind !== 'timeSig') break;
         // 박자 변경은 마디 초기화 부작용 — applyScoreCommand 스펙 명세("전환 시 기존 음표는 초기화").
@@ -825,6 +883,74 @@ export function mountScoreEditor(host: HTMLElement, opts: MountScoreEditorOption
     if (!token.startsWith(prefix)) return null;
     const n = Number(token.slice(prefix.length));
     return Number.isFinite(n) ? n : null;
+  };
+
+  const parseTransposeToken = (token: string): 'up' | 'down' | null => {
+    if (token === `${PICKER_TOKEN_TRANSPOSE_PREFIX}:up`) return 'up';
+    if (token === `${PICKER_TOKEN_TRANSPOSE_PREFIX}:down`) return 'down';
+    return null;
+  };
+
+  // ▲▼ 클릭 처리. picker는 열린 채로 유지되어 사용자가 연속 transpose 가능.
+  // 변경 후 모델에서 latest pitches를 다시 읽어 picker.options(removeChordHead/addChord 기본 pitch 등)를
+  // 재계산하고, currentPitches/state.picker도 함께 갱신한다.
+  const applyTranspose = (direction: 'up' | 'down'): void => {
+    const picker = state.picker;
+    if (!picker || picker.kind !== 'replace') return;
+    const before = editable.getNode().bars[picker.barIndex]?.notes[picker.noteIndex];
+    try {
+      editable.dispatch({
+        type: 'transposeNote',
+        barIndex: picker.barIndex,
+        noteIndex: picker.noteIndex,
+        direction,
+      });
+    } catch (err) {
+      if (opts.onError) opts.onError(err);
+      else console.warn('[oon/editor-web] transposeNote failed', err);
+      return;
+    }
+    const node = editable.getNode();
+    const after = node.bars[picker.barIndex]?.notes[picker.noteIndex];
+    if (after && !after.isRest && after.pitches.length > 0 && before) {
+      void preview.previewNote(after.pitches[after.pitches.length - 1]!, before.duration);
+    }
+    rebuild();
+    // 옵션 재계산 — pitch 변경에 따라 removeChordHead 라벨, addChord 기본 pitch 등이 달라진다.
+    const bar = editable.getNode().bars[picker.barIndex];
+    const updated = bar?.notes[picker.noteIndex];
+    if (!bar || !updated) {
+      // 이론상 도달 불가하지만 안전 차원에서 picker만 닫는다.
+      closePicker();
+      return;
+    }
+    const beatsPerBar = editable.getNode().timeSignature.beats;
+    const otherUsedBeats = bar.notes.reduce(
+      (sum, n, i) => (i === picker.noteIndex ? sum : sum + n.beats),
+      0,
+    );
+    const nextOptions = buildReplaceOptions({
+      currentDuration: updated.duration,
+      currentIsRest: updated.isRest,
+      currentPitches: updated.pitches,
+      beatsPerBar,
+      otherUsedBeats,
+      beatValue: editable.getNode().timeSignature.beatValue,
+    });
+    state = {
+      ...state,
+      picker: {
+        ...picker,
+        options: nextOptions,
+        currentPitches: updated.pitches,
+        currentDuration: updated.duration,
+        currentIsRest: updated.isRest,
+        // hover된 셀의 인덱스가 새 옵션 배열에서도 유효하다는 보장은 없지만, 그리드 자체가 동일
+        // duration/카테고리 분포면 동일 인덱스를 유지해도 시각적으로 자연스러움 — 다음 move에서
+        // 어차피 정확한 token으로 갱신된다. 단순화 위해 그대로 둔다.
+      },
+    };
+    paint();
   };
 
   const pickFitDuration = (remain: number): 'q' | 'h' | 'w' | 'e' | 's' | null => {

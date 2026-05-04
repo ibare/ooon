@@ -82,3 +82,12 @@ export function pitchClassOf(noteName: string): number {
 export function transposePitch(input: string, semitones: number, useFlats = false): string {
   return midiToPitch(pitchToMidi(input) + semitones, useFlats);
 }
+
+// UI의 ↑/↓ 동작용 한 단계(=반음) 이동. ↑은 ♯ 우선, ↓은 ♭ 우선으로 자동 표기.
+// midiToPitch가 SHARP/FLAT_NAMES 표를 쓰므로 E♯/B♯/F♭/C♭은 절대 생성되지 않는다(E↔F, B↔C는 위치만 이동).
+// 시작이 ♯/♭이고 반대 방향으로 한 단계 가면 임시표가 풀린다(예: D♭ + ↑ = D, D♯ + ↓ = D).
+// 옥타브 wrap도 midi 기준으로 자동 처리(B4 + ↑ = C5, C4 + ↓ = B3).
+export function stepPitch(input: string, direction: 'up' | 'down'): string {
+  const delta = direction === 'up' ? 1 : -1;
+  return transposePitch(input, delta, direction === 'down');
+}

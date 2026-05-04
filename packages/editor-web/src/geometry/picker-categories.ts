@@ -1,8 +1,10 @@
 // 픽커 컨텍스트별 카테고리 스펙 + 옵션→카테고리 분류 함수.
 //
 // 정책:
-//   - insert/replace 컨텍스트: 4개 카테고리(note/dotted/rest/dotted-rest, multi 모드).
+//   - insert 컨텍스트: 4개 카테고리(note/dotted/rest/dotted-rest, multi 모드).
 //     기본 활성은 'note'만 — 초보자는 음표만 보고, 점음표/쉼표가 필요해질 때 토글한다.
+//   - replace 컨텍스트: 위 4개 + 'pitch'(음정 ▲▼ + 화음 head 추가/제거). 기본 활성 'note'+'pitch' —
+//     음표 클릭 시 가장 흔한 액션이 음정 미세 조정과 화음 쌓기이므로 즉시 노출.
 //   - timeSig 컨텍스트: 2개 카테고리(simple/compound, single 모드).
 //     기본 활성은 'simple'.
 //
@@ -36,8 +38,22 @@ const CAT_NOTE: PickerCategory = { id: 'note', label: '음표' };
 const CAT_DOTTED: PickerCategory = { id: 'dotted', label: '점음표' };
 const CAT_REST: PickerCategory = { id: 'rest', label: '쉼표' };
 const CAT_DOTTED_REST: PickerCategory = { id: 'dotted-rest', label: '점쉼표' };
+// replace 전용 — 음정 이동(▲▼)과 화음 head 추가/제거 옵션을 묶는 카테고리.
+const CAT_PITCH: PickerCategory = { id: 'pitch', label: '음정' };
 
-const NOTE_CATEGORIES: readonly PickerCategory[] = [CAT_NOTE, CAT_DOTTED, CAT_REST, CAT_DOTTED_REST];
+const INSERT_CATEGORIES: readonly PickerCategory[] = [
+  CAT_NOTE,
+  CAT_DOTTED,
+  CAT_REST,
+  CAT_DOTTED_REST,
+];
+const REPLACE_CATEGORIES: readonly PickerCategory[] = [
+  CAT_NOTE,
+  CAT_DOTTED,
+  CAT_REST,
+  CAT_DOTTED_REST,
+  CAT_PITCH,
+];
 
 // 단순박/복합박 — 음악 용어 그대로지만, 사용자가 더 직관적으로 인지하도록 '기본'/'복합'.
 const CAT_SIMPLE: PickerCategory = { id: 'simple', label: '기본' };
@@ -47,13 +63,14 @@ const CAT_COMPOUND: PickerCategory = { id: 'compound', label: '복합' };
 export const PICKER_CATEGORY_SPECS: Readonly<Record<PickerContext, PickerCategorySpec>> = {
   insert: {
     mode: 'multi',
-    categories: NOTE_CATEGORIES,
+    categories: INSERT_CATEGORIES,
     defaultActive: ['note'],
   },
   replace: {
     mode: 'multi',
-    categories: NOTE_CATEGORIES,
-    defaultActive: ['note'],
+    categories: REPLACE_CATEGORIES,
+    // 음표 클릭 직후 가장 흔한 액션이 음정 미세 조정/화음 쌓기 → 'pitch'도 기본 활성.
+    defaultActive: ['note', 'pitch'],
   },
   timeSig: {
     mode: 'single',
@@ -66,6 +83,7 @@ export const PICKER_CATEGORY_SPECS: Readonly<Record<PickerContext, PickerCategor
  * 옵션이 어느 카테고리에 속하는지 분류.
  * - insertNote/replaceNote → 'dotted' if dotted else 'note'
  * - insertRest/replaceWithRest → 'dotted-rest' if dotted else 'rest'
+ * - addChordPitch/removeChordHead → 'pitch' (음정/화음 조작; ▲▼는 별도 컬럼이라 그리드 옵션 아님)
  * - setTimeSignature → 'compound' if isCompoundMeter else 'simple'
  */
 export function categoryOf(option: PickerOption): string {
@@ -76,6 +94,9 @@ export function categoryOf(option: PickerOption): string {
     case 'insertRest':
     case 'replaceWithRest':
       return option.dotted ? 'dotted-rest' : 'rest';
+    case 'addChordPitch':
+    case 'removeChordHead':
+      return 'pitch';
     case 'setTimeSignature':
       return isCompoundMeter(option.timeSignature) ? 'compound' : 'simple';
   }

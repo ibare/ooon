@@ -96,72 +96,125 @@ describe('buildPickerOptions', () => {
 });
 
 describe('buildReplaceOptions', () => {
-  it('현재 음표 q (other=0, 4/4) → q 음표만 빠진 17개 (음표8 + 쉼표9)', () => {
+  it('현재 음표 q 단음 (other=0, 4/4) → 같은 duration q는 addChordPitch로 발행, removeHead는 없음', () => {
     const opts = buildReplaceOptions({
       currentDuration: 'q',
       currentIsRest: false,
+      currentPitches: ['C4'],
       beatsPerBar: 4,
       otherUsedBeats: 0,
       beatValue: 4,
     });
-    const notes = opts.filter((o) => o.kind === 'replaceNote');
+    const replaceNotes = opts.filter((o) => o.kind === 'replaceNote');
+    const addChord = opts.filter((o) => o.kind === 'addChordPitch');
     const rests = opts.filter((o) => o.kind === 'replaceWithRest');
-    expect(notes.length).toBe(8);
+    const removeHead = opts.filter((o) => o.kind === 'removeChordHead');
+    // 음표 9종 중 q는 addChordPitch로, 나머지 8종은 replaceNote.
+    expect(replaceNotes.length).toBe(8);
+    expect(replaceNotes.some((o) => o.duration === 'q')).toBe(false);
+    expect(addChord.length).toBe(1);
+    expect(addChord[0]?.duration).toBe('q');
+    // 쉼표는 모두 그대로 (kind가 다르므로 자기 자신 아님)
     expect(rests.length).toBe(9);
-    expect(notes.some((o) => o.duration === 'q')).toBe(false);
-    // 같은 duration의 쉼표는 남는다 (kind가 다르므로 자기 자신 아님)
-    expect(rests.some((o) => o.duration === 'q')).toBe(true);
+    // 단음(=1 head) → removeChordHead 옵션 없음.
+    expect(removeHead.length).toBe(0);
+    // ▲▼ transpose는 picker 좌측 독립 컬럼이라 옵션 배열에 포함되지 않는다.
+    expect(opts.some((o) => (o as { kind: string }).kind === 'transposeNote')).toBe(false);
   });
 
-  it('현재 쉼표 q (other=0, 4/4) → q 쉼표만 빠진 17개 (음표9 + 쉼표8)', () => {
+  it('현재 음표 q 화음 [C4 E4 G4] → addChordPitch + head 3개 모두 노출', () => {
+    const opts = buildReplaceOptions({
+      currentDuration: 'q',
+      currentIsRest: false,
+      currentPitches: ['C4', 'E4', 'G4'],
+      beatsPerBar: 4,
+      otherUsedBeats: 0,
+      beatValue: 4,
+    });
+    const removeHead = opts.filter((o) => o.kind === 'removeChordHead');
+    expect(removeHead.length).toBe(3);
+    expect(removeHead.map((o) => o.pitch)).toEqual(['C4', 'E4', 'G4']);
+    expect(removeHead.map((o) => o.pitchIndex)).toEqual([0, 1, 2]);
+  });
+
+  it('현재 쉼표 q (other=0, 4/4) → q 쉼표만 빠짐, 화음 옵션 없음', () => {
     const opts = buildReplaceOptions({
       currentDuration: 'q',
       currentIsRest: true,
+      currentPitches: [],
       beatsPerBar: 4,
       otherUsedBeats: 0,
       beatValue: 4,
     });
     const notes = opts.filter((o) => o.kind === 'replaceNote');
+    const addChord = opts.filter((o) => o.kind === 'addChordPitch');
     const rests = opts.filter((o) => o.kind === 'replaceWithRest');
+    const removeHead = opts.filter((o) => o.kind === 'removeChordHead');
     expect(notes.length).toBe(9);
+    expect(addChord.length).toBe(0);
     expect(rests.length).toBe(8);
     expect(rests.some((o) => o.duration === 'q')).toBe(false);
     expect(notes.some((o) => o.duration === 'q')).toBe(true);
+    // 쉼표 source는 화음 옵션 발행 안 함.
+    expect(removeHead.length).toBe(0);
   });
 
-  it('마디가 꽉 찬 4/4에서 q 음표 클릭(other=3) → allowed=1, q 이하만 + 자기 q 음표 제외', () => {
+  it('마디가 꽉 찬 4/4에서 q 단음 클릭(other=3) → allowed=1, q 이하만 + q는 addChordPitch', () => {
     const opts = buildReplaceOptions({
       currentDuration: 'q',
       currentIsRest: false,
+      currentPitches: ['C4'],
       beatsPerBar: 4,
       otherUsedBeats: 3,
       beatValue: 4,
     });
     const notes = opts.filter((o) => o.kind === 'replaceNote');
+    const addChord = opts.filter((o) => o.kind === 'addChordPitch');
     const rests = opts.filter((o) => o.kind === 'replaceWithRest');
-    // allowed=1: 음표 q.(1.5) h h. w 빠짐 → q,e.,e,s.,s 5개에서 자기 q 빼면 4개
+    // allowed=1: 음표 후보 q.(1.5) h h. w 빠짐 → q,e.,e,s.,s 5개. q는 addChord, 나머지 4개 replace.
     expect(notes.map((o) => o.duration).sort()).toEqual(['e', 'e.', 's', 's.']);
+    expect(addChord.length).toBe(1);
+    expect(addChord[0]?.duration).toBe('q');
     // 쉼표는 q,e,s, e., s. 5개 모두 (자기는 음표 q이므로 쉼표 q는 남음)
     expect(rests.map((o) => o.duration).sort()).toEqual(['e', 'e.', 'q', 's', 's.']);
   });
 
-  it('점음표 q. 클릭(other=0) → q. 만 빠지고 q는 남음', () => {
+  it('점음표 q. 단음 클릭(other=0) → q.는 addChordPitch, q는 replaceNote 그대로', () => {
     const opts = buildReplaceOptions({
       currentDuration: 'q.',
       currentIsRest: false,
+      currentPitches: ['C4'],
       beatsPerBar: 4,
       otherUsedBeats: 0,
       beatValue: 4,
     });
     const notes = opts.filter((o) => o.kind === 'replaceNote');
+    const addChord = opts.filter((o) => o.kind === 'addChordPitch');
     expect(notes.some((o) => o.duration === 'q.')).toBe(false);
     expect(notes.some((o) => o.duration === 'q')).toBe(true);
+    expect(addChord.length).toBe(1);
+    expect(addChord[0]?.duration).toBe('q.');
+  });
+
+  it('addChordPitch 기본 추가 pitch는 최고음 + 4 semitone (장3도)', () => {
+    const opts = buildReplaceOptions({
+      currentDuration: 'q',
+      currentIsRest: false,
+      currentPitches: ['C4', 'E4'],
+      beatsPerBar: 4,
+      otherUsedBeats: 0,
+      beatValue: 4,
+    });
+    const addChord = opts.find((o) => o.kind === 'addChordPitch');
+    // E4 + 4 semitone = G#4 (♯ 우선)
+    expect(addChord?.pitch).toBe('G#4');
   });
 
   it('allowed=0이면 빈 배열', () => {
     const opts = buildReplaceOptions({
       currentDuration: 'q',
       currentIsRest: false,
+      currentPitches: ['C4'],
       beatsPerBar: 4,
       otherUsedBeats: 4,
       beatValue: 4,

@@ -10,6 +10,7 @@ export {
   noteName,
   pitchClassOf,
   transposePitch,
+  stepPitch,
 } from './notes.js';
 export type { NoteLetter, ParsedPitch } from './notes.js';
 

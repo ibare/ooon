@@ -1,4 +1,4 @@
-import { durationToBeats } from '@oon/core';
+import { durationToBeats, stepPitch } from '@oon/core';
 import type { DurationSymbol, NoteEvent, ScoreBar, ScoreNode, TimeSignature } from '@oon/core';
 
 export interface InsertNoteCommand {
@@ -37,13 +37,45 @@ export interface AppendBarCommand {
   type: 'appendBar';
 }
 
+// 음표/화음의 모든 head를 한 단계 ↑/↓ 이동(반음, ↑은 ♯ 우선/↓은 ♭ 우선).
+// 화음은 head별 독립 적용 → 결과적으로 모든 head가 같은 semitone만큼 이동.
+// 쉼표 대상은 거부.
+export interface TransposeNoteCommand {
+  type: 'transposeNote';
+  barIndex: number;
+  noteIndex: number;
+  direction: 'up' | 'down';
+}
+
+// 음표에 새 pitch를 추가해 화음을 만들거나 화음에 head를 더한다.
+// 단음→화음 강등 같은 별도 모드 분기는 없음(pitches.length로 자동 결정).
+// 중복 pitch는 거부, 쉼표 대상도 거부.
+export interface AddChordPitchCommand {
+  type: 'addChordPitch';
+  barIndex: number;
+  noteIndex: number;
+  pitch: string;
+}
+
+// 화음에서 특정 pitch index의 head를 제거. 마지막 head는 보존(거부) — 강등은 자동(pitches.length===1).
+// 음표 자체를 삭제하거나 쉼표로 바꾸려면 별도 명령(replaceWithRest 등) 사용.
+export interface RemoveChordHeadCommand {
+  type: 'removeChordHead';
+  barIndex: number;
+  noteIndex: number;
+  pitchIndex: number;
+}
+
 export type ScoreCommand =
   | InsertNoteCommand
   | InsertRestCommand
   | ReplaceNoteCommand
   | ReplaceWithRestCommand
   | SetTimeSignatureCommand
-  | AppendBarCommand;
+  | AppendBarCommand
+  | TransposeNoteCommand
+  | AddChordPitchCommand
+  | RemoveChordHeadCommand;
 
 export class CommandError extends Error {
   constructor(message: string) {
@@ -68,6 +100,12 @@ export function applyScoreCommand(node: ScoreNode, cmd: ScoreCommand): ScoreNode
       return applySetTimeSignature(node, cmd);
     case 'appendBar':
       return applyAppendBar(node);
+    case 'transposeNote':
+      return applyTransposeNote(node, cmd);
+    case 'addChordPitch':
+      return applyAddChordPitch(node, cmd);
+    case 'removeChordHead':
+      return applyRemoveChordHead(node, cmd);
   }
 }
 
@@ -201,4 +239,83 @@ function applyAppendBar(node: ScoreNode): ScoreNode {
   const nextNumber = last ? last.barNumber + 1 : 1;
   const newBar: ScoreBar = { barNumber: nextNumber, notes: [] };
   return { ...node, bars: [...node.bars, newBar], warnings: [] };
+}
+
+function getNoteOrThrow(
+  node: ScoreNode,
+  barIndex: number,
+  noteIndex: number,
+  cmdLabel: string,
+): { bar: ScoreBar; note: NoteEvent } {
+  const bar = node.bars[barIndex];
+  if (!bar) throw new CommandError(`${cmdLabel}: bar ${barIndex} not found`);
+  const note = bar.notes[noteIndex];
+  if (!note) {
+    throw new CommandError(`${cmdLabel}: noteIndex ${noteIndex} not found in bar ${barIndex}`);
+  }
+  return { bar, note };
+}
+
+function replaceNoteInBars(
+  node: ScoreNode,
+  barIndex: number,
+  noteIndex: number,
+  newNote: NoteEvent,
+): ScoreNode {
+  const bar = node.bars[barIndex]!;
+  const newNotes = bar.notes.map((n, i) => (i === noteIndex ? newNote : n));
+  const newBar: ScoreBar = { barNumber: bar.barNumber, notes: newNotes };
+  const newBars = node.bars.map((b, i) => (i === barIndex ? newBar : b));
+  return { ...node, bars: newBars, warnings: [] };
+}
+
+function applyTransposeNote(node: ScoreNode, cmd: TransposeNoteCommand): ScoreNode {
+  const { note } = getNoteOrThrow(node, cmd.barIndex, cmd.noteIndex, 'transposeNote');
+  if (note.isRest) {
+    throw new CommandError(
+      `transposeNote: source at bar ${cmd.barIndex} note ${cmd.noteIndex} is a rest`,
+    );
+  }
+  const newPitches = note.pitches.map((p) => stepPitch(p, cmd.direction));
+  const newNote: NoteEvent = { ...note, pitches: newPitches };
+  return replaceNoteInBars(node, cmd.barIndex, cmd.noteIndex, newNote);
+}
+
+function applyAddChordPitch(node: ScoreNode, cmd: AddChordPitchCommand): ScoreNode {
+  const { note } = getNoteOrThrow(node, cmd.barIndex, cmd.noteIndex, 'addChordPitch');
+  if (note.isRest) {
+    throw new CommandError(
+      `addChordPitch: source at bar ${cmd.barIndex} note ${cmd.noteIndex} is a rest`,
+    );
+  }
+  if (note.pitches.includes(cmd.pitch)) {
+    throw new CommandError(
+      `addChordPitch: pitch ${cmd.pitch} already present in chord at bar ${cmd.barIndex} note ${cmd.noteIndex}`,
+    );
+  }
+  const newPitches = [...note.pitches, cmd.pitch];
+  const newNote: NoteEvent = { ...note, pitches: newPitches };
+  return replaceNoteInBars(node, cmd.barIndex, cmd.noteIndex, newNote);
+}
+
+function applyRemoveChordHead(node: ScoreNode, cmd: RemoveChordHeadCommand): ScoreNode {
+  const { note } = getNoteOrThrow(node, cmd.barIndex, cmd.noteIndex, 'removeChordHead');
+  if (note.isRest) {
+    throw new CommandError(
+      `removeChordHead: source at bar ${cmd.barIndex} note ${cmd.noteIndex} is a rest`,
+    );
+  }
+  if (cmd.pitchIndex < 0 || cmd.pitchIndex >= note.pitches.length) {
+    throw new CommandError(
+      `removeChordHead: pitchIndex ${cmd.pitchIndex} out of range (chord size ${note.pitches.length})`,
+    );
+  }
+  if (note.pitches.length <= 1) {
+    throw new CommandError(
+      `removeChordHead: cannot remove the last head (use replaceWithRest to convert to rest, or delete the note)`,
+    );
+  }
+  const newPitches = note.pitches.filter((_, i) => i !== cmd.pitchIndex);
+  const newNote: NoteEvent = { ...note, pitches: newPitches };
+  return replaceNoteInBars(node, cmd.barIndex, cmd.noteIndex, newNote);
 }
