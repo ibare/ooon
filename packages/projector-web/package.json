@@ -2,7 +2,7 @@
   "name": "@oon/projector-web",
   "version": "0.0.0",
   "private": true,
-  "description": "Oon 웹 프로젝터 — Canvas 2D 렌더러 + smplr 오디오 엔진",
+  "description": "Oon 웹 프로젝터 — Canvas 2D 렌더러",
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
@@ -27,12 +27,8 @@
     "@oon/score-engraving": "workspace:*",
     "@oon/shared": "workspace:*"
   },
-  "peerDependencies": {
-    "smplr": ">=0.20.0"
-  },
   "devDependencies": {
     "@oon/tsconfig": "workspace:*",
-    "smplr": "^0.20.0",
     "tsup": "^8.2.4",
     "typescript": "^5.5.4",
     "vitest": "^2.1.1"

@@ -1,5 +1,6 @@
 import type { BlockNode } from '@oon/core';
-import { createCanvasHost, type CanvasHostHandle } from './canvas-host.js';
+import type { TrackMute } from '@oon/shared';
+import { mountBlockView, type BlockViewHandle } from '@oon/projector-web';
 import {
   createControlsBar,
   DEFAULT_LABELS_EN,
@@ -8,7 +9,7 @@ import {
   type TrackKey,
 } from './controls-bar.js';
 import { getAudioEngine, type EngineFactoryOptions } from './audio/engine-factory.js';
-import { playSource, type PlaybackHandle, type TrackMute } from './audio/playback.js';
+import { playSource, type PlaybackHandle } from './audio/playback.js';
 
 export type { TrackMute, PlayerLabels };
 
@@ -44,10 +45,11 @@ export interface BlockPlayerHandle {
 type State = 'idle' | 'loading' | 'playing';
 
 /**
- * Oon 블록 플레이어를 host element에 mount한다.
- * host 안쪽에 컨트롤 바와 캔버스를 자체적으로 생성/관리한다.
+ * 한 블록(score/drum/progression/fretboard/song)의 시각화 + 컨트롤 + 오디오를 묶는 facade.
+ * 시각화는 `@oon/projector-web`의 mountBlockView, 컨트롤은 controls-bar, 오디오는 playSource를
+ * 조립해 만든다. Song 재생 중에는 RAF tick으로 현재 beat을 계산해 blockView.setPlayhead로 주입한다.
  */
-export function mount(host: HTMLElement, opts: BlockPlayerOptions): BlockPlayerHandle {
+export function mountBlockPlayer(host: HTMLElement, opts: BlockPlayerOptions): BlockPlayerHandle {
   if (opts.source === undefined && opts.node === undefined) {
     throw new Error('@oon/player-web: opts.source or opts.node must be provided');
   }
@@ -66,7 +68,7 @@ export function mount(host: HTMLElement, opts: BlockPlayerOptions): BlockPlayerH
   root.appendChild(body);
   host.appendChild(root);
 
-  const canvasHost: CanvasHostHandle = createCanvasHost(body, {
+  const blockView: BlockViewHandle = mountBlockView(body, {
     ...(opts.width !== undefined ? { width: opts.width } : {}),
     ...(opts.showNoteNames !== undefined ? { showNoteNames: opts.showNoteNames } : {}),
     ...(opts.bravuraUrl !== undefined ? { bravuraUrl: opts.bravuraUrl } : {}),
@@ -76,17 +78,45 @@ export function mount(host: HTMLElement, opts: BlockPlayerOptions): BlockPlayerH
   let mute: TrackMute = { ...(opts.mute ?? {}) };
   let audioHandle: PlaybackHandle | null = null;
   let stopTimer: ReturnType<typeof setTimeout> | null = null;
+  let rafId: number | null = null;
+  let playStartMs = 0;
   let lastSource: string | BlockNode = opts.source ?? opts.node!;
+
+  const stopRaf = (): void => {
+    if (rafId !== null) {
+      cancelAnimationFrame(rafId);
+      rafId = null;
+    }
+  };
+
+  // Song 재생 중에만 RAF로 현재 beat을 계산해 blockView에 주입한다.
+  // BPM/duration은 blockView 내부 layout state에 있어 외부에서 직접 못 보므로,
+  // playSource가 돌려준 durationSec과 호출 시 알고 있는 BPM(node에서 추출)을 사용해 beat 환산.
+  const startSongPlayheadRaf = (bpm: number, durationBeats: number): void => {
+    stopRaf();
+    playStartMs = performance.now();
+    const tick = (): void => {
+      const elapsedSec = (performance.now() - playStartMs) / 1000;
+      const beat = Math.min(elapsedSec * (bpm / 60), durationBeats);
+      blockView.setPlayhead(beat);
+      if (beat >= durationBeats) {
+        rafId = null;
+        return;
+      }
+      rafId = requestAnimationFrame(tick);
+    };
+    rafId = requestAnimationFrame(tick);
+  };
 
   const setState = (next: State): void => {
     state = next;
     controls?.setState(state);
-    if (next === 'playing') {
-      if (canvasHost.getKind() === 'song') canvasHost.setPlaying(true);
-      opts.onPlayingChange?.(true);
-    } else {
-      canvasHost.setPlaying(false);
+    if (next !== 'playing') {
+      stopRaf();
+      blockView.setPlayhead(null);
       opts.onPlayingChange?.(false);
+    } else {
+      opts.onPlayingChange?.(true);
     }
   };
 
@@ -101,7 +131,7 @@ export function mount(host: HTMLElement, opts: BlockPlayerOptions): BlockPlayerH
 
   const onMuteToggle = (key: TrackKey): void => {
     mute = { ...mute, [key]: !mute[key] };
-    canvasHost.setMute(mute);
+    blockView.setMute(mute);
     audioHandle?.setMute?.(mute);
     controls?.setMute(mute);
   };
@@ -127,17 +157,17 @@ export function mount(host: HTMLElement, opts: BlockPlayerOptions): BlockPlayerH
 
   const updateChipVisibility = (): void => {
     if (!controls) return;
-    controls.setShowChips(canvasHost.getKind() === 'song');
+    controls.setShowChips(blockView.getKind() === 'song');
   };
 
-  // canvas-host는 폰트 비동기 로드 후 첫 페인트가 일어나므로, 짧은 폴링 대신 setSource 후
+  // blockView는 폰트 비동기 로드 후 첫 페인트가 일어나므로, 짧은 폴링 대신 setSource 후
   // microtask에서 한 번, RAF 한 번 후에 chip 표시를 갱신한다(Song 여부는 파싱 결과에 의존).
   const scheduleChipSync = (): void => {
     queueMicrotask(updateChipVisibility);
     requestAnimationFrame(updateChipVisibility);
   };
 
-  canvasHost.setSource(lastSource);
+  blockView.setSource(lastSource);
   scheduleChipSync();
 
   const play = async (): Promise<void> => {
@@ -154,6 +184,9 @@ export function mount(host: HTMLElement, opts: BlockPlayerOptions): BlockPlayerH
       }
       audioHandle = handle;
       setState('playing');
+      // Song만 시각 플레이헤드가 있다 — blockView가 song일 때만 RAF tick.
+      const songInfo = blockView.getSongTiming();
+      if (songInfo) startSongPlayheadRaf(songInfo.bpm, songInfo.durationBeats);
       stopTimer = setTimeout(() => {
         stopAudio();
         setState('idle');
@@ -176,7 +209,7 @@ export function mount(host: HTMLElement, opts: BlockPlayerOptions): BlockPlayerH
     },
     setMute(next) {
       mute = { ...next };
-      canvasHost.setMute(mute);
+      blockView.setMute(mute);
       audioHandle?.setMute?.(mute);
       controls?.setMute(mute);
     },
@@ -184,14 +217,18 @@ export function mount(host: HTMLElement, opts: BlockPlayerOptions): BlockPlayerH
       stopAudio();
       if (state !== 'idle') setState('idle');
       lastSource = source;
-      canvasHost.setSource(source);
+      blockView.setSource(source);
       scheduleChipSync();
     },
     dispose() {
       stopAudio();
+      stopRaf();
       controls?.dispose();
-      canvasHost.dispose();
+      blockView.dispose();
       if (host.contains(root)) host.removeChild(root);
     },
   };
 }
+
+/** 호환 별칭 — 기존 사용처가 `mount`로 import한 경우를 위해 유지. */
+export const mount = mountBlockPlayer;

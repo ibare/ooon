@@ -1,5 +1,6 @@
 import type { AudioEngine } from '@oon/shared';
-import { CanvasProjector, SmplrAudioEngine, loadBravura } from '@oon/projector-web';
+import { SmplrAudioEngine } from '@oon/audio-engine-web';
+import { CanvasProjector, loadBravura } from '@oon/projector-web';
 
 export interface OonRuntimeOptions {
   bravuraUrl?: string;

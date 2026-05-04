@@ -1,8 +1,8 @@
 {
-  "name": "@oon/plugin-tiptap",
+  "name": "@oon/audio-engine-web",
   "version": "0.0.0",
   "private": true,
-  "description": "Oon Tiptap 플러그인 — 코드 펜스/인라인 코드에서 DSL 감지",
+  "description": "Oon AudioEngine 인터페이스의 smplr 기반 웹 어댑터 — 재생기/편집기/플러그인이 공유",
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
@@ -21,22 +21,14 @@
     "clean": "rm -rf dist .tsbuildinfo"
   },
   "dependencies": {
-    "@oon/audio-engine-web": "workspace:*",
-    "@oon/composition": "workspace:*",
-    "@oon/core": "workspace:*",
-    "@oon/instrument-layouts": "workspace:*",
-    "@oon/projector-web": "workspace:*",
-    "@oon/score-engraving": "workspace:*",
     "@oon/shared": "workspace:*"
   },
   "peerDependencies": {
-    "@tiptap/core": ">=2.6.0",
-    "@tiptap/pm": ">=2.6.0"
+    "smplr": ">=0.20.0"
   },
   "devDependencies": {
     "@oon/tsconfig": "workspace:*",
-    "@tiptap/core": "^2.6.6",
-    "@tiptap/pm": "^2.6.6",
+    "smplr": "^0.20.0",
     "tsup": "^8.2.4",
     "typescript": "^5.5.4",
     "vitest": "^2.1.1"

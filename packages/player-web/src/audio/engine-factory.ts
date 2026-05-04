@@ -1,5 +1,5 @@
 import type { AudioEngine } from '@oon/shared';
-import { SmplrAudioEngine } from '@oon/projector-web';
+import { SmplrAudioEngine } from '@oon/audio-engine-web';
 
 export interface EngineFactoryOptions {
   /** 샘플 자원 base URL. 미지정 시 'samples' (host base 상대). */

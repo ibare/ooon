@@ -1,6 +1,6 @@
-import type { TrackMute } from './audio/playback.js';
+import type { TrackKey, TrackMute } from '@oon/shared';
 
-export type TrackKey = 'chord' | 'melody' | 'drum';
+export type { TrackKey };
 export type PlayState = 'idle' | 'loading' | 'playing';
 
 export interface PlayerLabels {

@@ -1,4 +1,4 @@
-import type { AudioEngine, DrumSample } from '@oon/shared';
+import type { AudioEngine, DrumSample, TrackMute } from '@oon/shared';
 import {
   parseBlock,
   type BlockNode,
@@ -10,11 +10,7 @@ import {
   type SongNode,
 } from '@oon/core';
 
-export interface TrackMute {
-  chord?: boolean;
-  melody?: boolean;
-  drum?: boolean;
-}
+export type { TrackMute };
 
 export interface PlaybackHandle {
   stop(): void;

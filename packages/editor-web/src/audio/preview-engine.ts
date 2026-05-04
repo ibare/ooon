@@ -1,4 +1,4 @@
-import { SmplrAudioEngine, type SmplrAudioEngineOptions } from '@oon/projector-web';
+import { SmplrAudioEngine, type SmplrAudioEngineOptions } from '@oon/audio-engine-web';
 
 // 노트 미리듣기용 단일 SmplrAudioEngine. 첫 호출 시 lazy init.
 // peerDependency `smplr` 미설치/init 실패 시 onError 통지 후 silent fallback.

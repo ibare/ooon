@@ -21,6 +21,7 @@
     "clean": "rm -rf dist .tsbuildinfo"
   },
   "dependencies": {
+    "@oon/audio-engine-web": "workspace:*",
     "@oon/composition": "workspace:*",
     "@oon/core": "workspace:*",
     "@oon/instrument-layouts": "workspace:*",
@@ -28,12 +29,8 @@
     "@oon/score-engraving": "workspace:*",
     "@oon/shared": "workspace:*"
   },
-  "peerDependencies": {
-    "smplr": ">=0.20.0"
-  },
   "devDependencies": {
     "@oon/tsconfig": "workspace:*",
-    "smplr": "^0.20.0",
     "tsup": "^8.2.4",
     "typescript": "^5.5.4",
     "vitest": "^2.1.1"

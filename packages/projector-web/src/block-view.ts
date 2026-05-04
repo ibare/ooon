@@ -1,4 +1,5 @@
 import { parseBlock, type BlockNode, type SongNode } from '@oon/core';
+import type { TrackMute } from '@oon/shared';
 import {
   calculateDrumLayout,
   calculateFretboardLayout,
@@ -13,21 +14,18 @@ import {
   getSongActiveNotes,
   type SongLayout,
 } from '@oon/composition';
-import {
-  CanvasProjector,
-  drawKeyboardHighlights,
-  drawSongDrumHits,
-  drawSongPlayheadOverlay,
-  loadBravura,
-  renderDrum,
-  renderFretboard,
-  renderProgression,
-  renderScore,
-  renderSong,
-} from '@oon/projector-web';
-import type { TrackMute } from './audio/playback.js';
+import { CanvasProjector } from './canvas-projector.js';
+import { loadBravura } from './font-loader.js';
+import { renderScore } from './renderers/score-renderer.js';
+import { renderDrum } from './renderers/drum-renderer.js';
+import { renderProgression } from './renderers/progression-renderer.js';
+import { renderFretboard } from './renderers/fretboard-renderer.js';
+import { renderSong } from './renderers/song-renderer.js';
+import { drawSongPlayheadOverlay } from './renderers/playhead-overlay.js';
+import { drawKeyboardHighlights } from './renderers/keyboard-highlights.js';
+import { drawSongDrumHits } from './renderers/drum-hits.js';
 
-export interface CanvasHostOptions {
+export interface BlockViewOptions {
   /** 작성자 의도 콘텐츠 폭. 미지정 시 컨테이너 폭 자동. */
   width?: number;
   showNoteNames?: boolean;
@@ -35,7 +33,9 @@ export interface CanvasHostOptions {
   bravuraUrl?: string;
 }
 
-export type ParsedLayout =
+export type BlockViewKind = 'score' | 'drum' | 'progression' | 'fretboard' | 'song';
+
+export type ParsedBlockLayout =
   | { kind: 'score'; layout: ScoreLayout; node: BlockNode }
   | { kind: 'drum'; layout: DrumLayout; node: BlockNode }
   | { kind: 'progression'; layout: ProgressionLayout; node: BlockNode }
@@ -49,10 +49,33 @@ export type ParsedLayout =
       durationBeats: number;
     };
 
+export interface BlockViewHandle {
+  /** DSL 소스 또는 미리 파싱된 노드를 교체한다. 파싱 후 즉시 idle 페인트. */
+  setSource(source: string | BlockNode): void;
+  /** 트랙 mute 갱신. 즉시 재페인트. */
+  setMute(mute: TrackMute): void;
+  /**
+   * Song 재생 중인 비트 위치를 외부에서 주입한다(0 ≤ beat ≤ durationBeats).
+   * `null`은 정지 상태(idle 페인트, 플레이헤드/하이라이트 제거).
+   * Song 외 블록에는 무시되고 항상 idle 페인트.
+   */
+  setPlayhead(beat: number | null): void;
+  /** 현재 파싱된 블록 종류. 파싱 실패 시 null. */
+  getKind(): BlockViewKind | null;
+  /**
+   * Song 블록일 때만 timing 정보를 돌려준다(외부에서 setPlayhead 환산용).
+   * Song이 아니거나 미파싱 상태면 null.
+   */
+  getSongTiming(): { bpm: number; beatsPerBar: number; durationBeats: number } | null;
+  /** 가장 최근 파싱 에러 텍스트. 없으면 빈 문자열. */
+  getErrorText(): string;
+  dispose(): void;
+}
+
 const MIN_AUTO_WIDTH = 320;
 const RESIZE_DEBOUNCE_MS = 80;
 
-function buildLayout(node: BlockNode, width: number): ParsedLayout {
+function buildLayout(node: BlockNode, width: number): ParsedBlockLayout {
   switch (node.type) {
     case 'score':
       return { kind: 'score', layout: calculateScoreLayout(node, { width }), node };
@@ -78,7 +101,7 @@ function buildLayout(node: BlockNode, width: number): ParsedLayout {
 
 function paint(
   projector: CanvasProjector,
-  state: ParsedLayout,
+  state: ParsedBlockLayout,
   showNoteNames: boolean,
   playheadBeat: number | null,
   mute: TrackMute,
@@ -145,30 +168,15 @@ function paint(
   }
 }
 
-export interface CanvasHostHandle {
-  /** DSL 소스 또는 미리 파싱된 노드를 교체한다. 즉시 재레이아웃 후 idle 페인트. */
-  setSource(source: string | BlockNode): void;
-  /** 트랙 mute 갱신. 재생 중이면 다음 RAF tick에서, idle이면 즉시 재페인트. */
-  setMute(mute: TrackMute): void;
-  /** Song에서만 의미. true면 RAF 루프 시작, false면 멈추고 idle 페인트. */
-  setPlaying(playing: boolean): void;
-  /** 레이아웃 종류 — Song만 트랙 chip 대상. */
-  getKind(): ParsedLayout['kind'] | null;
-  /** 호스트가 RAF를 자체 종료하고 idle로 돌리고 싶을 때(예: 외부 audio 종료 트리거). */
-  resetPlayhead(): void;
-  /** 가장 최근 파싱 에러 텍스트. 없으면 빈 문자열. */
-  getErrorText(): string;
-  dispose(): void;
-}
-
 /**
- * Canvas + 레이아웃 + RAF + ResizeObserver 통합 호스트.
- * DOM 두 개를 host에 부착한다: `<canvas>`와 에러 표시용 `<div>`.
+ * 한 블록(score/drum/progression/fretboard/song) 한 개를 자체 캔버스에 그리는 컴포넌트.
+ * host 안에 `<div class="oon-canvas-scroll"><canvas/></div>`와 에러 표시용 `<div>`를 부착한다.
+ *
+ * 시각화 책임만 진다 — DSL 파싱, 레이아웃 계산, Bravura 폰트 로드, ResizeObserver 기반 재페인트,
+ * Song 플레이헤드 오버레이 + 활성 노트 키보드 하이라이트. 재생 timing은 다루지 않는다(외부 호출자가
+ * `setPlayhead(beat)`로 주입). 따라서 오디오 의존성은 없다.
  */
-export function createCanvasHost(
-  host: HTMLElement,
-  opts: CanvasHostOptions = {},
-): CanvasHostHandle {
+export function mountBlockView(host: HTMLElement, opts: BlockViewOptions = {}): BlockViewHandle {
   const scrollEl = document.createElement('div');
   scrollEl.className = 'oon-canvas-scroll';
   const canvas = document.createElement('canvas');
@@ -185,12 +193,10 @@ export function createCanvasHost(
   const projector = new CanvasProjector(canvas);
 
   let currentNode: BlockNode | null = null;
-  let state: ParsedLayout | null = null;
+  let state: ParsedBlockLayout | null = null;
   let containerWidth: number | null = null;
   let mute: TrackMute = {};
-  let playing = false;
-  let rafId: number | null = null;
-  let startTime = 0;
+  let playheadBeat: number | null = null;
   let resizeTimer: ReturnType<typeof setTimeout> | null = null;
   let bravuraLoaded = false;
   let bravuraPromise: Promise<void> | null = null;
@@ -226,32 +232,7 @@ export function createCanvasHost(
     const layoutHeight = built.layout.height;
     const contentScale = Math.min(1, containerWidth / layoutWidth);
     projector.resize(layoutWidth, layoutHeight, { contentScale });
-    paint(projector, built, showNoteNames, null, mute);
-  };
-
-  const stopRaf = (): void => {
-    if (rafId !== null) {
-      cancelAnimationFrame(rafId);
-      rafId = null;
-    }
-  };
-
-  const startRaf = (): void => {
-    stopRaf();
-    if (!state || state.kind !== 'song') return;
-    startTime = performance.now();
-    const tick = (): void => {
-      if (!state || state.kind !== 'song') {
-        rafId = null;
-        return;
-      }
-      const elapsedSec = (performance.now() - startTime) / 1000;
-      const beat = elapsedSec * (state.bpm / 60);
-      const clampedBeat = Math.min(beat, state.durationBeats);
-      paint(projector, state, showNoteNames, clampedBeat, mute);
-      rafId = requestAnimationFrame(tick);
-    };
-    rafId = requestAnimationFrame(tick);
+    paint(projector, built, showNoteNames, playheadBeat, mute);
   };
 
   const ro = new ResizeObserver((entries) => {
@@ -263,7 +244,6 @@ export function createCanvasHost(
       if (containerWidth === w) return;
       containerWidth = w;
       rebuildAndPaint();
-      if (playing) startRaf();
     }, RESIZE_DEBOUNCE_MS);
   });
   ro.observe(host);
@@ -283,7 +263,8 @@ export function createCanvasHost(
           errorEl.textContent = (err as Error).message;
           currentNode = null;
           state = null;
-          stopRaf();
+          playheadBeat = null;
+          projector.clear();
           return;
         }
       } else {
@@ -291,6 +272,7 @@ export function createCanvasHost(
         errorEl.textContent = '';
       }
       currentNode = node;
+      playheadBeat = null;
       void fontPromise().then(() => {
         if (currentNode !== node) return;
         rebuildAndPaint();
@@ -298,35 +280,31 @@ export function createCanvasHost(
     },
     setMute(next) {
       mute = { ...next };
-      if (rafId !== null) return;
-      if (!state) return;
-      paint(projector, state, showNoteNames, null, mute);
+      if (state) paint(projector, state, showNoteNames, playheadBeat, mute);
     },
-    setPlaying(next) {
-      playing = next;
-      if (next) {
-        startRaf();
-      } else {
-        stopRaf();
-        if (state) paint(projector, state, showNoteNames, null, mute);
-      }
+    setPlayhead(beat) {
+      playheadBeat = beat;
+      if (state) paint(projector, state, showNoteNames, playheadBeat, mute);
     },
     getKind() {
       return state?.kind ?? null;
     },
-    resetPlayhead() {
-      stopRaf();
-      if (state) paint(projector, state, showNoteNames, null, mute);
+    getSongTiming() {
+      if (!state || state.kind !== 'song') return null;
+      return {
+        bpm: state.bpm,
+        beatsPerBar: state.beatsPerBar,
+        durationBeats: state.durationBeats,
+      };
     },
     getErrorText() {
       return errorEl.textContent ?? '';
     },
     dispose() {
-      stopRaf();
       ro.disconnect();
       if (resizeTimer !== null) clearTimeout(resizeTimer);
-      host.removeChild(scrollEl);
-      host.removeChild(errorEl);
+      if (host.contains(scrollEl)) host.removeChild(scrollEl);
+      if (host.contains(errorEl)) host.removeChild(errorEl);
     },
   };
 }

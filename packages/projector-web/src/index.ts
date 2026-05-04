@@ -4,10 +4,15 @@ export type { CanvasProjectorOptions } from './canvas-projector.js';
 export { loadBravura, isBravuraLoaded, resetBravuraLoader, FontLoadError } from './font-loader.js';
 export type { LoadBravuraOptions } from './font-loader.js';
 
-export { SmplrAudioEngine } from './smplr-audio-engine.js';
-export type { SmplrAudioEngineOptions } from './smplr-audio-engine.js';
-
 export { hitTest } from './interactions/hit-testing.js';
+
+export { mountBlockView } from './block-view.js';
+export type {
+  BlockViewOptions,
+  BlockViewHandle,
+  BlockViewKind,
+  ParsedBlockLayout,
+} from './block-view.js';
 
 export { THEME, FONT, METRICS } from './theme.js';
 export type { ThemeKey, FontKey } from './theme.js';
