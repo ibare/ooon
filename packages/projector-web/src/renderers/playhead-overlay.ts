@@ -1,5 +1,5 @@
-import type { Projector } from '@oon/shared';
-import { getSongPlayhead, type SongLayout } from '@oon/composition';
+import type { Projector } from '@ooon/shared';
+import { getSongPlayhead, type SongLayout } from '@ooon/composition';
 import { CanvasProjector } from '../canvas-projector.js';
 
 export interface SongPlayheadOverlayOptions {

@@ -10,8 +10,8 @@ last_verified: 2026-04-17
 - 상수, 매직 넘버/스트링, 환경 변수 참조를 추가할 때
 
 ## MUST
-- 공용 TypeScript 설정은 내부 패키지(예: `@oon/tsconfig`)에서 `extends`로 상속한다
-- 공용 ESLint 설정은 내부 패키지(예: `@oon/eslint-config`)에서 import 또는 `extends`로 사용한다
+- 공용 TypeScript 설정은 내부 패키지(예: `@ooon/tsconfig`)에서 `extends`로 상속한다
+- 공용 ESLint 설정은 내부 패키지(예: `@ooon/eslint-config`)에서 import 또는 `extends`로 사용한다
 - 매직 넘버/매직 스트링은 상수 모듈에 정의하고 이름으로 참조한다
 - 환경 변수 접근은 단일 모듈(`env.ts` 등)에 모으고 그 모듈 외부에서는 `process.env.*`를 직접 참조하지 않는다
 

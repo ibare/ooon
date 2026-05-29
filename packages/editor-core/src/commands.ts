@@ -1,5 +1,5 @@
-import { durationToBeats, stepPitch } from '@oon/core';
-import type { DurationSymbol, NoteEvent, ScoreBar, ScoreNode, TimeSignature } from '@oon/core';
+import { durationToBeats, stepPitch } from '@ooon/core';
+import type { DurationSymbol, NoteEvent, ScoreBar, ScoreNode, TimeSignature } from '@ooon/core';
 
 export interface InsertNoteCommand {
   type: 'insertNote';

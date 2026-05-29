@@ -115,7 +115,7 @@ describe('transposePitch', () => {
   });
 });
 
-describe('stepPitch — ↑은 ♯ 우선, ↓은 ♭ 우선 (Oon UI 정책)', () => {
+describe('stepPitch — ↑은 ♯ 우선, ↓은 ♭ 우선 (Ooon UI 정책)', () => {
   it('자연음 ↑ 반복: C → C♯ → D → D♯ → E → F → F♯ → G → G♯ → A → A♯ → B → C5', () => {
     const seq = ['C4'];
     for (let i = 0; i < 12; i += 1) {

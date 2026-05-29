@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { ENGRAVING, GLYPHS } from '@oon/smufl-asset';
+import { ENGRAVING, GLYPHS } from '@ooon/smufl-asset';
 import { ledgerLines, noteY } from './vertical.js';
 
 const ctx = {

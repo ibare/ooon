@@ -1,4 +1,4 @@
-import type { AudioEngine, DrumSample } from '@oon/shared';
+import type { AudioEngine, DrumSample } from '@ooon/shared';
 import { DrumMachine, SplendidGrandPiano, type Storage } from 'smplr';
 
 // smplr 0.20.0은 sample 이름을 공백 형식("FF A#4")로 보존하고 fetch 직전에

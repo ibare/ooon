@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseBlock, type ProgressionNode } from '@oon/core';
+import { parseBlock, type ProgressionNode } from '@ooon/core';
 import { calculateProgressionLayout } from './progression-layout.js';
 
 function parseProgression(dsl: string): ProgressionNode {

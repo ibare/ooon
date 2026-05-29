@@ -1,4 +1,4 @@
-import type { HitArea, Point } from '@oon/shared';
+import type { HitArea, Point } from '@ooon/shared';
 
 export function hitTest(areas: readonly HitArea[], point: Point): HitArea | undefined {
   for (let i = areas.length - 1; i >= 0; i--) {

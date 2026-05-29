@@ -1,10 +1,10 @@
-import { pitchClassOf, pitchToMidi, type SongNode } from '@oon/core';
+import { pitchClassOf, pitchToMidi, type SongNode } from '@ooon/core';
 import {
   getDrumPlayheadX,
   getProgressionPlayheadX,
   type ProgressionLayout,
-} from '@oon/instrument-layouts';
-import { getScorePlayhead, type ScorePlayheadPosition } from '@oon/score-engraving';
+} from '@ooon/instrument-layouts';
+import { getScorePlayhead, type ScorePlayheadPosition } from '@ooon/score-engraving';
 import type { SongLayout, SongSystemRow } from './types.js';
 import { chooseChordVoicingMidis } from './voicing.js';
 

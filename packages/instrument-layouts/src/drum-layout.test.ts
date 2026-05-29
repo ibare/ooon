@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseBlock, type DrumNode } from '@oon/core';
+import { parseBlock, type DrumNode } from '@ooon/core';
 import { calculateDrumLayout } from './drum-layout.js';
 
 function parseDrum(dsl: string): DrumNode {

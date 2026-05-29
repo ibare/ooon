@@ -1,5 +1,5 @@
 {
-  "name": "@oon/eslint-config",
+  "name": "@ooon/eslint-config",
   "version": "0.0.0",
   "private": true,
   "description": "공용 ESLint 설정 (flat config)",

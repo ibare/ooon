@@ -1,4 +1,4 @@
-import { GLYPHS, type GlyphName } from '@oon/smufl-asset';
+import { GLYPHS, type GlyphName } from '@ooon/smufl-asset';
 
 // SMuFL 좌표계: y가 위로 양수. 화면 좌표계는 y가 아래로 양수 → anchor.y에 부호 반전.
 

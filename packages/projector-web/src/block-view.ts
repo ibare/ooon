@@ -1,5 +1,5 @@
-import { parseBlock, type BlockNode, type SongNode } from '@oon/core';
-import type { TrackMute } from '@oon/shared';
+import { parseBlock, type BlockNode, type SongNode } from '@ooon/core';
+import type { TrackMute } from '@ooon/shared';
 import {
   calculateDrumLayout,
   calculateFretboardLayout,
@@ -7,13 +7,13 @@ import {
   type DrumLayout,
   type FretboardLayout,
   type ProgressionLayout,
-} from '@oon/instrument-layouts';
-import { calculateScoreLayout, type ScoreLayout } from '@oon/score-engraving';
+} from '@ooon/instrument-layouts';
+import { calculateScoreLayout, type ScoreLayout } from '@ooon/score-engraving';
 import {
   calculateSongLayout,
   getSongActiveNotes,
   type SongLayout,
-} from '@oon/composition';
+} from '@ooon/composition';
 import { CanvasProjector } from './canvas-projector.js';
 import { loadBravura } from './font-loader.js';
 import { renderScore } from './renderers/score-renderer.js';
@@ -170,7 +170,7 @@ function paint(
 
 /**
  * 한 블록(score/drum/progression/fretboard/song) 한 개를 자체 캔버스에 그리는 컴포넌트.
- * host 안에 `<div class="oon-canvas-scroll"><canvas/></div>`와 에러 표시용 `<div>`를 부착한다.
+ * host 안에 `<div class="ooon-canvas-scroll"><canvas/></div>`와 에러 표시용 `<div>`를 부착한다.
  *
  * 시각화 책임만 진다 — DSL 파싱, 레이아웃 계산, Bravura 폰트 로드, ResizeObserver 기반 재페인트,
  * Song 플레이헤드 오버레이 + 활성 노트 키보드 하이라이트. 재생 timing은 다루지 않는다(외부 호출자가
@@ -178,9 +178,9 @@ function paint(
  */
 export function mountBlockView(host: HTMLElement, opts: BlockViewOptions = {}): BlockViewHandle {
   const scrollEl = document.createElement('div');
-  scrollEl.className = 'oon-canvas-scroll';
+  scrollEl.className = 'ooon-canvas-scroll';
   const canvas = document.createElement('canvas');
-  canvas.className = 'oon-canvas';
+  canvas.className = 'ooon-canvas';
   scrollEl.appendChild(canvas);
   const errorEl = document.createElement('div');
   errorEl.style.color = '#b91c1c';

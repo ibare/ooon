@@ -1,4 +1,4 @@
-import { ENGRAVING, GLYPHS, type Sp } from '@oon/smufl-asset';
+import { ENGRAVING, GLYPHS, type Sp } from '@ooon/smufl-asset';
 import {
   parsePitch,
   pitchToMidi,
@@ -7,7 +7,7 @@ import {
   type ScoreBar,
   type ScoreNode,
   type TimeSignature,
-} from '@oon/core';
+} from '@ooon/core';
 import {
   flagKind,
   isDotted,

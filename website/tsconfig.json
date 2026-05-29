@@ -1,5 +1,5 @@
 {
-  "extends": "@oon/tsconfig/base",
+  "extends": "@ooon/tsconfig/base",
   "compilerOptions": {
     "jsx": "react-jsx",
     "noEmit": true,

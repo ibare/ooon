@@ -1,8 +1,8 @@
 {
-  "name": "@oon/score-engraving",
+  "name": "@ooon/score-engraving",
   "version": "0.0.0",
   "private": true,
-  "description": "Oon 악보 식자(engraving) — SMuFL 기반 score/song layout 및 layout passes",
+  "description": "Ooon 악보 식자(engraving) — SMuFL 기반 score/song layout 및 layout passes",
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
@@ -21,12 +21,12 @@
     "clean": "rm -rf dist .tsbuildinfo"
   },
   "dependencies": {
-    "@oon/core": "workspace:*",
-    "@oon/shared": "workspace:*",
-    "@oon/smufl-asset": "workspace:*"
+    "@ooon/core": "workspace:*",
+    "@ooon/shared": "workspace:*",
+    "@ooon/smufl-asset": "workspace:*"
   },
   "devDependencies": {
-    "@oon/tsconfig": "workspace:*",
+    "@ooon/tsconfig": "workspace:*",
     "tsup": "^8.2.4",
     "typescript": "^5.5.4",
     "vitest": "^2.1.1"

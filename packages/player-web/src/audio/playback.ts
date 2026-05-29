@@ -1,4 +1,4 @@
-import type { AudioEngine, DrumSample, TrackMute } from '@oon/shared';
+import type { AudioEngine, DrumSample, TrackMute } from '@ooon/shared';
 import {
   parseBlock,
   type BlockNode,
@@ -8,7 +8,7 @@ import {
   type ProgressionNode,
   type ScoreNode,
   type SongNode,
-} from '@oon/core';
+} from '@ooon/core';
 
 export type { TrackMute };
 

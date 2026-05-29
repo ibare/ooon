@@ -1,8 +1,8 @@
 // SMuFL 글리프 한 개를 자기 영역의 정렬 위치에 그린다.
 // 폰트는 BRAVURA 사용. 측정은 fontSize 기반 근사 — 글리프 cell이 폰트 크기 정사각형이라고 가정.
 
-import { BRAVURA_FONT_FAMILY } from '@oon/core';
-import type { Color, Projector } from '@oon/shared';
+import { BRAVURA_FONT_FAMILY } from '@ooon/core';
+import type { Color, Projector } from '@ooon/shared';
 import {
   clampSize,
   pointInRect,

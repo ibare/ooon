@@ -11,12 +11,12 @@ export const ko: Dictionary = {
   },
   hero: {
     headline: '텍스트로 쓰는 음악, 그대로 보이는 악보',
-    sub: 'Oon은 음악 표기를 간결한 DSL로 작성하고, 브라우저에서 Canvas로 즉시 렌더링하는 경량 라이브러리입니다. 악보·드럼·코드 진행·운지·곡 구조를 한 줄 텍스트로 표현합니다.',
+    sub: 'Ooon은 음악 표기를 간결한 DSL로 작성하고, 브라우저에서 Canvas로 즉시 렌더링하는 경량 라이브러리입니다. 악보·드럼·코드 진행·운지·곡 구조를 한 줄 텍스트로 표현합니다.',
     cta_start: '시작하기',
     cta_github: 'GitHub',
   },
   problem: {
-    title: '왜 Oon인가',
+    title: '왜 Ooon인가',
     sub: '기존 음악 표기 도구와의 차이점',
     current_title: '기존 방식의 한계',
     current_items: [
@@ -24,7 +24,7 @@ export const ko: Dictionary = {
       'LilyPond/MuseScore는 별도 엔진 필요, 웹 통합이 무겁다',
       'ABC 표기법은 악보에 특화되어 드럼/운지/코드 진행에 약하다',
     ],
-    oon_title: 'Oon의 접근',
+    oon_title: 'Ooon의 접근',
     oon_items: [
       'LLM 친화적 평문 DSL — 한 줄로 읽고 쓴다',
       'Canvas 단일 렌더 — React/Tiptap/Svelte 어디든 붙는다',
@@ -40,13 +40,13 @@ export const ko: Dictionary = {
       { title: '코드 진행 (progression)', desc: '로마 숫자와 조성을 기반으로 진행을 시각화한다.' },
       { title: '운지 (fretboard)', desc: '기타 지판 위 스케일·코드 포지션을 그린다.' },
       { title: '곡 (song)', desc: '섹션·리프레인·브릿지를 하나의 문서로 조립한다.' },
-      { title: '인라인 토큰', desc: '`oon:C4` 같은 인라인 코드로 본문 속 음표·코드를 팝오버로 보여준다.' },
+      { title: '인라인 토큰', desc: '`ooon:C4` 같은 인라인 코드로 본문 속 음표·코드를 팝오버로 보여준다.' },
     ],
   },
   quickStart: {
     title: '빠른 시작',
     sub: '모노레포에서 필요한 패키지만 설치한다',
-    install: '# 에디터 통합이 필요한 경우\npnpm add @oon/plugin-tiptap @oon/projector-web @oon/core',
+    install: '# 에디터 통합이 필요한 경우\npnpm add @ooon/tiptap',
     usage_label: 'Tiptap에 연결하기',
   },
   footerCta: {
@@ -55,7 +55,7 @@ export const ko: Dictionary = {
     cta_npm: 'npm',
   },
   footer: {
-    tagline: 'Oon — 텍스트 DSL로 음악을 쓰고, Canvas로 그린다.',
+    tagline: 'Ooon — 텍스트 DSL로 음악을 쓰고, Canvas로 그린다.',
   },
   examplesPage: {
     title: '예제',
@@ -75,7 +75,7 @@ export const ko: Dictionary = {
   },
   showcasePage: {
     title: '쇼케이스',
-    sub: '12마디 블루스부터 보사노바까지 — 모든 장르를 Oon으로 표현한다',
+    sub: '12마디 블루스부터 보사노바까지 — 모든 장르를 Ooon으로 표현한다',
     source_label: 'DSL',
     render_label: '렌더',
     genres: {

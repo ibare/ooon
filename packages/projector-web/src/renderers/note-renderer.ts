@@ -1,5 +1,5 @@
-import type { Projector } from '@oon/shared';
-import type { NoteNode } from '@oon/core';
+import type { Projector } from '@ooon/shared';
+import type { NoteNode } from '@ooon/core';
 import { FONT, THEME } from '../theme.js';
 
 export interface NoteRenderOptions {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { NoteEvent, TimeSignature } from '@oon/core';
+import type { NoteEvent, TimeSignature } from '@ooon/core';
 import { groupBeams } from './beams.js';
 
 const TS_4_4: TimeSignature = { beats: 4, beatValue: 4 };

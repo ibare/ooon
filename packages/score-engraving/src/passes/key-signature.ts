@@ -1,4 +1,4 @@
-import type { NoteLetter } from '@oon/core';
+import type { NoteLetter } from '@ooon/core';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Key signature → letter별 alteration map.

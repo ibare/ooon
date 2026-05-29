@@ -5,7 +5,7 @@
 //
 // 위젯 자체는 toggle 동작을 수행하지 않는다(active set은 외부 store가 보유). 시각만 반영.
 
-import type { Color, Projector } from '@oon/shared';
+import type { Color, Projector } from '@ooon/shared';
 import {
   clampSize,
   pointInRect,

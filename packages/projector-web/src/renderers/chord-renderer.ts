@@ -1,7 +1,7 @@
-import type { Projector } from '@oon/shared';
-import type { ChordNode } from '@oon/core';
-import { pitchToMidi } from '@oon/core';
-import { calculateKeyboardLayout } from '@oon/instrument-layouts';
+import type { Projector } from '@ooon/shared';
+import type { ChordNode } from '@ooon/core';
+import { pitchToMidi } from '@ooon/core';
+import { calculateKeyboardLayout } from '@ooon/instrument-layouts';
 import { FONT, THEME } from '../theme.js';
 import { renderKeyboard } from './keyboard-renderer.js';
 

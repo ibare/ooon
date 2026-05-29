@@ -1,4 +1,4 @@
-import { pitchToMidi, type ScoreNode } from '@oon/core';
+import { pitchToMidi, type ScoreNode } from '@ooon/core';
 import type { ScoreLayout } from './types.js';
 
 export interface ScorePlayheadPosition {

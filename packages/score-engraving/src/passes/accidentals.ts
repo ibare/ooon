@@ -1,4 +1,4 @@
-import { parsePitch, type NoteEvent, type NoteLetter } from '@oon/core';
+import { parsePitch, type NoteEvent, type NoteLetter } from '@ooon/core';
 import type { KeySignatureMap } from './key-signature.js';
 
 // 표시할 임시표 종류. null이면 글리프를 붙이지 않는다.

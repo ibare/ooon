@@ -1,8 +1,8 @@
 {
-  "name": "@oon/projector-web",
+  "name": "@ooon/projector-web",
   "version": "0.0.0",
   "private": true,
-  "description": "Oon 웹 프로젝터 — Canvas 2D 렌더러",
+  "description": "Ooon 웹 프로젝터 — Canvas 2D 렌더러",
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
@@ -21,14 +21,14 @@
     "clean": "rm -rf dist .tsbuildinfo"
   },
   "dependencies": {
-    "@oon/composition": "workspace:*",
-    "@oon/core": "workspace:*",
-    "@oon/instrument-layouts": "workspace:*",
-    "@oon/score-engraving": "workspace:*",
-    "@oon/shared": "workspace:*"
+    "@ooon/composition": "workspace:*",
+    "@ooon/core": "workspace:*",
+    "@ooon/instrument-layouts": "workspace:*",
+    "@ooon/score-engraving": "workspace:*",
+    "@ooon/shared": "workspace:*"
   },
   "devDependencies": {
-    "@oon/tsconfig": "workspace:*",
+    "@ooon/tsconfig": "workspace:*",
     "tsup": "^8.2.4",
     "typescript": "^5.5.4",
     "vitest": "^2.1.1"

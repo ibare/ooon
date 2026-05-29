@@ -1,6 +1,6 @@
 // 자식을 일정 패딩으로 감싸 외곽 크기를 늘린다(자식 영역은 패딩만큼 안쪽으로 들여짐).
 
-import type { Projector } from '@oon/shared';
+import type { Projector } from '@ooon/shared';
 import {
   clampSize,
   pointInRect,

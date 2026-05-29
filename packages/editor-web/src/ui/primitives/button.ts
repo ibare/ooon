@@ -1,7 +1,7 @@
 // 클릭 가능한 영역. Panel(배경) + 자식 콘텐츠 + hit token 등록.
 // hover/active 상태는 외부에서 props로 주입(외부 상태 모델 — store/reducer가 결정).
 
-import type { Color, Projector } from '@oon/shared';
+import type { Color, Projector } from '@ooon/shared';
 import {
   clampSize,
   pointInRect,

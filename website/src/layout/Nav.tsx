@@ -19,7 +19,7 @@ export default function Nav() {
     <header style={styles.header}>
       <div style={styles.container}>
         <Link to={`/${currentLang ?? lang}/`} style={styles.logo}>
-          Oon
+          Ooon
         </Link>
         <nav style={styles.nav}>
           {navItems.map(({ to, label }) => {
@@ -35,7 +35,7 @@ export default function Nav() {
             );
           })}
           <a
-            href="https://github.com/ibare/oon"
+            href="https://github.com/ibare/ooon"
             target="_blank"
             rel="noopener noreferrer"
             style={styles.link}

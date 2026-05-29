@@ -10,7 +10,7 @@ export default function Footer() {
         <span style={styles.tagline}>{t.footer.tagline}</span>
         <div style={styles.links}>
           <a
-            href="https://github.com/ibare/oon"
+            href="https://github.com/ibare/ooon"
             target="_blank"
             rel="noopener noreferrer"
             style={styles.link}

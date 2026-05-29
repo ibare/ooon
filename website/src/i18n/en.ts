@@ -11,20 +11,20 @@ export const en: Dictionary = {
   },
   hero: {
     headline: 'Write music as plain text. See the score as you type.',
-    sub: 'Oon is a lightweight library for writing music notation as a concise DSL and rendering it to Canvas in the browser. Score, drums, progressions, fretboard, and song structure — all in one text grammar.',
+    sub: 'Ooon is a lightweight library for writing music notation as a concise DSL and rendering it to Canvas in the browser. Score, drums, progressions, fretboard, and song structure — all in one text grammar.',
     cta_start: 'Get started',
     cta_github: 'GitHub',
   },
   problem: {
-    title: 'Why Oon',
-    sub: 'How Oon compares to existing notation tools',
+    title: 'Why Ooon',
+    sub: 'How Ooon compares to existing notation tools',
     current_title: 'Limits of existing formats',
     current_items: [
       'MusicXML/MEI are hard for LLMs to emit reliably',
       'LilyPond/MuseScore need a separate engine and are heavy to embed',
       'ABC focuses on scores; drums, fretboard, and progressions are awkward',
     ],
-    oon_title: 'Oon takes a different path',
+    oon_title: 'Ooon takes a different path',
     oon_items: [
       'An LLM-friendly plain-text DSL you can read and write in one line',
       'A single Canvas renderer that plugs into React, Tiptap, Svelte, or anything',
@@ -40,13 +40,13 @@ export const en: Dictionary = {
       { title: 'progression', desc: 'Roman-numeral progressions rendered against a key signature.' },
       { title: 'fretboard', desc: 'Scale and chord positions drawn on a guitar neck.' },
       { title: 'song', desc: 'Sections, refrains, and bridges composed into one document.' },
-      { title: 'inline tokens', desc: '`oon:C4`-style inline codes open a popover with the rendered note, chord, or scale.' },
+      { title: 'inline tokens', desc: '`ooon:C4`-style inline codes open a popover with the rendered note, chord, or scale.' },
     ],
   },
   quickStart: {
     title: 'Quick start',
     sub: 'Install only the packages you need',
-    install: '# editor integration\npnpm add @oon/plugin-tiptap @oon/projector-web @oon/core',
+    install: '# editor integration\npnpm add @ooon/tiptap',
     usage_label: 'Wire into Tiptap',
   },
   footerCta: {
@@ -55,7 +55,7 @@ export const en: Dictionary = {
     cta_npm: 'npm',
   },
   footer: {
-    tagline: 'Oon — write music as text, render it on Canvas.',
+    tagline: 'Ooon — write music as text, render it on Canvas.',
   },
   examplesPage: {
     title: 'Examples',
@@ -75,7 +75,7 @@ export const en: Dictionary = {
   },
   showcasePage: {
     title: 'Showcase',
-    sub: 'Oon expresses any genre — from 12-bar blues to bossa nova',
+    sub: 'Ooon expresses any genre — from 12-bar blues to bossa nova',
     source_label: 'DSL',
     render_label: 'Render',
     genres: {

@@ -1,5 +1,5 @@
-import { BRAVURA_FONT_FAMILY, SMUFL } from '@oon/core';
-import type { ScoreBarLayout, ScoreLayout, ScoreNoteLayout } from '@oon/score-engraving';
+import { BRAVURA_FONT_FAMILY, SMUFL } from '@ooon/core';
+import type { ScoreBarLayout, ScoreLayout, ScoreNoteLayout } from '@ooon/score-engraving';
 
 // SMuFL 글리프는 종류별로 anchor가 달라(노트헤드는 alphabetic baseline ≈ 헤드 중심,
 // 쉼표 8/16분은 anchor가 글리프 윗부분) 단순히 (note.x, note.y) ± lineGap 으로 잡으면 어긋난다.

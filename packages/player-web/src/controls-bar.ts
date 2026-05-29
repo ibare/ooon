@@ -1,4 +1,4 @@
-import type { TrackKey, TrackMute } from '@oon/shared';
+import type { TrackKey, TrackMute } from '@ooon/shared';
 
 export type { TrackKey };
 export type PlayState = 'idle' | 'loading' | 'playing';
@@ -60,7 +60,7 @@ export function createControlsBar(
 ): ControlsBarHandle {
   const labels = opts.labels ?? DEFAULT_LABELS_EN;
   const bar = document.createElement('div');
-  bar.className = 'oon-controls';
+  bar.className = 'ooon-controls';
   // 시각 컨벤션은 부품이 캡슐화한다 — 호스트가 어떻게 부착하든 동일 형태(상단/우측 정렬+아래 여백) 보장.
   bar.style.display = 'flex';
   bar.style.alignItems = 'center';

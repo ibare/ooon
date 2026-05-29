@@ -1,4 +1,4 @@
-import type { ScoreLayout } from '@oon/score-engraving';
+import type { ScoreLayout } from '@ooon/score-engraving';
 
 // 박자표 클릭 영역. system 마다 박자표가 반복되므로 system 별로 한 개씩.
 // 가로 폭은 layout이 contentStart로 표기한 위치(= timeSig 직후)까지로 잡는다.

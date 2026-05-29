@@ -1,6 +1,6 @@
 // 자식을 고정 크기로 강제. 자식이 없으면 그 크기의 빈 공간(spacer)으로 동작.
 
-import type { Projector } from '@oon/shared';
+import type { Projector } from '@ooon/shared';
 import {
   clampSize,
   pointInRect,

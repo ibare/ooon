@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseInline } from '@oon/core';
+import { parseInline } from '@ooon/core';
 import { renderChord } from './chord-renderer.js';
 import { FakeProjector } from '../testing/fake-projector.js';
 

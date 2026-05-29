@@ -1,20 +1,20 @@
-import type { Projector } from '@oon/shared';
-import { parseBlock } from '@oon/core';
+import type { Projector } from '@ooon/shared';
+import { parseBlock } from '@ooon/core';
 import {
   calculateDrumLayout,
   calculateFretboardLayout,
   calculateProgressionLayout,
-} from '@oon/instrument-layouts';
-import { calculateScoreLayout } from '@oon/score-engraving';
-import { calculateSongLayout } from '@oon/composition';
+} from '@ooon/instrument-layouts';
+import { calculateScoreLayout } from '@ooon/score-engraving';
+import { calculateSongLayout } from '@ooon/composition';
 import {
   renderDrum,
   renderFretboard,
   renderProgression,
   renderScore,
   renderSong,
-} from '@oon/projector-web';
-import { OonRenderError } from './errors.js';
+} from '@ooon/projector-web';
+import { OoonRenderError } from './errors.js';
 
 export interface RenderBlockOptions {
   width: number;
@@ -36,7 +36,7 @@ export function renderBlockToProjector(
   try {
     node = parseBlock(source);
   } catch (err) {
-    throw new OonRenderError(`Failed to parse Oon block: ${(err as Error).message}`, { cause: err });
+    throw new OoonRenderError(`Failed to parse Ooon block: ${(err as Error).message}`, { cause: err });
   }
 
   projector.clear();

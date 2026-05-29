@@ -14,7 +14,7 @@
 // 카테고리 분류는 picker-options의 PickerOption을 입력으로 받아 단일 함수(`categoryOf`)로
 // 처리한다. 카테고리 추가/변경 시 이 파일과 라벨만 손보면 됨.
 
-import { isCompoundMeter, SMUFL } from '@oon/core';
+import { isCompoundMeter, SMUFL } from '@ooon/core';
 import type { PickerOption } from './picker-options.js';
 
 export type PickerContext = 'insert' | 'replace' | 'timeSig';

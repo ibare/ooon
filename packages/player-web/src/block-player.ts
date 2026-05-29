@@ -1,6 +1,6 @@
-import type { BlockNode } from '@oon/core';
-import type { TrackMute } from '@oon/shared';
-import { mountBlockView, type BlockViewHandle } from '@oon/projector-web';
+import type { BlockNode } from '@ooon/core';
+import type { TrackMute } from '@ooon/shared';
+import { mountBlockView, type BlockViewHandle } from '@ooon/projector-web';
 import {
   createControlsBar,
   DEFAULT_LABELS_EN,
@@ -46,21 +46,21 @@ type State = 'idle' | 'loading' | 'playing';
 
 /**
  * 한 블록(score/drum/progression/fretboard/song)의 시각화 + 컨트롤 + 오디오를 묶는 facade.
- * 시각화는 `@oon/projector-web`의 mountBlockView, 컨트롤은 controls-bar, 오디오는 playSource를
+ * 시각화는 `@ooon/projector-web`의 mountBlockView, 컨트롤은 controls-bar, 오디오는 playSource를
  * 조립해 만든다. Song 재생 중에는 RAF tick으로 현재 beat을 계산해 blockView.setPlayhead로 주입한다.
  */
 export function mountBlockPlayer(host: HTMLElement, opts: BlockPlayerOptions): BlockPlayerHandle {
   if (opts.source === undefined && opts.node === undefined) {
-    throw new Error('@oon/player-web: opts.source or opts.node must be provided');
+    throw new Error('@ooon/player-web: opts.source or opts.node must be provided');
   }
   const labels = opts.labels ?? DEFAULT_LABELS_EN;
 
   // 호스트는 영역만 확보. 부품(컨트롤바/시각화)은 자체 형태 컨벤션으로 정렬·여백을 책임진다.
   // 컨트롤바를 root에 먼저 부착(상단)한 뒤 body를 부착(하단)하는 순서가 컨벤션이다.
   const root = document.createElement('div');
-  root.className = 'oon-player';
+  root.className = 'ooon-player';
   const body = document.createElement('div');
-  body.className = 'oon-player__body';
+  body.className = 'ooon-player__body';
   host.appendChild(root);
 
   let state: State = 'idle';
@@ -190,7 +190,7 @@ export function mountBlockPlayer(host: HTMLElement, opts: BlockPlayerOptions): B
       }, handle.durationSec * 1000 + 500);
     } catch (err) {
       if (opts.onError) opts.onError(err);
-      else console.warn('[oon/player-web] playback failed', err);
+      else console.warn('[ooon/player-web] playback failed', err);
       setState('idle');
     }
   };

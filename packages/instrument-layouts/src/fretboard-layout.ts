@@ -1,4 +1,4 @@
-import type { FretboardNode } from '@oon/core';
+import type { FretboardNode } from '@ooon/core';
 import type {
   FretboardDotLayout,
   FretboardFretLine,

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseBlock, type ScoreNode } from '@oon/core';
+import { parseBlock, type ScoreNode } from '@ooon/core';
 import { calculateScoreLayout } from './score-layout.js';
 import { getScorePlayhead } from './playhead.js';
 

@@ -1,5 +1,5 @@
-import type { Projector, TextOptions } from '@oon/shared';
-import { SMUFL } from '@oon/core';
+import type { Projector, TextOptions } from '@ooon/shared';
+import { SMUFL } from '@ooon/core';
 import type {
   ScoreBarLayout,
   ScoreGlyph,
@@ -8,7 +8,7 @@ import type {
   ScoreStaff,
   ScoreSystemLayout,
   ScoreTimeSig,
-} from '@oon/score-engraving';
+} from '@ooon/score-engraving';
 import { FONT, METRICS, THEME } from '../theme.js';
 
 export interface ScoreRenderOptions {

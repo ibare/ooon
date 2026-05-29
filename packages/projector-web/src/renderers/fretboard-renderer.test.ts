@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { parseBlock } from '@oon/core';
-import type { FretboardNode } from '@oon/core';
-import { calculateFretboardLayout } from '@oon/instrument-layouts';
+import { parseBlock } from '@ooon/core';
+import type { FretboardNode } from '@ooon/core';
+import { calculateFretboardLayout } from '@ooon/instrument-layouts';
 import { renderFretboard } from './fretboard-renderer.js';
 import { FakeProjector } from '../testing/fake-projector.js';
 

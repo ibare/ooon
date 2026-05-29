@@ -1,4 +1,4 @@
-import type { Projector } from '@oon/shared';
+import type { Projector } from '@ooon/shared';
 import {
   ADD_BAR_BUTTON_FILL,
   ADD_BAR_BUTTON_FILL_HOVER,

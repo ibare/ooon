@@ -42,7 +42,7 @@ concerns:
         - "export \\{"
         - "from ['\"]\\.\\./"
       imports:
-        - "@oon/"
+        - "@ooon/"
 
   - id: C3
     file: concerns/C3-dependencies.md

@@ -8,7 +8,7 @@ export type {
   ScaleNode,
   NoteNode,
   BlockNode,
-  OonNode,
+  OoonNode,
   ScoreNode,
   ScoreBar,
   DrumNode,

@@ -1,4 +1,4 @@
-import type { GlyphName } from '@oon/core';
+import type { GlyphName } from '@ooon/core';
 import type { PluckZoneRect } from '../geometry/pluck-zone.js';
 import type { PickerOption } from '../geometry/picker-options.js';
 

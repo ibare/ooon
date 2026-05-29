@@ -1,6 +1,6 @@
-# @oon/editor-web
+# @ooon/editor-web
 
-Oon 점수 편집기. 빈 악보 위에 박자 오버레이, 오선 튕기기, 음표 배치 픽커 UX를 캔버스로 구현한다.
+Ooon 점수 편집기. 빈 악보 위에 박자 오버레이, 오선 튕기기, 음표 배치 픽커 UX를 캔버스로 구현한다.
 
 ## Architecture — 트리플 캔버스 stacking
 

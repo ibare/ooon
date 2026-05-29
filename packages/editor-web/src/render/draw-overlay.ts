@@ -1,5 +1,5 @@
-import type { Projector } from '@oon/shared';
-import { CanvasProjector } from '@oon/projector-web';
+import type { Projector } from '@ooon/shared';
+import { CanvasProjector } from '@ooon/projector-web';
 import {
   BEAT_GROUP_GAP,
   BEAT_OVERLAY_BLINK_FILL,

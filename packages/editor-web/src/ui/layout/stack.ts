@@ -1,7 +1,7 @@
 // 자식 위젯들을 같은 영역에 겹쳐 배치. 첫 자식이 가장 아래, 마지막이 가장 위.
 // 패널 + 콘텐츠 같이 그릴 때 사용. hit는 위→아래 순으로 검사.
 
-import type { Projector } from '@oon/shared';
+import type { Projector } from '@ooon/shared';
 import {
   clampSize,
   pointInRect,

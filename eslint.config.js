@@ -1,4 +1,4 @@
-import oonConfig from '@oon/eslint-config';
+import oonConfig from '@ooon/eslint-config';
 
 export default [
   ...oonConfig,

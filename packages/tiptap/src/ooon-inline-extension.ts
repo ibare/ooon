@@ -1,25 +1,25 @@
 import { Extension } from '@tiptap/core';
-import { createOonInlinePlugin } from './oon-inline.js';
-import type { OonRuntime } from './runtime.js';
+import { createOoonInlinePlugin } from './ooon-inline.js';
+import type { OoonRuntime } from './runtime.js';
 
-export interface OonInlineExtensionOptions {
-  runtime: OonRuntime;
+export interface OoonInlineExtensionOptions {
+  runtime: OoonRuntime;
   className?: string;
   container?: HTMLElement;
 }
 
-export const OonInline = Extension.create<OonInlineExtensionOptions>({
+export const OoonInline = Extension.create<OoonInlineExtensionOptions>({
   name: 'oonInline',
 
-  addOptions(): OonInlineExtensionOptions {
+  addOptions(): OoonInlineExtensionOptions {
     return {
-      runtime: undefined as unknown as OonRuntime,
+      runtime: undefined as unknown as OoonRuntime,
     };
   },
 
   addProseMirrorPlugins() {
     return [
-      createOonInlinePlugin({
+      createOoonInlinePlugin({
         runtime: this.options.runtime,
         ...(this.options.className !== undefined ? { className: this.options.className } : {}),
         ...(this.options.container !== undefined ? { container: this.options.container } : {}),

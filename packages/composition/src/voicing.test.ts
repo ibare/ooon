@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseChordSymbol } from '@oon/core';
+import { parseChordSymbol } from '@ooon/core';
 import { chooseChordVoicingMidis } from './voicing.js';
 
 function voicing(symbol: string, beats = 4): number[] {

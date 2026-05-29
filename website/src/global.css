@@ -236,7 +236,7 @@ code {
   border-bottom-color: var(--color-accent);
 }
 
-.oon-canvas-scroll {
+.ooon-canvas-scroll {
   /* 스크롤바는 절대 발생하지 않는 게 규칙. 캔버스는 컨테이너 폭에 맞춰 contentScale로 축소되며,
    * 정수 디바이스 픽셀 floor 정렬이 fit을 보장한다. overflow:hidden은 보호망 차원의 명시. */
   overflow: hidden;
@@ -245,7 +245,7 @@ code {
   background: #fff;
 }
 
-.oon-canvas {
+.ooon-canvas {
   display: block;
   background: #fff;
 }

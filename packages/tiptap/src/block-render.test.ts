@@ -7,9 +7,9 @@ import type {
   Rect,
   Size,
   TextOptions,
-} from '@oon/shared';
+} from '@ooon/shared';
 import { renderBlockToProjector } from './block-render.js';
-import { OonRenderError } from './errors.js';
+import { OoonRenderError } from './errors.js';
 
 interface DrawCall {
   op: string;
@@ -137,10 +137,10 @@ describe('renderBlockToProjector', () => {
     expect(res.warnings).toEqual([]);
   });
 
-  it('wraps parse errors in OonRenderError with original cause', () => {
+  it('wraps parse errors in OoonRenderError with original cause', () => {
     const p = new FakeProjector();
     expect(() =>
       renderBlockToProjector(p, '!!!not-a-valid-block!!!', { width: 400 }),
-    ).toThrow(OonRenderError);
+    ).toThrow(OoonRenderError);
   });
 });

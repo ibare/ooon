@@ -1,11 +1,11 @@
-# @oon/player-web
+# @ooon/player-web
 
-Oon DSL 인터랙티브 블록 플레이어. DSL 소스 한 줄로 캔버스 렌더링 + 재생 컨트롤 + 트랙 mute UI + 오디오 엔진까지 통합한 vanilla TS 컨테이너.
+Ooon DSL 인터랙티브 블록 플레이어. DSL 소스 한 줄로 캔버스 렌더링 + 재생 컨트롤 + 트랙 mute UI + 오디오 엔진까지 통합한 vanilla TS 컨테이너.
 
 ## 사용
 
 ```ts
-import { mount } from '@oon/player-web';
+import { mount } from '@ooon/player-web';
 
 const handle = mount(document.getElementById('player')!, {
   source: 'song 4/4 key:C bpm:100\n  beat: 8beat-rock\n  C | G | Am | F |\n  C4/w | D4/w | E4/w | F4/w |',
@@ -19,9 +19,9 @@ handle.dispose();
 
 이 패키지는 다음을 자체적으로 처리한다:
 
-- DSL 파싱 (`@oon/core`)
-- 레이아웃 계산 (`@oon/composition` / `@oon/score-engraving` / `@oon/instrument-layouts`)
-- 캔버스 렌더링 (`@oon/projector-web`)
+- DSL 파싱 (`@ooon/core`)
+- 레이아웃 계산 (`@ooon/composition` / `@ooon/score-engraving` / `@ooon/instrument-layouts`)
+- 캔버스 렌더링 (`@ooon/projector-web`)
 - ResizeObserver 기반 자동 fit (`contentScale`)
 - 재생 RAF 루프 + playhead/키보드 하이라이트/드럼 hit 시각화
 - 오디오 엔진 lazy 생성 (smplr 기반, host 주입 불필요)

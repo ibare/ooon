@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { SMUFL } from '@oon/core';
+import { SMUFL } from '@ooon/core';
 import { buildPickerOptions, buildReplaceOptions, buildTimeSigOptions } from './picker-options.js';
 
 describe('buildPickerOptions', () => {

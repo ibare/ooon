@@ -1,4 +1,4 @@
-import type { ScoreStaff } from '@oon/score-engraving';
+import type { ScoreStaff } from '@ooon/score-engraving';
 
 // score-engraving/passes/vertical.ts: noteY(step) = centerY + (b4Step - step) * 0.5 * pxPerSp
 // 역함수: step = b4Step - (y - centerY) * 2 / pxPerSp

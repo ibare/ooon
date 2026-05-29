@@ -1,4 +1,4 @@
-import { midiToPitch } from '@oon/core';
+import { midiToPitch } from '@ooon/core';
 import type { KeyLayout, KeyboardLayout } from './types.js';
 
 export interface KeyboardLayoutOptions {

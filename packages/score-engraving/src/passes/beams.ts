@@ -1,4 +1,4 @@
-import type { NoteEvent, TimeSignature } from '@oon/core';
+import type { NoteEvent, TimeSignature } from '@ooon/core';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // P3: auto-beaming 그룹화

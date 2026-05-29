@@ -17,7 +17,7 @@
 - 규칙 파일을 수정하지 않는다
 
 ## Baden Monitoring
-- Project Name: `oon`
+- Project Name: `ooon`
 - 이 프로젝트는 Baden 모니터링 하에서 운영된다. 모든 행동에 대해 해당 baden MCP 도구를 호출한다.
 
 ### 사용자 지시 수신

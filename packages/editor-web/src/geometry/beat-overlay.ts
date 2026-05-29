@@ -1,5 +1,5 @@
-import type { ScoreLayout, ScoreBarLayout, ScoreSystemLayout } from '@oon/score-engraving';
-import { getBeatGroups, type ScoreNode } from '@oon/core';
+import type { ScoreLayout, ScoreBarLayout, ScoreSystemLayout } from '@ooon/score-engraving';
+import { getBeatGroups, type ScoreNode } from '@ooon/core';
 import { SLOT_HIT_LEDGER_LINES } from '../constants.js';
 
 export interface BeatSlotRect {

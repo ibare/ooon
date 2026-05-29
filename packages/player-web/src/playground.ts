@@ -1,7 +1,7 @@
-import { parseBlock, type ScoreNode } from '@oon/core';
-import { mountKeyboardView, type KeyboardViewHandle } from '@oon/projector-web';
-import { mountScoreEditor, type ScoreEditorHandle } from '@oon/editor-web';
-import { getScoreActiveNotes } from '@oon/score-engraving';
+import { parseBlock, type ScoreNode } from '@ooon/core';
+import { mountKeyboardView, type KeyboardViewHandle } from '@ooon/projector-web';
+import { mountScoreEditor, type ScoreEditorHandle } from '@ooon/editor-web';
+import { getScoreActiveNotes } from '@ooon/score-engraving';
 import {
   createControlsBar,
   DEFAULT_LABELS_EN,
@@ -56,7 +56,7 @@ export function mountPlayground(host: HTMLElement, opts: PlaygroundOptions): Pla
   const labels = opts.labels ?? DEFAULT_LABELS_EN;
 
   const root = document.createElement('div');
-  root.className = 'oon-playground';
+  root.className = 'ooon-playground';
   host.appendChild(root);
 
   let state: State = 'idle';
@@ -133,7 +133,7 @@ export function mountPlayground(host: HTMLElement, opts: PlaygroundOptions): Pla
 
   // 키보드 영역(중간) — score 음역 jitter를 막기 위해 'full88' 고정.
   const keyboardWrap = document.createElement('div');
-  keyboardWrap.className = 'oon-playground__keyboard';
+  keyboardWrap.className = 'ooon-playground__keyboard';
   keyboardWrap.style.marginBottom = '0.75em';
   root.appendChild(keyboardWrap);
   const keyboard: KeyboardViewHandle = mountKeyboardView(keyboardWrap, {
@@ -143,7 +143,7 @@ export function mountPlayground(host: HTMLElement, opts: PlaygroundOptions): Pla
 
   // 편집기 영역(하단)
   const editorWrap = document.createElement('div');
-  editorWrap.className = 'oon-playground__editor';
+  editorWrap.className = 'ooon-playground__editor';
   root.appendChild(editorWrap);
   const editor: ScoreEditorHandle = mountScoreEditor(editorWrap, {
     source: opts.source,
@@ -189,7 +189,7 @@ export function mountPlayground(host: HTMLElement, opts: PlaygroundOptions): Pla
       }, handle.durationSec * 1000 + 500);
     } catch (err) {
       if (opts.onError) opts.onError(err);
-      else console.warn('[oon/player-web mountPlayground] playback failed', err);
+      else console.warn('[ooon/player-web mountPlayground] playback failed', err);
       setState('idle');
     }
   };

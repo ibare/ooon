@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { parseBlock } from '@oon/core';
-import type { ScoreNode } from '@oon/core';
-import { calculateScoreLayout } from '@oon/score-engraving';
+import { parseBlock } from '@ooon/core';
+import type { ScoreNode } from '@ooon/core';
+import { calculateScoreLayout } from '@ooon/score-engraving';
 import { renderScore } from './score-renderer.js';
 import { FakeProjector } from '../testing/fake-projector.js';
 

@@ -1,5 +1,5 @@
-import { parseBlock, serializeScore } from '@oon/core';
-import type { ScoreNode } from '@oon/core';
+import { parseBlock, serializeScore } from '@ooon/core';
+import type { ScoreNode } from '@ooon/core';
 import { applyScoreCommand, type ScoreCommand } from './commands.js';
 
 export interface ScoreChangeEvent {

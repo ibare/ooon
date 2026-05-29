@@ -151,4 +151,4 @@ export interface SongNode {
 }
 
 export type BlockNode = ScoreNode | DrumNode | ProgressionNode | FretboardNode | SongNode;
-export type OonNode = InlineNode | BlockNode;
+export type OoonNode = InlineNode | BlockNode;

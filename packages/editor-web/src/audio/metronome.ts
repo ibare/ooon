@@ -17,7 +17,7 @@ export class Metronome {
           ? ((window as unknown as { AudioContext?: typeof AudioContext }).AudioContext ??
             (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext)
           : undefined;
-      if (!Ctor) throw new Error('@oon/editor-web Metronome: WebAudio unavailable');
+      if (!Ctor) throw new Error('@ooon/editor-web Metronome: WebAudio unavailable');
       this.ctx = new Ctor();
     }
     if (this.ctx.state === 'suspended') void this.ctx.resume();

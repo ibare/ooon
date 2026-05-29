@@ -1,6 +1,6 @@
-# @oon/projector-web
+# @ooon/projector-web
 
-Oon 웹 프로젝터. Canvas 2D로 DSL 블록(score / drum / progression / fretboard / song)을 그린다. 시각화 전담 패키지로, 오디오/타이밍은 외부에서 주입한다.
+Ooon 웹 프로젝터. Canvas 2D로 DSL 블록(score / drum / progression / fretboard / song)을 그린다. 시각화 전담 패키지로, 오디오/타이밍은 외부에서 주입한다.
 
 ## 주요 API
 
@@ -9,6 +9,6 @@ Oon 웹 프로젝터. Canvas 2D로 DSL 블록(score / drum / progression / fretb
 
 ## 책임 분리
 
-- 오디오 엔진(smplr 어댑터): `@oon/audio-engine-web`
-- 재생 컨트롤 + 오디오 오케스트레이션: `@oon/player-web`
+- 오디오 엔진(smplr 어댑터): `@ooon/audio-engine-web`
+- 재생 컨트롤 + 오디오 오케스트레이션: `@ooon/player-web`
 - 이 패키지는 그리기만 담당한다.

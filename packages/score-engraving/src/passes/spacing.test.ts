@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { DurationSymbol, NoteEvent } from '@oon/core';
+import type { DurationSymbol, NoteEvent } from '@ooon/core';
 import {
   defaultClefWidthSp,
   defaultTimeSigWidthSp,

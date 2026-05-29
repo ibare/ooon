@@ -1,8 +1,8 @@
 {
-  "name": "@oon/core",
+  "name": "@ooon/core",
   "version": "0.0.0",
   "private": true,
-  "description": "Oon 핵심 엔진 — DSL 파서, AST, 음악 이론, 레이아웃 (플랫폼 독립)",
+  "description": "Ooon 핵심 엔진 — DSL 파서, AST, 음악 이론, 레이아웃 (플랫폼 독립)",
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
@@ -21,11 +21,11 @@
     "clean": "rm -rf dist .tsbuildinfo"
   },
   "dependencies": {
-    "@oon/shared": "workspace:*",
-    "@oon/smufl-asset": "workspace:*"
+    "@ooon/shared": "workspace:*",
+    "@ooon/smufl-asset": "workspace:*"
   },
   "devDependencies": {
-    "@oon/tsconfig": "workspace:*",
+    "@ooon/tsconfig": "workspace:*",
     "tsup": "^8.2.4",
     "typescript": "^5.5.4",
     "vitest": "^2.1.1"

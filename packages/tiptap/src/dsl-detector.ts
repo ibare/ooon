@@ -1,4 +1,4 @@
-export const INLINE_OON_PREFIX = 'oon:';
+export const INLINE_OOON_PREFIX = 'ooon:';
 
 export interface InlineMatch {
   start: number;
@@ -6,9 +6,9 @@ export interface InlineMatch {
   source: string;
 }
 
-const INLINE_RE = /`(oon:[^`]+)`/g;
+const INLINE_RE = /`(ooon:[^`]+)`/g;
 
-export function findInlineOonMatches(text: string): InlineMatch[] {
+export function findInlineOoonMatches(text: string): InlineMatch[] {
   const results: InlineMatch[] = [];
   INLINE_RE.lastIndex = 0;
   let m: RegExpExecArray | null;
@@ -20,12 +20,12 @@ export function findInlineOonMatches(text: string): InlineMatch[] {
   return results;
 }
 
-export function isOonCodeLanguage(language: string | null | undefined): boolean {
-  return language === 'oon';
+export function isOoonCodeLanguage(language: string | null | undefined): boolean {
+  return language === 'ooon';
 }
 
 const BLOCK_TYPE_RE = /^\s*(score|drum|progression|fretboard|song)\b/;
 
-export function looksLikeOonBlock(source: string): boolean {
+export function looksLikeOoonBlock(source: string): boolean {
   return BLOCK_TYPE_RE.test(source);
 }

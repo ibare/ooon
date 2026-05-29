@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { NoteEvent } from '@oon/core';
+import type { NoteEvent } from '@ooon/core';
 import { resolveAccidentals } from './accidentals.js';
 import { parseKeySignature } from './key-signature.js';
 

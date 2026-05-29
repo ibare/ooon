@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { parseBlock } from '@oon/core';
-import type { ScoreNode } from '@oon/core';
+import { parseBlock } from '@ooon/core';
+import type { ScoreNode } from '@ooon/core';
 import { applyScoreCommand, CommandError } from './commands.js';
 
 function score(dsl: string): ScoreNode {

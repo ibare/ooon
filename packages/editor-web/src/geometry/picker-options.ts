@@ -6,7 +6,7 @@ import {
   transposePitch,
   type GlyphName,
   type TimeSignature,
-} from '@oon/core';
+} from '@ooon/core';
 import { PICKER_DEFAULT_CHORD_INTERVAL_SEMITONES } from '../constants.js';
 
 // 음표 후보 duration 심볼. 픽커는 이 순서대로 노출하되, 남은 박자(remainBeats)에

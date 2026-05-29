@@ -4,9 +4,9 @@ import {
   ENGRAVING,
   GLYPH_NAMES,
   GLYPHS,
-} from '@oon/smufl-asset';
+} from '@ooon/smufl-asset';
 
-describe('@oon/smufl-asset', () => {
+describe('@ooon/smufl-asset', () => {
   it('모든 명세된 글리프가 GLYPHS에 존재한다', () => {
     for (const name of GLYPH_NAMES) {
       expect(GLYPHS[name], `missing glyph: ${name}`).toBeDefined();

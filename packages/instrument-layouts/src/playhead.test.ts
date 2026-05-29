@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseBlock, type DrumNode, type ProgressionNode } from '@oon/core';
+import { parseBlock, type DrumNode, type ProgressionNode } from '@ooon/core';
 import { calculateDrumLayout } from './drum-layout.js';
 import { calculateProgressionLayout } from './progression-layout.js';
 import { getDrumPlayheadX, getProgressionPlayheadX } from './playhead.js';

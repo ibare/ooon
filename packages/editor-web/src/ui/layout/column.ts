@@ -1,7 +1,7 @@
 // 자식 위젯을 세로로 배치. gap만큼 사이 여백, align으로 가로 정렬.
 // 자기 폭은 자식 최대 폭, 높이는 자식 합 + gap.
 
-import type { Projector } from '@oon/shared';
+import type { Projector } from '@ooon/shared';
 import {
   clampSize,
   pointInRect,

@@ -1,4 +1,4 @@
-import type { ScoreLayout } from '@oon/score-engraving';
+import type { ScoreLayout } from '@ooon/score-engraving';
 import { PLUCK_ZONE_GAP_FROM_BARLINE, PLUCK_ZONE_WIDTH } from '../constants.js';
 
 export interface PluckZoneRect {

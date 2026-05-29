@@ -1,8 +1,8 @@
 {
-  "name": "@oon/audio-engine-web",
+  "name": "@ooon/audio-engine-web",
   "version": "0.0.0",
   "private": true,
-  "description": "Oon AudioEngine 인터페이스의 smplr 기반 웹 어댑터 — 재생기/편집기/플러그인이 공유",
+  "description": "Ooon AudioEngine 인터페이스의 smplr 기반 웹 어댑터 — 재생기/편집기/플러그인이 공유",
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
@@ -21,13 +21,13 @@
     "clean": "rm -rf dist .tsbuildinfo"
   },
   "dependencies": {
-    "@oon/shared": "workspace:*"
+    "@ooon/shared": "workspace:*"
   },
   "peerDependencies": {
     "smplr": ">=0.20.0"
   },
   "devDependencies": {
-    "@oon/tsconfig": "workspace:*",
+    "@ooon/tsconfig": "workspace:*",
     "smplr": "^0.20.0",
     "tsup": "^8.2.4",
     "typescript": "^5.5.4",

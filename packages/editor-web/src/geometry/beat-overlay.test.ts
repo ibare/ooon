@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import type { ScoreLayout } from '@oon/score-engraving';
-import type { ScoreNode } from '@oon/core';
+import type { ScoreLayout } from '@ooon/score-engraving';
+import type { ScoreNode } from '@ooon/core';
 import {
   calculateBeatSlots,
   findSlotAt,

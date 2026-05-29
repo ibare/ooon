@@ -58,7 +58,7 @@ tools: Read, Glob, Grep, Bash
 ```bash
 curl -s -X POST http://localhost:3800/api/events \
   -H "Content-Type: application/json" \
-  -d '{"projectName":"oon","action":"rule_guard_check","reason":"사전|사후 검증 시작/완료 요약","taskId":"(호출 측에서 받은 taskId)"}'
+  -d '{"projectName":"ooon","action":"rule_guard_check","reason":"사전|사후 검증 시작/완료 요약","taskId":"(호출 측에서 받은 taskId)"}'
 ```
 
 - 호출 시작 시 `rule_guard_start`, 완료 시 `rule_guard_complete`로 액션 키를 구분한다

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { parseBlock } from '@oon/core';
-import type { DrumNode } from '@oon/core';
-import { calculateDrumLayout } from '@oon/instrument-layouts';
+import { parseBlock } from '@ooon/core';
+import type { DrumNode } from '@ooon/core';
+import { calculateDrumLayout } from '@ooon/instrument-layouts';
 import { renderDrum } from './drum-renderer.js';
 import { FakeProjector } from '../testing/fake-projector.js';
 

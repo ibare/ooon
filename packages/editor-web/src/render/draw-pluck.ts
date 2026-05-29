@@ -1,4 +1,4 @@
-import type { Projector } from '@oon/shared';
+import type { Projector } from '@ooon/shared';
 import { PLUCK_ZONE_HIGHLIGHT_STROKE, PLUCK_ZONE_HOVER_FILL } from '../constants.js';
 import type { PluckZoneRect } from '../geometry/pluck-zone.js';
 

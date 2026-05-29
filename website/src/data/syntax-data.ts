@@ -13,7 +13,7 @@ export const syntax: SyntaxSection[] = [
   {
     id: 'overview',
     body:
-      'Oon 문서는 블록 단위로 구성된다. 각 블록은 첫 줄(헤더)에 블록 타입과 파라미터를 쓰고, 그 다음 줄부터 실제 내용을 적는다. 헤더 파라미터는 공백 구분 `key:value` 형태이며, `score`·`drum`·`progression`·`song`은 박자 표시(`4/4`, `6/8` 등)를 헤더에 포함한다.',
+      'Ooon 문서는 블록 단위로 구성된다. 각 블록은 첫 줄(헤더)에 블록 타입과 파라미터를 쓰고, 그 다음 줄부터 실제 내용을 적는다. 헤더 파라미터는 공백 구분 `key:value` 형태이며, `score`·`drum`·`progression`·`song`은 박자 표시(`4/4`, `6/8` 등)를 헤더에 포함한다.',
     examples: [
       { label: '블록 골격', code: '<type> <timesig?> <key:value>...\n  <content line>\n  <content line>' },
     ],
@@ -75,7 +75,7 @@ export const syntax: SyntaxSection[] = [
   {
     id: 'inline',
     body:
-      '문서 본문 속 `` `chord:Cmaj7` ``, `` `scale:A minor` ``, `` `note:C4` ``와 같은 인라인 코드 토큰은 Tiptap 통합에서 호버 팝오버로 확장된다. 플러그인이 백틱 안 `oon:` prefix를 감지해 해당 토큰을 렌더한다.',
+      '문서 본문 속 `` `chord:Cmaj7` ``, `` `scale:A minor` ``, `` `note:C4` ``와 같은 인라인 코드 토큰은 Tiptap 통합에서 호버 팝오버로 확장된다. 플러그인이 백틱 안 `ooon:` prefix를 감지해 해당 토큰을 렌더한다.',
     examples: [
       { label: '노트', code: 'See `note:C4` as middle C.' },
       { label: '코드', code: 'The chord `chord:Cmaj7` has a major 7th.' },

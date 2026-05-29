@@ -4,7 +4,7 @@
 // hit는 자식 위젯에 위임 — Grid 자체는 token을 등록하지 않는다.
 // Button을 자식으로 넣으면 셀별 클릭이 동작.
 
-import type { Color, Projector } from '@oon/shared';
+import type { Color, Projector } from '@ooon/shared';
 import {
   clampSize,
   pointInRect,

@@ -1,15 +1,15 @@
 {
-  "name": "oon",
+  "name": "ooon",
   "version": "0.0.0",
   "private": true,
-  "description": "Oon(운) — 음악 DSL 렌더러. 텍스트로 기술된 음악을 시각화와 소리로 렌더링한다.",
+  "description": "Ooon(운) — 음악 DSL 렌더러. 텍스트로 기술된 음악을 시각화와 소리로 렌더링한다.",
   "packageManager": "pnpm@9.12.0",
   "engines": {
     "node": ">=20.0.0"
   },
   "scripts": {
     "build": "pnpm --filter \"./packages/**\" build",
-    "dev": "pnpm --filter @oon/website dev",
+    "dev": "pnpm --filter @ooon/website dev",
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "pnpm -r typecheck",

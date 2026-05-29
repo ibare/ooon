@@ -1,5 +1,5 @@
-import { parseBlock, type BlockNode } from '@oon/core';
-import type { TrackMute } from '@oon/shared';
+import { parseBlock, type BlockNode } from '@ooon/core';
+import type { TrackMute } from '@ooon/shared';
 import {
   createControlsBar,
   DEFAULT_LABELS_EN,
@@ -44,7 +44,7 @@ export function mountControls(
   opts: PlayerControlsOptions,
 ): PlayerControlsHandle {
   if (opts.source === undefined && opts.node === undefined) {
-    throw new Error('@oon/player-web: opts.source or opts.node must be provided');
+    throw new Error('@ooon/player-web: opts.source or opts.node must be provided');
   }
   const labels = opts.labels ?? DEFAULT_LABELS_EN;
 
@@ -118,7 +118,7 @@ export function mountControls(
       }, handle.durationSec * 1000 + 500);
     } catch (err) {
       if (opts.onError) opts.onError(err);
-      else console.warn('[oon/player-web] playback failed', err);
+      else console.warn('[ooon/player-web] playback failed', err);
       setState('idle');
     }
   };

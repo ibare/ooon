@@ -1,5 +1,5 @@
-import { GLYPHS } from '@oon/smufl-asset';
-import type { NoteEvent } from '@oon/core';
+import { GLYPHS } from '@ooon/smufl-asset';
+import type { NoteEvent } from '@ooon/core';
 import type { AccidentalKind } from './accidentals.js';
 import {
   isDotted,

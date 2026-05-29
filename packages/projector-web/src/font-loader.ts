@@ -1,4 +1,4 @@
-import { BRAVURA_FONT_FAMILY } from '@oon/core';
+import { BRAVURA_FONT_FAMILY } from '@ooon/core';
 
 export interface LoadBravuraOptions {
   url: string;

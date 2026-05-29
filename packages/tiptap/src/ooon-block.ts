@@ -1,32 +1,32 @@
 import { Node, mergeAttributes } from '@tiptap/core';
-import { createOonBlockView } from './oon-block-view.js';
-import type { OonRuntime } from './runtime.js';
+import { createOoonBlockView } from './ooon-block-view.js';
+import type { OoonRuntime } from './runtime.js';
 
-export interface OonBlockOptions {
-  runtime: OonRuntime;
+export interface OoonBlockOptions {
+  runtime: OoonRuntime;
   HTMLAttributes?: Record<string, unknown>;
   showNoteNames?: boolean;
   defaultWidth?: number;
 }
 
-export const OonBlock = Node.create<OonBlockOptions>({
-  name: 'oonBlock',
+export const OoonBlock = Node.create<OoonBlockOptions>({
+  name: 'ooonBlock',
   group: 'block',
   content: 'text*',
   code: true,
   defining: true,
   marks: '',
 
-  addOptions(): OonBlockOptions {
+  addOptions(): OoonBlockOptions {
     return {
-      runtime: undefined as unknown as OonRuntime,
+      runtime: undefined as unknown as OoonRuntime,
     };
   },
 
   parseHTML() {
     return [
       {
-        tag: 'pre[data-oon-block]',
+        tag: 'pre[data-ooon-block]',
         preserveWhitespace: 'full',
       },
     ];
@@ -35,7 +35,7 @@ export const OonBlock = Node.create<OonBlockOptions>({
   renderHTML({ HTMLAttributes }) {
     return [
       'pre',
-      mergeAttributes({ 'data-oon-block': 'true' }, this.options.HTMLAttributes ?? {}, HTMLAttributes),
+      mergeAttributes({ 'data-ooon-block': 'true' }, this.options.HTMLAttributes ?? {}, HTMLAttributes),
       ['code', 0],
     ];
   },
@@ -43,7 +43,7 @@ export const OonBlock = Node.create<OonBlockOptions>({
   addNodeView() {
     return ({ node }) => {
       const opts = this.options;
-      const view = createOonBlockView(node, {
+      const view = createOoonBlockView(node, {
         runtime: opts.runtime,
         ...(opts.showNoteNames !== undefined ? { showNoteNames: opts.showNoteNames } : {}),
         ...(opts.defaultWidth !== undefined ? { defaultWidth: opts.defaultWidth } : {}),
@@ -51,7 +51,7 @@ export const OonBlock = Node.create<OonBlockOptions>({
       return {
         dom: view.dom,
         update(updated) {
-          if (updated.type.name !== 'oonBlock') return false;
+          if (updated.type.name !== 'ooonBlock') return false;
           view.update(updated.textContent);
           return true;
         },

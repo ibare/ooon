@@ -1,4 +1,4 @@
-import { chordVoicing, pitchClassOf, type SongChord } from '@oon/core';
+import { chordVoicing, pitchClassOf, type SongChord } from '@ooon/core';
 
 /** root을 항상 octave 3에 두는 root-position voicing의 기준 MIDI(C3). */
 const ROOT_OCTAVE_BASE_MIDI = 48;

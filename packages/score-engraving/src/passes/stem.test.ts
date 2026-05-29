@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { GLYPHS } from '@oon/smufl-asset';
+import { GLYPHS } from '@ooon/smufl-asset';
 import { placeStem, stemDirection } from './stem.js';
 
 const B4_STEP = 4 * 7 + 6;

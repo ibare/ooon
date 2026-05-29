@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { calculateKeyboardLayout } from '@oon/instrument-layouts';
+import { calculateKeyboardLayout } from '@ooon/instrument-layouts';
 import { drawKeyboardHighlights } from './keyboard-highlights.js';
 import { FakeProjector } from '../testing/fake-projector.js';
 

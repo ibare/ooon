@@ -1,0 +1,55 @@
+{
+  "name": "@ooon/tiptap",
+  "version": "0.1.0",
+  "description": "Ooon Tiptap 확장 — 코드 펜스/인라인 코드에서 DSL을 감지·렌더하는 NodeExtension과 round-trip 직렬화기. 내부 workspace를 단일 ESM 번들로 inline하여 외부 호스트가 하나의 의존성으로 사용한다.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./font/Bravura.woff2": "./dist/font/Bravura.woff2"
+  },
+  "files": ["dist", "README.md"],
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "rollup -c rollup.config.mjs",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "clean": "rm -rf dist .tsbuildinfo"
+  },
+  "peerDependencies": {
+    "@tiptap/core": ">=2.6.0",
+    "@tiptap/pm": ">=2.6.0",
+    "smplr": ">=0.20.0"
+  },
+  "devDependencies": {
+    "@ooon/audio-engine-web": "workspace:*",
+    "@ooon/composition": "workspace:*",
+    "@ooon/core": "workspace:*",
+    "@ooon/instrument-layouts": "workspace:*",
+    "@ooon/projector-web": "workspace:*",
+    "@ooon/score-engraving": "workspace:*",
+    "@ooon/shared": "workspace:*",
+    "@ooon/smufl-asset": "workspace:*",
+    "@ooon/tsconfig": "workspace:*",
+    "@rollup/plugin-commonjs": "^28.0.1",
+    "@rollup/plugin-json": "^6.1.0",
+    "@rollup/plugin-node-resolve": "^15.3.0",
+    "@tiptap/core": "^2.6.6",
+    "@tiptap/pm": "^2.6.6",
+    "rollup": "^4.28.0",
+    "rollup-plugin-copy": "^3.5.0",
+    "rollup-plugin-dts": "^6.1.1",
+    "rollup-plugin-esbuild": "^6.1.1",
+    "smplr": "^0.20.0",
+    "typescript": "^5.5.4",
+    "vitest": "^2.1.1"
+  }
+}

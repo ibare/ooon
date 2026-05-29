@@ -2,7 +2,7 @@ import {
   calculateKeyboardLayout,
   deriveKeyboardRange,
   type KeyboardLayout,
-} from '@oon/instrument-layouts';
+} from '@ooon/instrument-layouts';
 import { CanvasProjector } from './canvas-projector.js';
 import { renderKeyboard } from './renderers/keyboard-renderer.js';
 import {
@@ -66,10 +66,10 @@ export function mountKeyboardView(
   const showLabels = opts.showLabels ?? true;
 
   const wrap = document.createElement('div');
-  wrap.className = 'oon-keyboard-view';
+  wrap.className = 'ooon-keyboard-view';
   wrap.style.width = '100%';
   const canvas = document.createElement('canvas');
-  canvas.className = 'oon-keyboard-canvas';
+  canvas.className = 'ooon-keyboard-canvas';
   canvas.style.display = 'block';
   wrap.appendChild(canvas);
   host.appendChild(wrap);

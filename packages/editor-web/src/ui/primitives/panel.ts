@@ -1,7 +1,7 @@
 // 둥근 사각형 배경 + 테두리. 자식이 있으면 같은 영역에 겹쳐 그림.
 // 자기 크기는 자식에 맞추거나 제약 최대치 — Stack/Padding과 조합해서 사용.
 
-import type { Color, Projector } from '@oon/shared';
+import type { Color, Projector } from '@ooon/shared';
 import {
   clampSize,
   pointInRect,

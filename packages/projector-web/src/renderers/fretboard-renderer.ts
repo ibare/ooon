@@ -1,5 +1,5 @@
-import type { Projector } from '@oon/shared';
-import type { FretboardLayout } from '@oon/instrument-layouts';
+import type { Projector } from '@ooon/shared';
+import type { FretboardLayout } from '@ooon/instrument-layouts';
 import { FONT, METRICS, THEME } from '../theme.js';
 
 export interface FretboardRenderOptions {

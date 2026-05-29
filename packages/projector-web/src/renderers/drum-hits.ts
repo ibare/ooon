@@ -1,6 +1,6 @@
-import type { Projector } from '@oon/shared';
-import type { SongLayout } from '@oon/composition';
-import type { DrumLayout } from '@oon/instrument-layouts';
+import type { Projector } from '@ooon/shared';
+import type { SongLayout } from '@ooon/composition';
+import type { DrumLayout } from '@ooon/instrument-layouts';
 import { METRICS, THEME } from '../theme.js';
 
 export interface SongDrumHitsOptions {

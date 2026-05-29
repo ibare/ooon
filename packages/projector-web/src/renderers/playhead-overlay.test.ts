@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { parseBlock, type SongNode } from '@oon/core';
-import { calculateSongLayout } from '@oon/composition';
+import { parseBlock, type SongNode } from '@ooon/core';
+import { calculateSongLayout } from '@ooon/composition';
 import { drawSongPlayheadOverlay } from './playhead-overlay.js';
 import { FakeProjector } from '../testing/fake-projector.js';
 

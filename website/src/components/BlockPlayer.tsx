@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { mountPlayer, type PlayerHandle, type PlayerLabels } from '@oon/player-web';
+import { mountPlayer, type PlayerHandle, type PlayerLabels } from '@ooon/player-web';
 import { useLang } from '../i18n/context';
 
 const KO_LABELS: PlayerLabels = {

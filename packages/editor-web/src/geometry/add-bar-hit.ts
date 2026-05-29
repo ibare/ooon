@@ -1,4 +1,4 @@
-import type { ScoreLayout } from '@oon/score-engraving';
+import type { ScoreLayout } from '@ooon/score-engraving';
 import { ADD_BAR_BUTTON_GAP, ADD_BAR_BUTTON_RADIUS } from '../constants.js';
 
 export interface AddBarHitRect {

@@ -13,7 +13,7 @@
 // 이유: 위젯이 stale closure를 잡지 않음, 단방향 데이터 흐름, 임의 store와 결합 가능.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import type { Point, Projector, Rect, Size } from '@oon/shared';
+import type { Point, Projector, Rect, Size } from '@ooon/shared';
 
 export type { Point, Rect, Size };
 

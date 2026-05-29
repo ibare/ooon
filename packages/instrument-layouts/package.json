@@ -1,8 +1,8 @@
 {
-  "name": "@oon/instrument-layouts",
+  "name": "@ooon/instrument-layouts",
   "version": "0.0.0",
   "private": true,
-  "description": "Oon 악기 레이아웃 — keyboard/fretboard/drum/progression layout 계산",
+  "description": "Ooon 악기 레이아웃 — keyboard/fretboard/drum/progression layout 계산",
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
@@ -21,10 +21,10 @@
     "clean": "rm -rf dist .tsbuildinfo"
   },
   "dependencies": {
-    "@oon/core": "workspace:*"
+    "@ooon/core": "workspace:*"
   },
   "devDependencies": {
-    "@oon/tsconfig": "workspace:*",
+    "@ooon/tsconfig": "workspace:*",
     "tsup": "^8.2.4",
     "typescript": "^5.5.4",
     "vitest": "^2.1.1"

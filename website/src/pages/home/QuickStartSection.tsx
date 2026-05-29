@@ -3,9 +3,9 @@ import { useLang } from '../../i18n/context';
 
 const TIPTAP_USAGE = `import { Editor } from '@tiptap/core';
 import StarterKit from '@tiptap/starter-kit';
-import { OonRuntime, OonBlock, OonInline } from '@oon/plugin-tiptap';
+import { OoonRuntime, OoonBlock, OoonInline } from '@ooon/tiptap';
 
-const runtime = new OonRuntime({
+const runtime = new OoonRuntime({
   bravuraUrl: '/fonts/Bravura.woff2',
 });
 
@@ -13,8 +13,8 @@ new Editor({
   element: document.querySelector('#editor')!,
   extensions: [
     StarterKit,
-    OonBlock.configure({ runtime }),
-    OonInline.configure({ runtime }),
+    OoonBlock.configure({ runtime }),
+    OoonInline.configure({ runtime }),
   ],
 });`;
 

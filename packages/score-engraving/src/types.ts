@@ -1,4 +1,4 @@
-import type { LayoutBase } from '@oon/core';
+import type { LayoutBase } from '@ooon/core';
 
 export interface ScoreStaff {
   y: number;

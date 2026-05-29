@@ -1,29 +1,29 @@
 import type { Node as ProseMirrorNode } from '@tiptap/pm/model';
-import type { CanvasProjector } from '@oon/projector-web';
+import type { CanvasProjector } from '@ooon/projector-web';
 import { renderBlockToProjector } from './block-render.js';
-import type { OonRuntime } from './runtime.js';
+import type { OoonRuntime } from './runtime.js';
 
-export interface OonBlockViewOptions {
-  runtime: OonRuntime;
+export interface OoonBlockViewOptions {
+  runtime: OoonRuntime;
   showNoteNames?: boolean;
   defaultWidth?: number;
 }
 
-export interface OonBlockViewHandle {
+export interface OoonBlockViewHandle {
   dom: HTMLElement;
   update: (source: string) => void;
   destroy: () => void;
 }
 
-export function createOonBlockView(
+export function createOoonBlockView(
   node: ProseMirrorNode,
-  opts: OonBlockViewOptions,
-): OonBlockViewHandle {
+  opts: OoonBlockViewOptions,
+): OoonBlockViewHandle {
   const dom = document.createElement('div');
-  dom.className = 'oon-block';
+  dom.className = 'ooon-block';
 
   const canvasScroll = document.createElement('div');
-  canvasScroll.className = 'oon-block-canvas-scroll';
+  canvasScroll.className = 'ooon-block-canvas-scroll';
   canvasScroll.style.overflowX = 'auto';
   canvasScroll.style.maxWidth = '100%';
   dom.appendChild(canvasScroll);
@@ -33,17 +33,17 @@ export function createOonBlockView(
   canvasScroll.appendChild(canvas);
 
   const details = document.createElement('details');
-  details.className = 'oon-block-source';
+  details.className = 'ooon-block-source';
   const summary = document.createElement('summary');
   summary.textContent = 'DSL 원문';
   details.appendChild(summary);
   const pre = document.createElement('pre');
-  pre.className = 'oon-block-source-pre';
+  pre.className = 'ooon-block-source-pre';
   details.appendChild(pre);
   dom.appendChild(details);
 
   const warnings = document.createElement('div');
-  warnings.className = 'oon-block-warnings';
+  warnings.className = 'ooon-block-warnings';
   dom.appendChild(warnings);
 
   const width = opts.defaultWidth ?? 600;

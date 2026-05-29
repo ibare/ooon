@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { AudioEngine } from '@oon/shared';
+import type { AudioEngine } from '@ooon/shared';
 import { playSource } from './playback.js';
 
 function createMockEngine(): AudioEngine {

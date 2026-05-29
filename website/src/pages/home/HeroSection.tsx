@@ -31,7 +31,7 @@ export default function HeroSection() {
             {t.hero.cta_start}
           </Link>
           <a
-            href="https://github.com/ibare/oon"
+            href="https://github.com/ibare/ooon"
             target="_blank"
             rel="noopener noreferrer"
             className="btn btn--outline"

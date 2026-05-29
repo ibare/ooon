@@ -1,5 +1,5 @@
-import type { Projector } from '@oon/shared';
-import type { DrumLayout, DrumCellLayout } from '@oon/instrument-layouts';
+import type { Projector } from '@ooon/shared';
+import type { DrumLayout, DrumCellLayout } from '@ooon/instrument-layouts';
 import { CanvasProjector } from '../canvas-projector.js';
 import { DRUM_TRACK_COLOR, FONT, METRICS, THEME } from '../theme.js';
 

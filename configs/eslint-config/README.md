@@ -1,3 +1,3 @@
-# @oon/eslint-config
+# @ooon/eslint-config
 
-Oon 모노레포 공용 ESLint flat config.
+Ooon 모노레포 공용 ESLint flat config.

@@ -1,4 +1,4 @@
-# @oon/smufl-asset
+# @ooon/smufl-asset
 
 SMuFL(Standard Music Font Layout) 자산. Bravura 폰트와 그 메타데이터에서 추출한 글리프·조판 기본값을 타입 안전하게 노출한다.
 
@@ -7,8 +7,8 @@ SMuFL(Standard Music Font Layout) 자산. Bravura 폰트와 그 메타데이터�
 ## 공개 API
 
 ```ts
-import { GLYPHS, ENGRAVING, BRAVURA_FONT_FAMILY } from '@oon/smufl-asset';
-import type { Sp, GlyphName, GlyphInfo, EngravingDefaults } from '@oon/smufl-asset';
+import { GLYPHS, ENGRAVING, BRAVURA_FONT_FAMILY } from '@ooon/smufl-asset';
+import type { Sp, GlyphName, GlyphInfo, EngravingDefaults } from '@ooon/smufl-asset';
 ```
 
 - `GLYPHS[name]`: 각 글리프의 `codepoint`, `bbox`(좌상우하, sp), `anchors`(stemUpSE/stemDownNW 등, sp). y축은 위가 양수(SMuFL 규약).
@@ -19,7 +19,7 @@ import type { Sp, GlyphName, GlyphInfo, EngravingDefaults } from '@oon/smufl-ass
 
 ```ts
 // Vite 등 번들러에서:
-import bravuraFontUrl from '@oon/smufl-asset/font/Bravura.woff2?url';
+import bravuraFontUrl from '@ooon/smufl-asset/font/Bravura.woff2?url';
 ```
 
 ## 디렉터리
@@ -36,7 +36,7 @@ import bravuraFontUrl from '@oon/smufl-asset/font/Bravura.woff2?url';
 ## 메타데이터 갱신
 
 ```bash
-pnpm --filter @oon/smufl-asset generate
+pnpm --filter @ooon/smufl-asset generate
 ```
 
 `assets/bravura_metadata.json`이 갱신됐을 때만 실행한다. 결과는 결정적이며 git에 커밋된다.

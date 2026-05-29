@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { ScoreLayout } from '@oon/score-engraving';
+import type { ScoreLayout } from '@ooon/score-engraving';
 import { calculateTimeSigHits, findTimeSigHitAt } from './time-sig-hit.js';
 
 function makeLayout(): ScoreLayout {

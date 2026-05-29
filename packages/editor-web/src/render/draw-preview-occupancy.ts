@@ -1,4 +1,4 @@
-import type { Projector } from '@oon/shared';
+import type { Projector } from '@ooon/shared';
 import { PREVIEW_OCCUPANCY_FILL } from '../constants.js';
 import type { PreviewOccupancyRect } from '../geometry/preview-occupancy.js';
 

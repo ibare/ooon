@@ -1,5 +1,5 @@
 {
-  "name": "@oon/smufl-asset",
+  "name": "@ooon/smufl-asset",
   "version": "0.0.0",
   "private": true,
   "description": "SMuFL 자산 — Bravura 폰트와 메타데이터(글리프 bbox/anchors, engravingDefaults)를 sp 단위 그대로 노출. 플랫폼 독립.",
@@ -28,7 +28,7 @@
     "clean": "rm -rf dist .tsbuildinfo"
   },
   "devDependencies": {
-    "@oon/tsconfig": "workspace:*",
+    "@ooon/tsconfig": "workspace:*",
     "tsup": "^8.2.4",
     "tsx": "^4.19.0",
     "typescript": "^5.5.4",

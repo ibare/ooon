@@ -1,4 +1,4 @@
-import type { Projector } from '@oon/shared';
+import type { Projector } from '@ooon/shared';
 import { VIBRATION_AMPLITUDE_PX, VIBRATION_DECAY_SEC, VIBRATION_FREQ_HZ } from '../constants.js';
 import { PLUCK_ZONE_HIGHLIGHT_STROKE } from '../constants.js';
 

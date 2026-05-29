@@ -1,8 +1,8 @@
-import type { CanvasProjector } from '@oon/projector-web';
-import { parseInline, pitchToMidi } from '@oon/core';
-import { calculateKeyboardLayout } from '@oon/instrument-layouts';
-import { renderChord, renderNote, renderScale } from '@oon/projector-web';
-import type { OonRuntime } from './runtime.js';
+import type { CanvasProjector } from '@ooon/projector-web';
+import { parseInline, pitchToMidi } from '@ooon/core';
+import { calculateKeyboardLayout } from '@ooon/instrument-layouts';
+import { renderChord, renderNote, renderScale } from '@ooon/projector-web';
+import type { OoonRuntime } from './runtime.js';
 
 export interface InlinePopoverHandle {
   dom: HTMLElement;
@@ -10,7 +10,7 @@ export interface InlinePopoverHandle {
 }
 
 export interface OpenInlinePopoverOptions {
-  runtime: OonRuntime;
+  runtime: OoonRuntime;
   source: string;
   anchor: DOMRect;
   container?: HTMLElement;
@@ -20,7 +20,7 @@ export interface OpenInlinePopoverOptions {
 export function openInlinePopover(opts: OpenInlinePopoverOptions): InlinePopoverHandle {
   const container = opts.container ?? document.body;
   const dom = document.createElement('div');
-  dom.className = 'oon-inline-popover';
+  dom.className = 'ooon-inline-popover';
   dom.style.position = 'absolute';
   dom.style.left = `${opts.anchor.left + window.scrollX}px`;
   dom.style.top = `${opts.anchor.bottom + window.scrollY + 4}px`;

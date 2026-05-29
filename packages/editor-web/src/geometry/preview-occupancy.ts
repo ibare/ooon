@@ -1,4 +1,4 @@
-import type { ScoreLayout } from '@oon/score-engraving';
+import type { ScoreLayout } from '@ooon/score-engraving';
 
 export interface PreviewOccupancyRect {
   x: number;

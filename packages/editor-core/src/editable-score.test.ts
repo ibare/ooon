@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { EditableScore } from '@oon/editor-core';
+import { EditableScore } from '@ooon/editor-core';
 
 describe('EditableScore (public API integration)', () => {
   it('initializes from DSL source and exposes node + dsl', () => {

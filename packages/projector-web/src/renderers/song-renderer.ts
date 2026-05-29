@@ -1,5 +1,5 @@
-import type { Projector } from '@oon/shared';
-import type { SongLayout } from '@oon/composition';
+import type { Projector } from '@ooon/shared';
+import type { SongLayout } from '@ooon/composition';
 import { CanvasProjector } from '../canvas-projector.js';
 import { renderDrum } from './drum-renderer.js';
 import { renderKeyboard } from './keyboard-renderer.js';

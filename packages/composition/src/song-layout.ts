@@ -1,5 +1,5 @@
-import { pitchClassOf, pitchToMidi } from '@oon/core';
-import type { DrumNode, ScoreNode, SongBar, SongNode } from '@oon/core';
+import { pitchClassOf, pitchToMidi } from '@ooon/core';
+import type { DrumNode, ScoreNode, SongBar, SongNode } from '@ooon/core';
 import {
   calculateKeyboardLayout,
   calculateProgressionSystemLayout,
@@ -7,8 +7,8 @@ import {
   deriveKeyboardRange,
   type DrumSystemBar,
   type ProgressionSystemBar,
-} from '@oon/instrument-layouts';
-import { calculateScoreLayout, type ScoreLayout } from '@oon/score-engraving';
+} from '@ooon/instrument-layouts';
+import { calculateScoreLayout, type ScoreLayout } from '@ooon/score-engraving';
 import type { SongLayout, SongSystemRow } from './types.js';
 import { chooseChordVoicingMidis } from './voicing.js';
 

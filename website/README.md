@@ -1,19 +1,19 @@
-# @oon/website
+# @ooon/website
 
-Oon 공개 사이트. `https://<user>.github.io/oon/`에 GitHub Pages로 호스팅된다.
+Ooon 공개 사이트. `https://<user>.github.io/ooon/`에 GitHub Pages로 호스팅된다.
 
 ## 개발
 
 ```bash
 pnpm install
-pnpm --filter @oon/website dev
+pnpm --filter @ooon/website dev
 ```
 
 `dev` / `build`는 `scripts/copy-bravura.ts`를 먼저 실행해 `@vexflow-fonts/bravura` 패키지의 WOFF2 파일을 `public/fonts/`로 복사한다.
 
 ## 구조
 
-- `src/main.tsx` — 엔트리. BrowserRouter `basename='/oon/'`
+- `src/main.tsx` — 엔트리. BrowserRouter `basename='/ooon/'`
 - `src/App.tsx` — 언어 감지/라우팅
 - `src/i18n/` — 한국어/영어 딕셔너리 + Context
 - `src/layout/` — Nav / Footer

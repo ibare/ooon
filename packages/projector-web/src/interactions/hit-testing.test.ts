@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { HitArea } from '@oon/shared';
+import type { HitArea } from '@ooon/shared';
 import { hitTest } from './hit-testing.js';
 
 const A: HitArea = { id: 'a', rect: { x: 0, y: 0, width: 10, height: 10 } };

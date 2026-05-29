@@ -1,5 +1,5 @@
-import { BRAVURA_FONT_FAMILY, SMUFL, type GlyphName } from '@oon/core';
-import type { Projector } from '@oon/shared';
+import { BRAVURA_FONT_FAMILY, SMUFL, type GlyphName } from '@ooon/core';
+import type { Projector } from '@ooon/shared';
 import {
   GHOST_DOT_OFFSET_SP,
   GHOST_LEDGER_STROKE,

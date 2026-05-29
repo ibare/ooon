@@ -1,7 +1,7 @@
 // 일반 텍스트 라벨. 시스템 폰트 기준. measure는 fontSize 기반 근사
 // (정확한 폭은 projector.measureText로 layout 시점에 검증 가능하지만, 본 컨트롤러는 짧은 라벨 전용).
 
-import type { Color, Projector } from '@oon/shared';
+import type { Color, Projector } from '@ooon/shared';
 import {
   clampSize,
   pointInRect,

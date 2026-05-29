@@ -1,6 +1,6 @@
 # S-editor-web-canvas — editor-web 캔버스 stacking
 
-`@oon/editor-web`의 `score-editor.ts`는 트리플 캔버스 stacking으로 책임을 분리한다.
+`@ooon/editor-web`의 `score-editor.ts`는 트리플 캔버스 stacking으로 책임을 분리한다.
 편집 UX의 합성 효과(예: `destination-out` punch)가 본 score 요소(오선 등)를 깎지 않도록
 layer를 분리하는 것이 핵심.
 

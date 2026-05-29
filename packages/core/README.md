@@ -1,6 +1,6 @@
-# @oon/core
+# @ooon/core
 
-Oon DSL 파서, AST, 음악 이론, 레이아웃 계산. 플랫폼 의존성 없는 순수 TypeScript.
+Ooon DSL 파서, AST, 음악 이론, 레이아웃 계산. 플랫폼 의존성 없는 순수 TypeScript.
 
 ## 구성
 

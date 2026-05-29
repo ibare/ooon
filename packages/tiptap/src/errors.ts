@@ -1,13 +1,13 @@
-export class OonPluginError extends Error {
+export class OoonPluginError extends Error {
   constructor(message: string, options?: { cause?: unknown }) {
     super(message, options);
-    this.name = 'OonPluginError';
+    this.name = 'OoonPluginError';
   }
 }
 
-export class OonRenderError extends OonPluginError {
+export class OoonRenderError extends OoonPluginError {
   constructor(message: string, options?: { cause?: unknown }) {
     super(message, options);
-    this.name = 'OonRenderError';
+    this.name = 'OoonRenderError';
   }
 }

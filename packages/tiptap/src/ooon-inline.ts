@@ -2,23 +2,23 @@ import { Plugin, PluginKey } from '@tiptap/pm/state';
 import { Decoration, DecorationSet } from '@tiptap/pm/view';
 import type { EditorView } from '@tiptap/pm/view';
 import type { Node as ProseMirrorNode } from '@tiptap/pm/model';
-import { findInlineOonMatches } from './dsl-detector.js';
+import { findInlineOoonMatches } from './dsl-detector.js';
 import { openInlinePopover, type InlinePopoverHandle } from './inline-popover.js';
-import type { OonRuntime } from './runtime.js';
+import type { OoonRuntime } from './runtime.js';
 
-export interface OonInlinePluginOptions {
-  runtime: OonRuntime;
+export interface OoonInlinePluginOptions {
+  runtime: OoonRuntime;
   className?: string;
   container?: HTMLElement;
 }
 
-export const oonInlinePluginKey = new PluginKey<DecorationSet>('oon-inline');
+export const ooonInlinePluginKey = new PluginKey<DecorationSet>('ooon-inline');
 
-export function createOonInlinePlugin(opts: OonInlinePluginOptions): Plugin<DecorationSet> {
-  const className = opts.className ?? 'oon-inline';
+export function createOoonInlinePlugin(opts: OoonInlinePluginOptions): Plugin<DecorationSet> {
+  const className = opts.className ?? 'ooon-inline';
 
   return new Plugin<DecorationSet>({
-    key: oonInlinePluginKey,
+    key: ooonInlinePluginKey,
     state: {
       init: (_config, state) => buildDecorations(state.doc, className),
       apply: (tr, oldSet) => {
@@ -28,7 +28,7 @@ export function createOonInlinePlugin(opts: OonInlinePluginOptions): Plugin<Deco
     },
     props: {
       decorations(state) {
-        return oonInlinePluginKey.getState(state) ?? DecorationSet.empty;
+        return ooonInlinePluginKey.getState(state) ?? DecorationSet.empty;
       },
       handleClick(view, _pos, event) {
         const target = event.target;
@@ -48,7 +48,7 @@ function buildDecorations(doc: ProseMirrorNode, className: string): DecorationSe
   const decos: Decoration[] = [];
   doc.descendants((node, pos) => {
     if (!node.isText || !node.text) return;
-    const matches = findInlineOonMatches(node.text);
+    const matches = findInlineOoonMatches(node.text);
     for (const m of matches) {
       decos.push(
         Decoration.inline(pos + m.start, pos + m.end, {
@@ -68,7 +68,7 @@ function showPopoverForInline(
   view: EditorView,
   target: HTMLElement,
   source: string,
-  opts: OonInlinePluginOptions,
+  opts: OoonInlinePluginOptions,
 ): void {
   activePopover?.destroy();
   const rect = target.getBoundingClientRect();

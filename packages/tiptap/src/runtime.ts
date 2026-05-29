@@ -1,20 +1,20 @@
-import type { AudioEngine } from '@oon/shared';
-import { SmplrAudioEngine } from '@oon/audio-engine-web';
-import { CanvasProjector, loadBravura } from '@oon/projector-web';
+import type { AudioEngine } from '@ooon/shared';
+import { SmplrAudioEngine } from '@ooon/audio-engine-web';
+import { CanvasProjector, loadBravura } from '@ooon/projector-web';
 
-export interface OonRuntimeOptions {
+export interface OoonRuntimeOptions {
   bravuraUrl?: string;
   createAudioEngine?: () => AudioEngine;
   autoLoadFont?: boolean;
 }
 
-export class OonRuntime {
-  private readonly opts: OonRuntimeOptions;
+export class OoonRuntime {
+  private readonly opts: OoonRuntimeOptions;
   private audio: AudioEngine | undefined;
   private fontPromise: Promise<void> | undefined;
   private readonly projectors = new Set<CanvasProjector>();
 
-  constructor(opts: OonRuntimeOptions = {}) {
+  constructor(opts: OoonRuntimeOptions = {}) {
     this.opts = opts;
     if (opts.autoLoadFont !== false && opts.bravuraUrl) {
       this.loadFont();

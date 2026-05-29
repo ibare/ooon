@@ -1,4 +1,4 @@
-import type { Projector } from '@oon/shared';
+import type { Projector } from '@ooon/shared';
 import type { NoteHitRect } from '../geometry/note-hit.js';
 
 // 디버그 전용. Shift+S 누르고 있는 동안만 호출되어 음표 hit rect 영역을 시각화한다.

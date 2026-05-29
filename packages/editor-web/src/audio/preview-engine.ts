@@ -1,4 +1,4 @@
-import { SmplrAudioEngine, type SmplrAudioEngineOptions } from '@oon/audio-engine-web';
+import { SmplrAudioEngine, type SmplrAudioEngineOptions } from '@ooon/audio-engine-web';
 
 // 노트 미리듣기용 단일 SmplrAudioEngine. 첫 호출 시 lazy init.
 // peerDependency `smplr` 미설치/init 실패 시 onError 통지 후 silent fallback.
@@ -24,7 +24,7 @@ export class PreviewEngine {
         } catch (err) {
           this.failed = true;
           if (this.onError) this.onError(err);
-          else console.warn('[oon/editor-web] preview engine init failed', err);
+          else console.warn('[ooon/editor-web] preview engine init failed', err);
         }
       })();
     }

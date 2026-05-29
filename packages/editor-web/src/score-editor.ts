@@ -1,11 +1,11 @@
-import { getBeatGroups, type ScoreNode } from '@oon/core';
+import { getBeatGroups, type ScoreNode } from '@ooon/core';
 import {
   CanvasProjector,
   loadBravura,
   renderScore,
-} from '@oon/projector-web';
-import { calculateScoreLayout, type ScoreLayout } from '@oon/score-engraving';
-import { EditableScore, type ScoreCommand } from '@oon/editor-core';
+} from '@ooon/projector-web';
+import { calculateScoreLayout, type ScoreLayout } from '@ooon/score-engraving';
+import { EditableScore, type ScoreCommand } from '@ooon/editor-core';
 import {
   calculateBeatSlots,
   findSlotAt,
@@ -106,14 +106,14 @@ const RESIZE_DEBOUNCE_MS = 80;
 
 export function mountScoreEditor(host: HTMLElement, opts: MountScoreEditorOptions): ScoreEditorHandle {
   if (opts.source === undefined && opts.node === undefined) {
-    throw new Error('@oon/editor-web mountScoreEditor: opts.source or opts.node required');
+    throw new Error('@ooon/editor-web mountScoreEditor: opts.source or opts.node required');
   }
   const editable = opts.node
     ? new EditableScore({ node: opts.node })
     : new EditableScore({ source: opts.source! });
 
   const root = document.createElement('div');
-  root.className = 'oon-editor';
+  root.className = 'ooon-editor';
   // 트리플 캔버스 stacking:
   //  - score-canvas: DOM 흐름 안. 보표/음표/박자표 등 본 score만. pointer-events:none(아래 깔림).
   //  - edit-canvas: score 위 absolute, 같은 크기/위치, transparent. 박자 오버레이/튕기기/진동/debug
@@ -122,7 +122,7 @@ export function mountScoreEditor(host: HTMLElement, opts: MountScoreEditorOption
   //  - ui-canvas: 위·아래 패드만큼 더 큰 absolute 레이어로 picker 모달 전용. 평소 pointer-events:none
   //    이라 없는 셈 취급되고, 픽커가 열렸을 때만 'auto'로 토글하여 주변 DOM을 덮는 모달처럼 동작.
   const canvasWrap = document.createElement('div');
-  canvasWrap.className = 'oon-editor__canvas';
+  canvasWrap.className = 'ooon-editor__canvas';
   canvasWrap.style.position = 'relative';
   const scoreCanvas = document.createElement('canvas');
   scoreCanvas.style.pointerEvents = 'none';
@@ -713,7 +713,7 @@ export function mountScoreEditor(host: HTMLElement, opts: MountScoreEditorOption
           });
         } catch (err) {
           if (opts.onError) opts.onError(err);
-          else console.warn('[oon/editor-web] insertNote failed', err);
+          else console.warn('[ooon/editor-web] insertNote failed', err);
         }
         void preview.previewNote(picker.pitch, option.duration);
         break;
@@ -728,7 +728,7 @@ export function mountScoreEditor(host: HTMLElement, opts: MountScoreEditorOption
           });
         } catch (err) {
           if (opts.onError) opts.onError(err);
-          else console.warn('[oon/editor-web] insertRest failed', err);
+          else console.warn('[ooon/editor-web] insertRest failed', err);
         }
         // 쉼표는 무음 — preview 없음.
         break;
@@ -745,7 +745,7 @@ export function mountScoreEditor(host: HTMLElement, opts: MountScoreEditorOption
           });
         } catch (err) {
           if (opts.onError) opts.onError(err);
-          else console.warn('[oon/editor-web] replaceNote failed', err);
+          else console.warn('[ooon/editor-web] replaceNote failed', err);
           break;
         }
         // 교체 결과음을 미리듣기. pitches는 source(음표)에서 그대로 유지된다.
@@ -766,7 +766,7 @@ export function mountScoreEditor(host: HTMLElement, opts: MountScoreEditorOption
           });
         } catch (err) {
           if (opts.onError) opts.onError(err);
-          else console.warn('[oon/editor-web] replaceWithRest failed', err);
+          else console.warn('[ooon/editor-web] replaceWithRest failed', err);
         }
         break;
       }
@@ -782,7 +782,7 @@ export function mountScoreEditor(host: HTMLElement, opts: MountScoreEditorOption
           });
         } catch (err) {
           if (opts.onError) opts.onError(err);
-          else console.warn('[oon/editor-web] addChordPitch failed', err);
+          else console.warn('[ooon/editor-web] addChordPitch failed', err);
           break;
         }
         if (before) void preview.previewNote(option.pitch, before.duration);
@@ -799,7 +799,7 @@ export function mountScoreEditor(host: HTMLElement, opts: MountScoreEditorOption
           });
         } catch (err) {
           if (opts.onError) opts.onError(err);
-          else console.warn('[oon/editor-web] removeChordHead failed', err);
+          else console.warn('[ooon/editor-web] removeChordHead failed', err);
         }
         // 제거는 무음 — preview 없음.
         break;
@@ -811,7 +811,7 @@ export function mountScoreEditor(host: HTMLElement, opts: MountScoreEditorOption
           editable.dispatch({ type: 'setTimeSignature', timeSignature: option.timeSignature });
         } catch (err) {
           if (opts.onError) opts.onError(err);
-          else console.warn('[oon/editor-web] setTimeSignature failed', err);
+          else console.warn('[ooon/editor-web] setTimeSignature failed', err);
         }
         break;
       }
@@ -834,7 +834,7 @@ export function mountScoreEditor(host: HTMLElement, opts: MountScoreEditorOption
       editable.dispatch({ type: 'appendBar' });
     } catch (err) {
       if (opts.onError) opts.onError(err);
-      else console.warn('[oon/editor-web] appendBar failed', err);
+      else console.warn('[ooon/editor-web] appendBar failed', err);
       return;
     }
     state = { ...state, hoveredAddBar: false, ghostPreview: null };
@@ -870,7 +870,7 @@ export function mountScoreEditor(host: HTMLElement, opts: MountScoreEditorOption
       editable.dispatch({ type: 'insertNote', barIndex: zone.lastBarIndex, pitch: pickResult.pitch, duration });
     } catch (err) {
       if (opts.onError) opts.onError(err);
-      else console.warn('[oon/editor-web] pluck insertNote failed', err);
+      else console.warn('[ooon/editor-web] pluck insertNote failed', err);
     }
     void preview.previewNote(pickResult.pitch, duration);
     rebuild();
@@ -907,7 +907,7 @@ export function mountScoreEditor(host: HTMLElement, opts: MountScoreEditorOption
       });
     } catch (err) {
       if (opts.onError) opts.onError(err);
-      else console.warn('[oon/editor-web] transposeNote failed', err);
+      else console.warn('[ooon/editor-web] transposeNote failed', err);
       return;
     }
     const node = editable.getNode();

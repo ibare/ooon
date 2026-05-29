@@ -1,5 +1,5 @@
-import { GLYPHS, type GlyphName } from '@oon/smufl-asset';
-import { SMUFL, type DurationSymbol } from '@oon/core';
+import { GLYPHS, type GlyphName } from '@ooon/smufl-asset';
+import { SMUFL, type DurationSymbol } from '@ooon/core';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // duration symbol 기반 시각 분기.

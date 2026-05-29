@@ -1,6 +1,6 @@
-import type { Projector } from '@oon/shared';
-import type { ProgressionLayout, ProgressionCardLayout } from '@oon/instrument-layouts';
-import { romanFunction, type RomanFunction } from '@oon/core';
+import type { Projector } from '@ooon/shared';
+import type { ProgressionLayout, ProgressionCardLayout } from '@ooon/instrument-layouts';
+import { romanFunction, type RomanFunction } from '@ooon/core';
 import { CanvasProjector } from '../canvas-projector.js';
 import { FONT, FUNCTION_PALETTE, METRICS, THEME, type FunctionKey } from '../theme.js';
 

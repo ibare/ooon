@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { AudioEngine } from '@oon/shared';
-import { OonRuntime } from './runtime.js';
+import type { AudioEngine } from '@ooon/shared';
+import { OoonRuntime } from './runtime.js';
 
 function createFakeAudioEngine(): AudioEngine & { readonly log: string[] } {
   const log: string[] = [];
@@ -30,17 +30,17 @@ function createFakeAudioEngine(): AudioEngine & { readonly log: string[] } {
   };
 }
 
-describe('OonRuntime', () => {
+describe('OoonRuntime', () => {
   it('does not create audio engine until requested', () => {
     const factory = vi.fn(() => createFakeAudioEngine());
-    const runtime = new OonRuntime({ createAudioEngine: factory });
+    const runtime = new OoonRuntime({ createAudioEngine: factory });
     expect(runtime.hasAudioEngine()).toBe(false);
     expect(factory).not.toHaveBeenCalled();
   });
 
   it('initializes audio engine on first getAudioEngine() call', async () => {
     const fake = createFakeAudioEngine();
-    const runtime = new OonRuntime({ createAudioEngine: () => fake });
+    const runtime = new OoonRuntime({ createAudioEngine: () => fake });
     const engine = await runtime.getAudioEngine();
     expect(engine).toBe(fake);
     expect(fake.log).toEqual(['init']);
@@ -50,7 +50,7 @@ describe('OonRuntime', () => {
   it('reuses the audio engine across subsequent calls without re-initializing', async () => {
     const fake = createFakeAudioEngine();
     const factory = vi.fn(() => fake);
-    const runtime = new OonRuntime({ createAudioEngine: factory });
+    const runtime = new OoonRuntime({ createAudioEngine: factory });
     await runtime.getAudioEngine();
     await runtime.getAudioEngine();
     expect(factory).toHaveBeenCalledTimes(1);
@@ -59,7 +59,7 @@ describe('OonRuntime', () => {
 
   it('dispose() tears down audio engine and clears state', async () => {
     const fake = createFakeAudioEngine();
-    const runtime = new OonRuntime({ createAudioEngine: () => fake });
+    const runtime = new OoonRuntime({ createAudioEngine: () => fake });
     await runtime.getAudioEngine();
     runtime.dispose();
     expect(fake.log).toContain('dispose');
@@ -67,7 +67,7 @@ describe('OonRuntime', () => {
   });
 
   it('loadFont() resolves immediately when no URL is configured', async () => {
-    const runtime = new OonRuntime();
+    const runtime = new OoonRuntime();
     await expect(runtime.loadFont()).resolves.toBeUndefined();
   });
 });

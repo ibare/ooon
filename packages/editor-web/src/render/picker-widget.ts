@@ -305,8 +305,8 @@ import {
   type Size,
   type Widget as W,
 } from '../ui/widget.js';
-import type { Color, Projector } from '@oon/shared';
-import { BRAVURA_FONT_FAMILY, SMUFL, type GlyphName } from '@oon/core';
+import type { Color, Projector } from '@ooon/shared';
+import { BRAVURA_FONT_FAMILY, SMUFL, type GlyphName } from '@ooon/core';
 
 interface NoteOrRestCellProps {
   /** SMuFL 글리프 이름(예: 'noteQuarterUp'). paint 시 SMUFL[name]으로 코드포인트 변환. */

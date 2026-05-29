@@ -1,5 +1,5 @@
-import type { Projector } from '@oon/shared';
-import type { KeyLayout, KeyboardLayout } from '@oon/instrument-layouts';
+import type { Projector } from '@ooon/shared';
+import type { KeyLayout, KeyboardLayout } from '@ooon/instrument-layouts';
 import { CanvasProjector } from '../canvas-projector.js';
 import { FONT, METRICS, THEME } from '../theme.js';
 

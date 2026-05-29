@@ -1,10 +1,10 @@
-import type { LayoutBase } from '@oon/core';
+import type { LayoutBase } from '@ooon/core';
 import type {
   DrumLayout,
   KeyboardLayout,
   ProgressionCardLayout,
-} from '@oon/instrument-layouts';
-import type { ScoreLayout } from '@oon/score-engraving';
+} from '@ooon/instrument-layouts';
+import type { ScoreLayout } from '@ooon/score-engraving';
 
 /**
  * Song 한 시스템 (= score wrap 단위 한 줄). progression/score/drum이 동일 마디에 정렬된다.

@@ -1,8 +1,8 @@
 {
-  "name": "@oon/player-web",
+  "name": "@ooon/player-web",
   "version": "0.0.0",
   "private": true,
-  "description": "Oon 인터랙티브 블록 플레이어 — DSL 한 줄로 캔버스 + 컨트롤 + 오디오 통합 컨테이너",
+  "description": "Ooon 인터랙티브 블록 플레이어 — DSL 한 줄로 캔버스 + 컨트롤 + 오디오 통합 컨테이너",
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
@@ -21,17 +21,17 @@
     "clean": "rm -rf dist .tsbuildinfo"
   },
   "dependencies": {
-    "@oon/audio-engine-web": "workspace:*",
-    "@oon/composition": "workspace:*",
-    "@oon/core": "workspace:*",
-    "@oon/editor-web": "workspace:*",
-    "@oon/instrument-layouts": "workspace:*",
-    "@oon/projector-web": "workspace:*",
-    "@oon/score-engraving": "workspace:*",
-    "@oon/shared": "workspace:*"
+    "@ooon/audio-engine-web": "workspace:*",
+    "@ooon/composition": "workspace:*",
+    "@ooon/core": "workspace:*",
+    "@ooon/editor-web": "workspace:*",
+    "@ooon/instrument-layouts": "workspace:*",
+    "@ooon/projector-web": "workspace:*",
+    "@ooon/score-engraving": "workspace:*",
+    "@ooon/shared": "workspace:*"
   },
   "devDependencies": {
-    "@oon/tsconfig": "workspace:*",
+    "@ooon/tsconfig": "workspace:*",
     "tsup": "^8.2.4",
     "typescript": "^5.5.4",
     "vitest": "^2.1.1"

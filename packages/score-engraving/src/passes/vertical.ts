@@ -1,4 +1,4 @@
-import { ENGRAVING, GLYPHS } from '@oon/smufl-asset';
+import { ENGRAVING, GLYPHS } from '@ooon/smufl-asset';
 
 // step: C0=0 기준의 7도 단계(letterStep). B4=4*7+6=34.
 // 본 모듈은 SMuFL 메타데이터 단위(sp)에서 받은 값을 px로 변환해 반환한다.

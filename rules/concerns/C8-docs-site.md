@@ -17,7 +17,7 @@ last_verified: 2026-04-17
 ## MUST
 - 공개 API의 시그니처나 동작이 바뀌면 `website/`의 관련 문서도 같은 PR에서 갱신한다
 - `website/`는 GitHub Pages 호스팅용 단일 앱으로 구성한다. 라우팅은 단일 엔트리 앱 내부에서 처리한다
-- `website/`와 `docs/`의 코드 예제는 실제 패키지 이름으로 import한다 (`@oon/foo`)
+- `website/`와 `docs/`의 코드 예제는 실제 패키지 이름으로 import한다 (`@ooon/foo`)
 - `website/`·`docs/`의 의존성은 라이브러리 패키지에 역영향을 주지 않는다 (의존 방향 준수)
 
 ## MUST NOT

@@ -1,4 +1,4 @@
-import type { Color, HitArea, Point, Projector, Rect, Size, TextOptions } from '@oon/shared';
+import type { Color, HitArea, Point, Projector, Rect, Size, TextOptions } from '@ooon/shared';
 
 export interface CanvasProjectorOptions {
   devicePixelRatio?: number;
