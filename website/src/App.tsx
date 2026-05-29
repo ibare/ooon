@@ -2,12 +2,13 @@ import { lazy, Suspense, useEffect, useRef } from 'react';
 import { Navigate, Route, Routes, useLocation, useParams } from 'react-router-dom';
 import Footer from './layout/Footer';
 import Nav from './layout/Nav';
+// Home 은 메인(/) 라우트라 LCP 우선순위 위해 direct import. 나머지는 lazy.
 import Home from './pages/Home';
 import { LangProvider } from './i18n/context';
 import { detectLanguage } from './i18n/detect';
 import type { Lang } from './i18n/types';
 
-const Examples = lazy(() => import('./pages/Examples'));
+const GetStarted = lazy(() => import('./pages/GetStarted'));
 const Showcase = lazy(() => import('./pages/Showcase'));
 const Syntax = lazy(() => import('./pages/Syntax'));
 const Playground = lazy(() => import('./pages/Playground'));
@@ -42,8 +43,8 @@ function LangShell() {
           <Suspense fallback={<div style={{ padding: '4em', textAlign: 'center' }}>Loading…</div>}>
             <Routes>
               <Route index element={<Home />} />
-              <Route path="examples" element={<Examples />} />
-              <Route path="examples/:category" element={<Examples />} />
+              <Route path="get-started" element={<GetStarted />} />
+              <Route path="get-started/:section" element={<GetStarted />} />
               <Route path="showcase" element={<Showcase />} />
               <Route path="showcase/:genre" element={<Showcase />} />
               <Route path="syntax" element={<Syntax />} />

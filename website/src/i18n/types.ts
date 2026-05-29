@@ -5,10 +5,15 @@ export interface FeatureItem {
   desc: string;
 }
 
+export interface SectionCopy {
+  title: string;
+  body: string;
+}
+
 export interface Dictionary {
   nav: {
     home: string;
-    examples: string;
+    getStarted: string;
     showcase: string;
     syntax: string;
     playground: string;
@@ -47,14 +52,28 @@ export interface Dictionary {
   footer: {
     tagline: string;
   };
-  examplesPage: {
+  getStartedPage: {
     title: string;
     sub: string;
+    install_label: string;
     source_label: string;
     render_label: string;
-    play: string;
-    stop: string;
-    categories: Record<string, string>;
+    sections: {
+      intro: SectionCopy;
+      install: SectionCopy & { peer_label: string; peers: { name: string; range: string }[] };
+      setup: SectionCopy & { font_note: string };
+      fence: SectionCopy & { tokenizer_note: string };
+      types: { title: string; body: string; categories: Record<string, string> };
+      inline: SectionCopy;
+      try: SectionCopy;
+      next: {
+        title: string;
+        body: string;
+        showcase: { title: string; desc: string };
+        syntax: { title: string; desc: string };
+        playground: { title: string; desc: string };
+      };
+    };
   };
   showcasePage: {
     title: string;

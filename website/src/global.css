@@ -264,3 +264,219 @@ code {
     grid-template-columns: 1fr;
   }
 }
+
+/* Get Started 페이지 — 섹션 헤딩/본문 */
+.container--text {
+  max-width: var(--text-max);
+}
+
+.get-started__title {
+  font-size: 2em;
+  font-weight: 700;
+  color: var(--color-heading);
+  letter-spacing: -0.01em;
+}
+
+.get-started__sub {
+  margin-top: 0.6em;
+  color: var(--color-muted);
+  font-size: 1.05em;
+  line-height: 1.55;
+}
+
+.get-started__section-header {
+  margin-bottom: 1.5em;
+}
+
+.get-started__section-header--wide {
+  max-width: var(--text-max);
+}
+
+.get-started__h2 {
+  font-size: 1.5em;
+  font-weight: 700;
+  color: var(--color-heading);
+  margin: 0 0 0.5em;
+}
+
+.get-started__h3 {
+  font-size: 1em;
+  font-weight: 600;
+  color: var(--color-heading);
+  margin: 1.5em 0 0.6em;
+}
+
+.get-started__body {
+  color: var(--color-text);
+  line-height: 1.65;
+  margin: 0 0 1em;
+}
+
+.get-started__note {
+  margin-top: 0.8em;
+  color: var(--color-muted);
+  font-size: 0.92em;
+  line-height: 1.55;
+  border-left: 2px solid var(--color-border);
+  padding-left: 0.8em;
+}
+
+/* peer dependencies 표 */
+.peer-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 0.5em;
+  font-size: 0.95em;
+}
+
+.peer-table th,
+.peer-table td {
+  text-align: left;
+  padding: 0.5em 0.8em;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.peer-table th {
+  font-weight: 600;
+  color: var(--color-muted);
+  font-size: 0.85em;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.peer-table code {
+  font-family: var(--font-mono);
+  font-size: 0.92em;
+}
+
+/* §5 Block types tour 그리드 */
+.block-types__items {
+  display: flex;
+  flex-direction: column;
+  gap: 2em;
+  margin-top: 2em;
+}
+
+.block-types__item-title {
+  font-size: 1.1em;
+  font-weight: 600;
+  color: var(--color-heading);
+  margin-bottom: 0.6em;
+}
+
+.block-types__label {
+  font-size: 0.78em;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-muted);
+  margin-bottom: 0.4em;
+}
+
+/* §7 Editor demo */
+.editor-demo {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5em;
+  margin-top: 2em;
+}
+
+.editor-demo__editor {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 1.25em 1.5em;
+  background: var(--color-bg);
+}
+
+.editor-demo__editor .ProseMirror {
+  outline: none;
+  min-height: 24em;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--color-text);
+}
+
+.editor-demo__editor .ProseMirror h1 {
+  font-size: 1.6em;
+  margin: 0.4em 0 0.6em;
+  color: var(--color-heading);
+}
+
+.editor-demo__editor .ProseMirror h2 {
+  font-size: 1.3em;
+  margin: 0.6em 0 0.4em;
+  color: var(--color-heading);
+}
+
+.editor-demo__editor .ProseMirror p {
+  margin: 0.4em 0;
+}
+
+.editor-demo__editor .ProseMirror pre[data-ooon-block] {
+  margin: 0.8em 0;
+}
+
+.editor-demo__source {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-bg-alt);
+  overflow: hidden;
+}
+
+.editor-demo__source-header {
+  padding: 0.5em 1em;
+  font-size: 0.85em;
+  color: var(--color-muted);
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-bg);
+}
+
+.editor-demo__source-code {
+  margin: 0;
+  padding: 1em 1.2em;
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  color: var(--color-text);
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 22em;
+  overflow: auto;
+}
+
+/* §8 Next steps */
+.next-steps__card {
+  position: relative;
+  display: block;
+  padding: 1.5em;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-bg);
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.15s ease-out, transform 0.15s ease-out;
+}
+
+.next-steps__card:hover {
+  border-color: var(--color-accent);
+  transform: translateY(-2px);
+}
+
+.next-steps__title {
+  font-size: 1.05em;
+  font-weight: 600;
+  color: var(--color-heading);
+  margin-bottom: 0.4em;
+}
+
+.next-steps__desc {
+  color: var(--color-muted);
+  font-size: 0.92em;
+  line-height: 1.55;
+}
+
+.next-steps__arrow {
+  position: absolute;
+  top: 1.2em;
+  right: 1.2em;
+  color: var(--color-accent);
+  font-size: 1.1em;
+}

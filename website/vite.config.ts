@@ -22,6 +22,7 @@ export default defineConfig({
       '@ooon/score-engraving',
       '@ooon/shared',
       '@ooon/smufl-asset',
+      '@ooon/tiptap',
     ],
   },
   // 모노레포 외부(상위 디렉터리) 파일을 dev 서버가 읽을 수 있게 허용 — workspace dist 접근.

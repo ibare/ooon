@@ -9,7 +9,7 @@ export default function Nav() {
   const { pathname } = useLocation();
 
   const navItems: { to: string; label: string }[] = [
-    { to: 'examples', label: t.nav.examples },
+    { to: 'get-started', label: t.nav.getStarted },
     { to: 'showcase', label: t.nav.showcase },
     { to: 'syntax', label: t.nav.syntax },
     { to: 'playground', label: t.nav.playground },

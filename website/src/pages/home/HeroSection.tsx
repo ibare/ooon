@@ -27,7 +27,7 @@ export default function HeroSection() {
           {t.hero.sub}
         </p>
         <div style={{ marginTop: '1.8em', display: 'flex', gap: '0.8em', justifyContent: 'center' }}>
-          <Link to={`/${lang}/examples`} className="btn btn--primary">
+          <Link to={`/${lang}/get-started`} className="btn btn--primary">
             {t.hero.cta_start}
           </Link>
           <a

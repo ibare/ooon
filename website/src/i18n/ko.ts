@@ -3,7 +3,7 @@ import type { Dictionary } from './types';
 export const ko: Dictionary = {
   nav: {
     home: '홈',
-    examples: '예제',
+    getStarted: '시작하기',
     showcase: '쇼케이스',
     syntax: '문법',
     playground: '플레이그라운드',
@@ -57,20 +57,72 @@ export const ko: Dictionary = {
   footer: {
     tagline: 'Ooon — 텍스트 DSL로 음악을 쓰고, Canvas로 그린다.',
   },
-  examplesPage: {
-    title: '예제',
-    sub: 'DSL 원본과 렌더링 결과를 나란히 본다',
+  getStartedPage: {
+    title: '시작하기',
+    sub: 'Ooon을 마크다운 에디터에 임베드하고, DSL 한 줄로 음악을 그리는 법을 처음부터 따라간다.',
+    install_label: '설치',
     source_label: 'DSL',
     render_label: '렌더',
-    play: '재생',
-    stop: '정지',
-    categories: {
-      score: '악보',
-      drum: '드럼',
-      progression: '코드 진행',
-      fretboard: '운지',
-      song: '곡',
-      inline: '인라인',
+    sections: {
+      intro: {
+        title: 'Ooon은 어떻게 동작하나',
+        body: 'Ooon은 두 가지 방식으로 호스트 앱에 붙일 수 있다. 첫째, Tiptap 같은 마크다운 에디터의 코드 펜스 ```ooon ... ```를 NodeView로 가로채 캔버스로 렌더하는 방식. 둘째, DSL 텍스트를 페이지에 직접 마운트하는 단일 컴포넌트 방식. 이 페이지는 첫 번째 방식(`@ooon/tiptap` 진입 번들)을 처음부터 끝까지 따라가는 가이드다. 마지막에 라이브 에디터로 직접 펜스 본문을 편집해 결과를 확인할 수 있다.',
+      },
+      install: {
+        title: '1. 설치',
+        body: 'methii 같은 마크다운 에디터 호스트에 Ooon을 임베드하려면 진입 번들 패키지 하나만 의존하면 된다. 내부 워크스페이스(@ooon/core, @ooon/projector-web 등)는 모두 단일 ESM 번들로 인라인되어 있어 호스트가 따로 신경 쓸 필요가 없다.',
+        peer_label: 'peer dependencies — 호스트가 직접 제공해야 한다',
+        peers: [
+          { name: '@tiptap/core', range: '>=2.6.0' },
+          { name: '@tiptap/pm', range: '>=2.6.0' },
+          { name: 'smplr', range: '>=0.20.0' },
+        ],
+      },
+      setup: {
+        title: '2. Tiptap에 연결한다',
+        body: 'StarterKit의 codeBlock을 끄고 OoonBlock과 OoonInline 확장을 등록한다. OoonRuntime은 폰트(SMuFL Bravura)와 오디오 엔진의 생명주기를 한 곳에서 관리하는 객체로, Tiptap 에디터 인스턴스마다 한 번만 만들면 된다.',
+        font_note: 'Bravura.woff2는 @ooon/tiptap 패키지의 ./font 서브패스로 직접 노출된다. Vite 같은 번들러는 ?url 쿼리로 URL 자산으로 받아 OoonRuntime에 주입한다.',
+      },
+      fence: {
+        title: '3. 마크다운 펜스 round-trip',
+        body: '호스트의 마크다운 토크나이저에서 언어 태그가 \'ooon\'인 펜스를 만나면 createOoonNodeFromSource로 ProseMirror 노드를 만들고, 직렬화 단계에서 ooonBlock 노드를 ooonNodeToMarkdown으로 다시 펜스로 되돌린다. oonBlock 노드는 본문이 DSL 원문 텍스트(content: \'text*\') 그대로이므로 round-trip은 무손실이다.',
+        tokenizer_note: '호스트 마크다운 파서(예: markdown-it) 측에서는 `lang === OOON_FENCE_LANG` 한 분기만 추가하면 된다. 본문 텍스트를 그대로 보존하는 게 핵심이다.',
+      },
+      types: {
+        title: '4. 블록 타입 둘러보기',
+        body: 'Ooon DSL은 다섯 가지 블록 타입을 지원한다. 각 타입은 짧은 헤더(박자/조성)와 본문(노트 시퀀스/패턴/진행)으로 구성된다. 아래 탭에서 DSL과 렌더링 결과를 나란히 확인할 수 있다.',
+        categories: {
+          score: '악보 (score)',
+          drum: '드럼 (drum)',
+          progression: '코드 진행 (progression)',
+          fretboard: '운지 (fretboard)',
+          song: '곡 (song)',
+        },
+      },
+      inline: {
+        title: '5. 인라인 토큰',
+        body: '본문 흐름을 끊지 않고 한 음표/코드/스케일만 끼우고 싶을 때는 백틱 인라인 코드 형태로 `ooon:C4`, `ooon:Cmaj7`, `ooon:C major scale` 같이 작성한다. OoonInline 확장이 본문을 스캔해 데코레이션을 그리고, 호스트가 호버/클릭 시 작은 캔버스 팝오버를 보여줄 수 있다.',
+      },
+      try: {
+        title: '6. 직접 해보기',
+        body: '아래 에디터는 Tiptap에 OoonBlock/OoonInline을 등록한 실제 동작이다. 펜스 본문을 편집하면 캔버스가 즉시 갱신되고, 아래 마크다운 출력은 호스트가 그대로 저장하면 되는 round-trip 결과다.',
+      },
+      next: {
+        title: '7. 다음 단계',
+        body: '다음으로 어디를 볼지 — 장르별 진짜 예제, DSL 문법 레퍼런스, 빈 캔버스에서 편집 UX를 시도하는 플레이그라운드.',
+        showcase: {
+          title: '쇼케이스',
+          desc: '블루스부터 보사노바까지, 장르별 완성된 진행을 한 곡씩.',
+        },
+        syntax: {
+          title: '문법 레퍼런스',
+          desc: '블록 헤더, 토큰, 파라미터의 정확한 정의.',
+        },
+        playground: {
+          title: '플레이그라운드',
+          desc: '빈 한 마디 악보 위에서 편집 UX를 직접 시도한다.',
+        },
+      },
     },
   },
   showcasePage: {
